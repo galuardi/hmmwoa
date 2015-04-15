@@ -1,0 +1,8 @@
+like.sst <-
+function(ingrid, datax = as.numeric(vec[11]), sigma = as.numeric(vec[12])){
+if(is.na(sigma)) sigma = 5
+tempL = ingrid*0  #matrix(0,dim(ingrid)[1],dim(ingrid)[2])
+tdim = dim(ingrid)
+tempL = dnorm(datax, ingrid, sigma)
+tempL
+}

@@ -1,0 +1,16 @@
+{
+    "contents" : "Package: hmmwoa\nType: Package\nTitle: bones of a hidden markov model for psat data\nVersion: 1.0\nDate: 2015-04-14\nAuthor: Benjamin Galuardi\nMaintainer: <drdrumfish@gmail.com>\nDescription: this will be the HMM using WOA data. The guts follow Pedersen et al. 2008\nLicense: MIT\nDepends: analyzepsat, EBImage, mvtnorm, fields\nSuggests: raster\n",
+    "created" : 1429065496617.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3093432304",
+    "id" : "1121149B",
+    "lastKnownWriteTime" : 1429065504,
+    "path" : "C:/Users/ben/Documents/GitHub/hmmwoa/DESCRIPTION",
+    "project_path" : "DESCRIPTION",
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "dcf"
+}

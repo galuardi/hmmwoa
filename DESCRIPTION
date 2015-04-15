@@ -1,0 +1,11 @@
+Package: hmmwoa
+Type: Package
+Title: bones of a hidden markov model for psat data
+Version: 1.0
+Date: 2015-04-14
+Author: Benjamin Galuardi
+Maintainer: <drdrumfish@gmail.com>
+Description: this will be the HMM using WOA data. The guts follow Pedersen et al. 2008
+License: MIT
+Depends: analyzepsat, EBImage, mvtnorm, fields
+Suggests: raster
