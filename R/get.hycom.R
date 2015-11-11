@@ -9,9 +9,9 @@ get.hycom = function(lon, lat, time, vars=c('temperature'), include_latlon=TRUE,
   #' Ideally download.file (default method) would be used instead of curl (optional), but this does not 
   #' seem to work on some platforms.
   #'
-  #' @param lon An array of length 2 with the minimum and maximum longitude. 
-  #' @param lat An array of length 2 with the minimum and maximum latitude.
-  #' @param time An array of length 2 with the minimum and maximum times.
+  #' @param lon An vector of length 2 with the minimum and maximum longitude. 
+  #' @param lat An vector of length 2 with the minimum and maximum latitude.
+  #' @param time An vector of length 2 with the minimum and maximum times.
   #' @param vars A list of variables to download. This should only contain
   #' 'emp', 'mld', 'mlp', qtot', 'ssh', 'surface_salinity_trend',
   #' 'surface_temperature_trend', 'salinity', 'temperature', 'u', and 'v', but is
