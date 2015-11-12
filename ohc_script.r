@@ -8,6 +8,7 @@ data = read.table('121325-PDTs.csv',sep=',',header=T,blank.lines.skip=F)
 pdt = extract.pdt(data)
 
 # download daily hycom products
+time <- c(as.Date(min(pdt$Date)),as.Date(max(pdt$Date)))
 get.hycom(lon,lat,time,filename=paste()) # filenames based on dates from above
 
 # calc.ohc
