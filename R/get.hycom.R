@@ -1,6 +1,6 @@
 
 get.hycom = function(lon, lat, time, vars=c('temperature'), include_latlon=TRUE,
-                          filename='',download.file=TRUE) {
+                          filename='',download.file=TRUE, dir = getwd()) {
   #' Downloads data from the HYCOM + NCODA Global 1/12 Degree Analysis.
   #'
   #' The method may return before the download is completed. It will continue
@@ -23,11 +23,17 @@ get.hycom = function(lon, lat, time, vars=c('temperature'), include_latlon=TRUE,
   #' @param download.file Should use the default download.file function to query 
   #' the server and download or use the optional curl function. Some users may
   #' need to use curl in order to get this to work.
+  #' @param: dir is directory where nc files should be downloaded to. default is
+  #' current working directory. if enter a directory that doesn't exist, it will
+  #' be created.
   #' @return The url used to extract the requested data from the NetCDF subset
   #' service.
     
   ## Function originally written for R by Ben Jones (WHOI) and modified by Camrin
   ## Braun and Ben Galuardi.
+  
+  dir.create(file.path(dir),recursive=TRUE)
+  setwd(dir)
   
   ## Set the base URL based on the start date. If the ending date exceeds the
   ## period for this experiment, then print a warning and truncate the output
@@ -63,21 +69,29 @@ get.hycom = function(lon, lat, time, vars=c('temperature'), include_latlon=TRUE,
   url = sprintf('%snorth=%f&west=%f&east=%f&south=%f&horizStride=1&',
                 url, lat[2], lon[1], lon[2], lat[1])
   ## Add the time domain.
-  url = sprintf('%stime_start=%s%%3A00%%3A00Z&time_end=%s%%3A00%%3A00Z&timeStride=1&',
-                url, strftime(time[1], '%Y-%m-%dT00', start_time),
-                strftime(time[2], '%Y-%m-%dT00', end_time))
+  if(length(time)==2){
+    url = sprintf('%stime_start=%s%%3A00%%3A00Z&time_end=%s%%3A00%%3A00Z&timeStride=1&',
+                  url, strftime(time[1], '%Y-%m-%dT00', start_time),
+                  strftime(time[2], '%Y-%m-%dT00', end_time))
+  } else if(length(time)==1){
+    url = sprintf('%stime_start=%s%%3A00%%3A00Z&time_end=%s%%3A00%%3A00Z&timeStride=1&',
+                  url, strftime(time[1], '%Y-%m-%dT00'),
+                  strftime(time[1], '%Y-%m-%dT00'))
+  }
+  
   ## Add the lat-lon points if requested.
   if(include_latlon)
     url = sprintf('%saddLatLon=true&', url)
   ## Finish the URL.
   url = sprintf('%sdisableProjSubset=on&vertCoord=&accept=netcdf', url)
   ## Download the data if a filename was provided.
-  if(filename != '')
-    if(download.file=TRUE){
+  if(filename != ''){
+    if(download.file==TRUE){
       download.file(url,filename)
-    } else if(download.file=FALSE){
-    system(sprintf('curl -o "%s" "%s"', filename, url))
+    } else if(download.file==FALSE){
+      system(sprintf('curl -o "%s" "%s"', filename, url))
     }
+  }
   return(url)
 }
 
