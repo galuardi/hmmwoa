@@ -1,10 +1,15 @@
-extract.pdt = function(pdt){
+extract.pdt = function(data){
   
   # extract PDT data from WC tag output
   # need to convert to long format for use in R
   
-  #' @param: 
+  #' @param: data is data frame read from .csv output of Wildlife Computers
+  #' DAP processor. File ends in "-PDTs.csv"
   #' 
+  #' @return: pdt is formatted data frame of pdt data
+  #' 
+  #' Written by Camrin Braun (WHOI) for R on 12 Nov 2015
+  #' cbraun@whoi.edu
 
   # format accordingly
   
@@ -17,11 +22,10 @@ extract.pdt = function(pdt){
   row.names(pdt) <- NULL
   
   # need to figure out date conversion then sort
-  pdt$Date <- as.Date(pdt$Date)
+  pdt$Date <- as.POSIXct(pdt$Date, format=findDateFormat(pdt$Date))
   pdt <- pdt[order(pdt$Date,pdt$Depth),]               
   
-  
-  
   # write out / return
-    
+  return(pdt)
+  
 }
