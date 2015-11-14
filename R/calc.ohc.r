@@ -1,4 +1,4 @@
-calc.ohc = function(pdt,time,isotherm='',ohc.dir,ptt){
+calc.ohc = function(pdt,isotherm='',ohc.dir,ptt,sdx){
   # compare tag data to ohc map and calculate likelihoods
   
   #' @param: tagdata is variable containing tag-collected PDT data

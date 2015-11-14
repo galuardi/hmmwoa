@@ -31,7 +31,7 @@ for(i in 129:length(udates)){
 
 
 # calc.ohc
-likelihood = calc.ohc(pdt,ohc.dir=ohc.dir)
+likelihood = calc.ohc(pdt,ohc.dir=ohc.dir,ptt=121325,sdx=.5)
 
 tryCatch({
   print(i)
