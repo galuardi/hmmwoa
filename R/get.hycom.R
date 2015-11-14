@@ -40,11 +40,11 @@ get.hycom = function(lon, lat, time, vars=c('temperature'), include_latlon=TRUE,
   ## period for this experiment, then print a warning and truncate the output
   ## early.
   expts = data.frame(
-    start=c(as.Date('2008-09-01'), as.Date('2009-05-01'),
-            as.Date('2011-01-01'), as.Date('2013-08-01'),
-            as.Date('2014-04-01')),
-    end=c(as.Date('2009-04-30'), as.Date('2010-12-31'),
-          as.Date('2013-07-31'), as.Date('2014-03-31'),
+    start=c(as.Date('2008-09-19'), as.Date('2009-05-07'),
+            as.Date('2011-01-03'), as.Date('2013-08-21'),
+            as.Date('2014-04-05')),
+    end=c(as.Date('2009-05-06'), as.Date('2011-01-02'),
+          as.Date('2013-08-20'), as.Date('2014-04-04'),
           Sys.Date() + 1),
     url=c('http://ncss.hycom.org/thredds/ncss/GLBa0.08/expt_90.6?',
           'http://ncss.hycom.org/thredds/ncss/GLBa0.08/expt_90.8?',
@@ -60,7 +60,7 @@ get.hycom = function(lon, lat, time, vars=c('temperature'), include_latlon=TRUE,
          strftime(expts$end[nrow(expts)], '%d %b %Y'),
          strftime(time[1], '%d %b %Y'))
   for(i in seq(nrow(expts))) {
-    if((time[1] > expts$start[i]) & (time[1] <= expts$end[i]))
+    if((time[1] >= expts$start[i]) & (time[1] <= expts$end[i]))
       url = expts$url[i]
   }
   ## Add the variables.

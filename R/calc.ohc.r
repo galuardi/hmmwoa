@@ -1,4 +1,4 @@
-calc.ohc = function(tagdata,time,isotherm='',ohc.dir){
+calc.ohc = function(pdt,time,isotherm='',ohc.dir,ptt){
   # compare tag data to ohc map and calculate likelihoods
   
   #' @param: tagdata is variable containing tag-collected PDT data
@@ -14,9 +14,6 @@ calc.ohc = function(tagdata,time,isotherm='',ohc.dir){
   
   require(ncdf); require(abind)
   
-  # define time based on tag data
-  #time <- ?
-  
   # constants for OHC calc
   cp = 3.993 # kJ/kg*C
   rho = 1025 # kg/m3
@@ -24,10 +21,15 @@ calc.ohc = function(tagdata,time,isotherm='',ohc.dir){
   # calculate midpoint of tag-based min/max temps
   pdt$MidTemp <- (pdt$MaxTemp + pdt$MinTemp) / 2
   
-  for(i in time){
-    nc = open.ncdf(paste(ohc.dir,ptt,'_',i,'.nc',sep=''))
+  udates <- unique(as.Date(pdt$Date))
+  
+  for(i in 1:length(udates)){
+    # define time based on tag data
+    time <- as.Date(udates[i])
+    
+    nc = open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep=''))
     dat = get.var.ncdf(nc, 'temperature')
-
+    
     pdt.i <- pdt[which(as.Date(pdt$Date)==time),]
     
     if(isotherm == ''){
