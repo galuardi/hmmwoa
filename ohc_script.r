@@ -17,12 +17,12 @@ ohc.dir <- '~/Documents/WHOI/RData/HYCOM/Lydia/'
 
 udates <- unique(as.Date(pdt$Date))
 
-for(i in 4:5){#length(udates)){
+for(i in 128:length(udates)){
   time <- as.Date(udates[i])
   repeat{
     get.hycom(lon,lat,time,filename=paste(ptt,'_',time,'.nc',sep=''),download.file=TRUE,dir=ohc.dir) # filenames based on dates from above
-    nc = open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep=''))
-    if(exists("nc")) break
+    err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
+    if(class(err) != 'try-error') break
   }
 }
 
