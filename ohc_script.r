@@ -31,14 +31,20 @@ for(i in 129:length(udates)){
 
 
 # calc.ohc
-likelihood = calc.ohc(pdt,ohc.dir=ohc.dir,ptt=121325,sdx=.5)
+# how to paramaterize sdx? seems like it should scale relative to
+# magnitude of ohc?
+# maybe best way is, after testing double tag data, to use known locations
+# and ohc at those positions compared to that calculated from the tags
+# pdt data. that should be a great way to get sd estimates for ohc based on real data
+likelihood = calc.ohc(pdt,ohc.dir=ohc.dir,ptt=121325,sdx=.5,plot=T)
 
-tryCatch({
-  print(i)
-  if (i==7) stop("Urgh, the iphone is in the blender !")
-}, error=function(e){})
+pdf('lyd likelihood.pdf')
+image.plot(lon,lat,likelihood[,,15])
+dev.off()
 
-tryCatch({
-  err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
-}, error=function(e){})
+########
+
+install.packages('devtools')
+library(devtools)
+install_github('camrinbraun/hmmwoa')
 

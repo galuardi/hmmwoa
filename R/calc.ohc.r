@@ -1,4 +1,4 @@
-calc.ohc = function(pdt,isotherm='',ohc.dir,ptt,sdx){
+calc.ohc = function(pdt,isotherm='',ohc.dir,ptt,sdx,plot=F){
   # compare tag data to ohc map and calculate likelihoods
   
   #' @param: tagdata is variable containing tag-collected PDT data
@@ -23,6 +23,8 @@ calc.ohc = function(pdt,isotherm='',ohc.dir,ptt,sdx){
   
   udates <- unique(as.Date(pdt$Date))
   
+  if(isotherm!='') iso.def = TRUE else iso.def = FALSE
+  
   for(i in 1:length(udates)){
     # define time based on tag data
     time <- as.Date(udates[i])
@@ -32,10 +34,8 @@ calc.ohc = function(pdt,isotherm='',ohc.dir,ptt,sdx){
     
     pdt.i <- pdt[which(as.Date(pdt$Date)==time),]
     
-    if(isotherm == ''){
-      # calculate daily isotherm based on tag data
-      isotherm = min(pdt.i$MidTemp,na.rm=T)
-    }
+    # calculate daily isotherm based on tag data
+    if(iso.def==FALSE) isotherm = min(pdt.i$MidTemp,na.rm=T)
     
     dat[dat<isotherm] = NA
     
@@ -49,25 +49,39 @@ calc.ohc = function(pdt,isotherm='',ohc.dir,ptt,sdx){
     
     # compare hycom to that day's tag-based ohc
     lik = dnorm(ohc, tag.ohc, sdx) # how to represent sd of tag-based ohc?
-    
+    print(paste(max(lik),time))
     # result should be array of likelihood surfaces
-    if(i==time[1]){
+    if(i==1){
       likelihood = as.array(lik)
       
       # also get lon, lat, depth, variables in case we need them later
-      lon.length = get.var.ncdf(nc, 'X')
-      lat.length = get.var.ncdf(nc, 'Y')
-      lon = seq(lon[1], lon[2], length = length(lon.length))
-      lat = seq(lat[1], lat[2], length = length(lat.length))
-      depth = get.var.ncdf(nc, 'Depth')
+      #lon.length = get.var.ncdf(nc, 'X')
+      #lat.length = get.var.ncdf(nc, 'Y')
+      #lon = seq(lon[1], lon[2], length = length(lon.length))
+      #lat = seq(lat[1], lat[2], length = length(lat.length))
+      #depth = get.var.ncdf(nc, 'Depth')
+      
+      if(plot==T){
+        pdf('lydia likelihood2.pdf')
+        image.plot(lik,zlim=c(0,1))
+        title(paste(time))
+      }
       
     } else{
       likelihood = abind(likelihood,lik,along=3)
+      if(plot==T){
+        image.plot(lik,zlim=c(0,1))
+        title(paste(time))
+      }
     }
+    
+    print(paste(time,' finished.',sep=''))
+    
   }
+    
   
   # maybe add plot option in which each day is added to a pdf on file
-  
+  if(plot==T) dev.off()
   # return ohc likelihood surfaces as an array
   return(likelihood)
   
