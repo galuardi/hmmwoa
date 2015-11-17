@@ -25,12 +25,18 @@ calc.ohc = function(pdt,isotherm='',ohc.dir,ptt,sdx,plot=F){
   
   if(isotherm!='') iso.def = TRUE else iso.def = FALSE
   
-  for(i in 1:length(udates)){
+  for(i in vec){#1:length(udates)){
     # define time based on tag data
     time <- as.Date(udates[i])
     
     nc = open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep=''))
     dat = get.var.ncdf(nc, 'temperature')
+    depth = get.var.ncdf(nc, 'Depth')
+    # also get lon, lat, depth, variables in case we need them later
+    lon.length = get.var.ncdf(nc, 'X')
+    lat.length = get.var.ncdf(nc, 'Y')
+    lon = seq(lon[1], lon[2], length = length(lon.length))
+    lat = seq(lat[1], lat[2], length = length(lat.length))
     
     pdt.i <- pdt[which(as.Date(pdt$Date)==time),]
     
@@ -44,34 +50,43 @@ calc.ohc = function(pdt,isotherm='',ohc.dir,ptt,sdx,plot=F){
     ohc = cp*rho*apply(dat, 1:2, sum, na.rm=T)/10000 
     
     # perform tag data integration
-    tag = pdt.i$MidTemp - isotherm
+    tag = approx(pdt.i$Depth,pdt.i$MidTemp,xout=depth)
+    tag = tag$y - isotherm
     tag.ohc = cp*rho*sum(tag,na.rm=T)/10000
     
     # compare hycom to that day's tag-based ohc
-    lik = dnorm(ohc, tag.ohc, sdx) # how to represent sd of tag-based ohc?
+    lik = dnorm(ohc, tag.ohc, sdx) 
     print(paste(max(lik),time))
+    
     # result should be array of likelihood surfaces
     if(i==1){
       likelihood = as.array(lik)
       
-      # also get lon, lat, depth, variables in case we need them later
-      #lon.length = get.var.ncdf(nc, 'X')
-      #lat.length = get.var.ncdf(nc, 'Y')
-      #lon = seq(lon[1], lon[2], length = length(lon.length))
-      #lat = seq(lat[1], lat[2], length = length(lat.length))
-      #depth = get.var.ncdf(nc, 'Depth')
-      
       if(plot==T){
-        pdf('lydia likelihood2.pdf')
-        image.plot(lik,zlim=c(0,1))
+        pdf('lydia ohc mis.pdf')
+        par(mfrow=c(1,2))
+        image.plot(lon,lat,lik)
+        if(length(which(sdays==time))>0){
+          points(spot[which(sdays==time),c(8,7)],col='white')
+        }
         title(paste(time))
+        plot(dat.i[1:19],depth[1:19],ylim=c(1000,0),type='l',xlab='temp',ylab='depth',lwd=2,xlim=c(8,31))
+        lines(pdt.i$MidTemp,pdt.i$Depth,col='blue',lwd=2)
+        
       }
       
     } else{
       likelihood = abind(likelihood,lik,along=3)
       if(plot==T){
-        image.plot(lik,zlim=c(0,1))
+        par(mfrow=c(1,2))
+        image.plot(lon,lat,lik)
+        if(length(which(sdays==time))>0){
+          points(spot[which(sdays==time),c(8,7)],col='white')
+        }
         title(paste(time))
+        plot(dat.i[1:19],depth[1:19],ylim=c(1000,0),type='l',xlab='temp',ylab='depth',lwd=2,xlim=c(8,31))
+        lines(pdt.i$MidTemp,pdt.i$Depth,col='blue',lwd=2)
+        
       }
     }
     
@@ -80,10 +95,9 @@ calc.ohc = function(pdt,isotherm='',ohc.dir,ptt,sdx,plot=F){
   }
     
   
-  # maybe add plot option in which each day is added to a pdf on file
   if(plot==T) dev.off()
+  
   # return ohc likelihood surfaces as an array
   return(likelihood)
   
 }
-
