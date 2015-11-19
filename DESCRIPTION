@@ -3,8 +3,10 @@ Type: Package
 Title: bones of a hidden markov model for psat data
 Version: 1.0
 Date: 2015-04-14
-Author: Benjamin Galuardi
-Maintainer: <drdrumfish@gmail.com>
+Authors@R: c(
+              person("Benjamin", "Galuardi", email = "drdrumfish@gmail.com", role = c("aut", "cre")),
+              person("Camrin", "Braun", email = "camrin.braun@gmail.com", role = c("aut"))
+              )
 Description: this will be the HMM using WOA data. The guts follow Pedersen et al. 2008
 License: MIT
 Depends: mvtnorm, fields, rworldmap, ncdf, abind
