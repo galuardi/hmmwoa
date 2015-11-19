@@ -1,4 +1,4 @@
-calc.ohc = function(pdt, isotherm = '', ohc.dir, ptt, sdx){
+calc.ohc <- function(pdt, isotherm = '', ohc.dir, ptt, sdx){
   # compare tag data to ohc map and calculate likelihoods
   
   #' @param: tagdata is variable containing tag-collected PDT data
@@ -32,11 +32,6 @@ calc.ohc = function(pdt, isotherm = '', ohc.dir, ptt, sdx){
     nc <- open.ncdf(paste(ohc.dir, ptt, '_', time, '.nc', sep=''))
     dat <- get.var.ncdf(nc, 'temperature')
     depth <- get.var.ncdf(nc, 'Depth')
-    # also get lon, lat, depth, variables in case we need them later
-    lon.length <- get.var.ncdf(nc, 'X')
-    lat.length <- get.var.ncdf(nc, 'Y')
-    lon <- seq(lon[1], lon[2], length = length(lon.length))
-    lat <- seq(lat[1], lat[2], length = length(lat.length))
     
     pdt.i <- pdt[which(as.Date(pdt$Date) == time),]
     
@@ -55,6 +50,7 @@ calc.ohc = function(pdt, isotherm = '', ohc.dir, ptt, sdx){
     tag.ohc <- cp * rho * sum(tag, na.rm = T) / 10000
     
     # compare hycom to that day's tag-based ohc
+    #lik.dt <- matrix(dtnorm(ohc, tag.ohc, sdx, 0, 150), dim(ohc)[1], dim(ohc)[2])
     lik <- dnorm(ohc, tag.ohc, sdx) 
     print(paste(max(lik), time))
     
@@ -72,8 +68,8 @@ calc.ohc = function(pdt, isotherm = '', ohc.dir, ptt, sdx){
     print(paste(time, ' finished.', sep=''))
     
   }
-    
+  
   # return ohc likelihood surfaces as an array
-  return(list(likelihood, lon, lat, depths))
+  return(likelihood)
   
 }
