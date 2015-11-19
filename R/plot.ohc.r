@@ -10,7 +10,7 @@ plot.ohc <- function(lik, filename, ohc.dir = ohc.dir, pdt = pdt, spot = '', wri
   #' to current working directory.
   #' @return: nothing in workspace. writes pdf of plots to disk at write.dir
   
-  require(rworldmap); data(countriesLow)
+  data(countriesLow)
   
   if(class(spot) == 'data.frame'){
     

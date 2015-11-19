@@ -12,8 +12,6 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, ptt, sdx){
   #' @return: likelihood is array of likelihood surfaces representing
   #' matches between daily tag-based ohc and hycom ohc maps
   
-  require(ncdf); require(abind)
-  
   # constants for OHC calc
   cp <- 3.993 # kJ/kg*C
   rho <- 1025 # kg/m3
