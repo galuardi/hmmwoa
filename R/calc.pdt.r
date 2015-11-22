@@ -55,8 +55,17 @@ calc.pdt <- function(pdt, dat, lat, lon){
     } else{
       # what to do if y<3?
     }
+    
+    if(i == 1){
+      lik <- lik.pdt
+    } else{
+      lik <- abind(lik, lik.pdt, along = 3)
+    }
+    
+    print(time)
+    
   }
-
-  return(lik.pdt)
+  
+  return(lik)
   
 }
