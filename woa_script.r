@@ -9,7 +9,7 @@
 
 #load convert.pdt function
 source('/Users/Cam/Documents/WHOI/RCode/pdtMatch/convert.pdt.r')
-source('/Users/Cam/Documents/WHOI/RCode/pdtMatch/extract.woa.r')
+#source('/Users/Cam/Documents/WHOI/RCode/pdtMatch/extract.woa.r')
 source('/Users/Cam/Documents/WHOI/RCode/pdtMatch/createGrid.r')
 source('/Users/Cam/Documents/WHOI/RCode/pdtMatch/matchProfiles.r')
 source('/Users/Cam/Documents/WHOI/RCode/pdtMatch/findDateFormat.r')
@@ -19,7 +19,7 @@ source('/Users/Cam/Documents/WHOI/RCode/pdtMatch/removePacific.r')
 
 ## architecture for matching basko pdt profiles
 #tagyear = 2011
-#ptt = 96002
+ptt = 121325
 species = 'WhiteSharks'
 #27:28, no 29, skipped 30,skipped 39
 #for (i in 40:45){
@@ -45,49 +45,21 @@ species = 'WhiteSharks'
   
   nc.dir = '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/'
   
-  return.woa = extract.woa(nc.dir, limits, resolution = 'quarter', pdt)
+  return.woa = extract.woa(nc.dir, limits, resolution = 'quarter')
   dat = return.woa$dat; lon = return.woa$lon; lat = return.woa$lat; depth = return.woa$depth
   
   # eliminate Pacific from matching
   dat = removePacific(dat, lat, lon)
   
   # generates grid of lat x lon at 1 or 1/4 deg resolution
-  returnGrid = createGrid(dat, lat, lon)
-  gridPts = returnGrid$gridPts; cellidx = returnGrid$cellidx
+  #returnGrid = createGrid(dat, lat, lon)
+  #gridPts = returnGrid$gridPts; cellidx = returnGrid$cellidx
   
-  #Rprof('test.txt')
   # perform matching
-  #system.time(
-  mse = matchProfiles(pdt, dat, lat, lon, gridPts,cellidx)
-  #)
+  lik = calc.pdt(pdt, dat, lat, lon)
+
+  spot <- read.table('lydia_spot.csv',sep=',',header=T)
   
-  save.image(paste('/Users/Cam/Documents/WHOI/RData/',species,'/',tagyear,'/',ptt,'/',ptt,'-match.RData',sep=''))
-  #Rprof(NULL)
-  #summaryRprof('test.txt')
+  plot.woa(lik, return.woa, 'lydia_woa.pdf', spot = spot, pdt = pdt, write.dir = getwd())
+
   
-  #=================
-  # END
-  #=================
-  cat('Finished ',ptt)
-  
-}
-
-
-
-library(fields)
-library(maptools)
-pdf(file='test.pdf',height=11,width=8)
-#par(mfrow=c(3,1))
-#par(mar=c(1,3,2,3.5))
-#for(i in 1:3){  
-i = 1
-image.plot(lon, lat, mse[,,5])
-world(col='black', fill=T, add=T)
-title(paste('MSE ',ptt,' day ',i))
-#  grid (); box(); axis(1); axis(2)
-#legend('topleft', paste('mse for uid ', i,sep=''), cex=1.3, bg='white',text.font=2)
-#}
-
-
-dev.off()
-

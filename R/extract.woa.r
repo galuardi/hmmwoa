@@ -1,4 +1,4 @@
-extract.woa <- function(nc.dir,bbox,resolution, pdt){
+extract.woa <- function(nc.dir,bbox,resolution){
   # Simple function to extract the desired temperature data from a global
   # dataset derived from monthly, 1/4 deg gridded climatology data 
   # contained in the 2013 World Ocean Atlas
@@ -9,8 +9,7 @@ extract.woa <- function(nc.dir,bbox,resolution, pdt){
   #   BBOX is a bounding box of form (long min, long max, lat min, lat max)
   #   RESOLUTION indicates whether oceanographic data is gridded at 'quarter'
   #       or 'one' degree resolution
-  #   PDT is output dataframe from convert.pdt
-  
+
   # Output:
   #   RETURNWOA is a list containing:
   #     DAT is an array of temperature data with dimensions (long, lat, depth, time)

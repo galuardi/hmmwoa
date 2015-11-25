@@ -17,7 +17,7 @@ ohc.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
 
 udates <- unique(as.Date(pdt$Date))
 
-for(i in 1:length(udates)){
+for(i in 10:length(udates)){
   time <- as.Date(udates[i])
   repeat{
     get.hycom(lon,lat,time,filename=paste(ptt,'_',time,'.nc',sep=''),download.file=TRUE,dir=ohc.dir) # filenames based on dates from above
@@ -170,5 +170,13 @@ r[] <- as.vector(t(m))
 extent(r) <- extent(0, 360, -90, 90)
 rr <- rotate(r)
 
+
+getOHCsd <- function(pdt, isotherm){
+  pdt$MidTemp <- (pdt$MaxTemp + pdt$MinTemp) / 2
+  mtidx = pdt$MinTemp <= isotherm
+  sum(pdt$MidTemp[mtidx]-pdt$MinTemp[mtidx], na.rm=T)/nrow(pdt)  
+  # average of summed differences where minTemp <=isotherm. 
+  # The idea is that the midtemps in the index would not be as representative at those depths
+}
 
 
