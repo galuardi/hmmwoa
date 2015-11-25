@@ -39,7 +39,7 @@ species = 'WhiteSharks'
   # and extract the temp data based on user's required lat/lon
   
   # set limits of interest
-  limits = c(-90,-30,10,50) # (min long, max long, min lat, max lat)
+  limits = c(-70,-15,20,60) # (min long, max long, min lat, max lat)
   #limits = c(-100,-97.75,-30,-27.75) # (min long, max long, min lat, max lat)
   
   
@@ -58,8 +58,8 @@ species = 'WhiteSharks'
   # perform matching
   lik = calc.pdt(pdt, dat, lat, lon)
 
-  spot <- read.table('lydia_spot.csv',sep=',',header=T)
+  #spot <- read.table('lydia_spot.csv',sep=',',header=T)
   
-  plot.woa(lik, return.woa, 'lydia_woa.pdf', spot = spot, pdt = pdt, write.dir = getwd())
+  plot.woa(lik, return.woa, '106795_woa.pdf', pdt = pdt, write.dir = getwd())
 
   

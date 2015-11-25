@@ -22,7 +22,7 @@ plot.woa <- function(lik, return.woa, filename, pdt = pdt, spot = '', write.dir 
     
   } else{spotExists <- FALSE}
   
-  udates <- unique(as.Date(pdt$Date))
+  udates <- unique(pdt$Date)
   
   # calculate midpoint of tag-based min/max temps
   pdt$MidTemp <- (pdt$MaxTemp + pdt$MinTemp) / 2
@@ -30,10 +30,10 @@ plot.woa <- function(lik, return.woa, filename, pdt = pdt, spot = '', write.dir 
   pdf(paste(write.dir, '/', filename, sep = ''), width = 11, height = 8)
   
   for(i in 1:length(udates)){
-    time <- as.Date(udates[i])
+    time <- udates[i]
     pdtMonth <- as.numeric(format(time,'%m'))
     
-    pdt.i <- pdt[which(as.Date(pdt$Date) == time),]
+    pdt.i <- pdt[which(pdt$Date == time),]
     
     if(spotExists) par(mfrow = c(1, 2))
     
@@ -57,14 +57,16 @@ plot.woa <- function(lik, return.woa, filename, pdt = pdt, spot = '', write.dir 
       
       plot(dat.i, depth, ylim = c(1000,0), type = 'l', xlab = 'temp', ylab = 'depth', lwd = 2, xlim = c(4.5,31))
       lines(pdt.i$MidTemp, pdt.i$Depth, col='blue', lwd = 2)
-      
-    } else{
       plot(pdt.i$MidTemp, pdt.i$Depth, col='blue', lwd = 2, ylim = c(1000, 0), xlab = 'temp',
            type = 'l', ylab = 'depth', xlim = c(4.5, 31))
       
-    }
+    } #else{
+    #plot(pdt.i$MidTemp, pdt.i$Depth, col='blue', lwd = 2, ylim = c(1000, 0), xlab = 'temp',
+         #type = 'l', ylab = 'depth', xlim = c(4.5, 31))
+      
+    #}
     
-    legend(26,800,c('woa','tag'),col=c('black','blue'),lty=c(1,1),lwd=c(3,3))
+   # legend(26,800,c('woa','tag'),col=c('black','blue'),lty=c(1,1),lwd=c(3,3))
     print(time)
     
   }

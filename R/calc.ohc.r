@@ -19,19 +19,19 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, ptt, sdx){
   # calculate midpoint of tag-based min/max temps
   pdt$MidTemp <- (pdt$MaxTemp + pdt$MinTemp) / 2
   
-  udates <- unique(as.Date(pdt$Date))
+  udates <- unique(pdt$Date)
   
   if(isotherm != '') iso.def <- TRUE else iso.def <- FALSE
   
   for(i in 1:length(udates)){
     # define time based on tag data
-    time <- as.Date(udates[i])
+    time <- udates[i]
     
-    nc <- open.ncdf(paste(ohc.dir, ptt, '_', time, '.nc', sep=''))
+    nc <- open.ncdf(paste(ohc.dir, ptt, '_', as.Date(time), '.nc', sep=''))
     dat <- get.var.ncdf(nc, 'temperature')
     depth <- get.var.ncdf(nc, 'Depth')
     
-    pdt.i <- pdt[which(as.Date(pdt$Date) == time),]
+    pdt.i <- pdt[which(pdt$Date == time),]
     
     # calculate daily isotherm based on tag data
     if(iso.def == FALSE) isotherm <- min(pdt.i$MidTemp, na.rm = T)

@@ -22,13 +22,14 @@ calc.pdt <- function(pdt, dat, lat, lon){
   
   pdt$MidTemp <- (pdt$MaxTemp + pdt$MinTemp) / 2
   
-  udates <- unique(as.Date(pdt$Date))
+  udates <- unique(pdt$Date)
   
   for(i in 1:length(udates)){
     # define time based on tag data
-    time <- as.Date(udates[i])
-    pdt.i <- pdt[which(as.Date(pdt$Date) == time),]
+    time <- udates[i]
+    pdt.i <- pdt[which(pdt$Date == time),]
     y <- pdt.i$Depth[!is.na(pdt.i$Depth)] #extracts depth from tag data for day i
+    y[y<0] <- 0
     
     if (length(y) > 3){
       x <- pdt.i$MidTemp[!is.na(pdt.i$Depth)]  #extract temperature from tag data for day i

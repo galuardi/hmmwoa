@@ -20,7 +20,7 @@ plot.ohc <- function(lik, filename, ohc.dir = ohc.dir, pdt = pdt, spot = '', wri
     
   } else{spotExists <- FALSE}
   
-  udates <- unique(as.Date(pdt$Date))
+  udates <- unique(pdt$Date)
   
   # calculate midpoint of tag-based min/max temps
   pdt$MidTemp <- (pdt$MaxTemp + pdt$MinTemp) / 2
@@ -28,12 +28,12 @@ plot.ohc <- function(lik, filename, ohc.dir = ohc.dir, pdt = pdt, spot = '', wri
   pdf(paste(write.dir, '/', filename, sep = ''), width = 11, height = 8)
   
   for(i in 1:length(udates)){
-    time <- as.Date(udates[i])
+    time <- udates[i]
     
-    nc <- open.ncdf(paste(ohc.dir, ptt, '_', time, '.nc', sep=''))
+    nc <- open.ncdf(paste(ohc.dir, ptt, '_', as.Date(time), '.nc', sep=''))
     dat <- get.var.ncdf(nc, 'temperature')
     
-    pdt.i <- pdt[which(as.Date(pdt$Date) == time),]
+    pdt.i <- pdt[which(pdt$Date == time),]
     
     if(i == 1){
       # get dat variables
@@ -49,7 +49,7 @@ plot.ohc <- function(lik, filename, ohc.dir = ohc.dir, pdt = pdt, spot = '', wri
     
     if(spotExists){
        # get day's spot locations and find mean position
-      spot.i <- spot[which(sdays == time), c(8,7)]
+      spot.i <- spot[which(sdays == as.Date(time)), c(8,7)]
       mlon <- mean(spot.i[,1])
       mlat <- mean(spot.i[,2])
       points(mlon, mlat, col = 'white')
