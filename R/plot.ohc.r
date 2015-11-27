@@ -28,6 +28,7 @@ plot.ohc <- function(lik, filename, ohc.dir = ohc.dir, pdt = pdt, spot = '', wri
   pdf(paste(write.dir, '/', filename, sep = ''), width = 11, height = 8)
   
   for(i in 1:length(udates)){
+
     time <- udates[i]
     
     nc <- open.ncdf(paste(ohc.dir, ptt, '_', as.Date(time), '.nc', sep=''))
@@ -43,31 +44,33 @@ plot.ohc <- function(lik, filename, ohc.dir = ohc.dir, pdt = pdt, spot = '', wri
 
       }
     
-    par(mfrow = c(1, 2))
+    if(spotExists) par(mfrow = c(1, 2))
+    
     image.plot(lon, lat, lik[,,i] / max(lik[,,i], na.rm = T))
     plot(countriesLow, add=T, col = 'grey')
+    title(paste(time))
     
     if(spotExists){
-       # get day's spot locations and find mean position
+      # get day's spot locations and find mean position
       spot.i <- spot[which(sdays == as.Date(time)), c(8,7)]
       mlon <- mean(spot.i[,1])
       mlat <- mean(spot.i[,2])
       points(mlon, mlat, col = 'white')
       
+      # panel 2
+      # sample hycom at that position
+      idx <- c(which.min(abs(lon.idx-(mlon))), which.min(abs(lat.idx-(mlat))))
+      dat.i <- dat[idx[1], idx[2],]
+      rm(list=c('mlon', 'mlat'))
+      
+      plot(dat.i[1:19], depth[1:19], ylim = c(1000,0), type = 'l', xlab = 'temp', ylab = 'depth', lwd = 2, xlim = c(8,31))
+      lines(pdt.i$MidTemp, pdt.i$Depth, col='blue', lwd = 2)
+      legend(26,800,c('hycom','tag'),col=c('black','blue'),lty=c(1,1),lwd=c(3,3))
+      
     }
     
-    title(paste(time))
-    
-    # panel 2
-    # sample hycom at that position
-    idx <- c(which.min(abs(lon.idx-(mlon))), which.min(abs(lat.idx-(mlat))))
-    dat.i <- dat[idx[1], idx[2],]
-    rm(list=c('mlon', 'mlat'))
-    
-    plot(dat.i[1:19], depth[1:19], ylim = c(1000,0), type = 'l', xlab = 'temp', ylab = 'depth', lwd = 2, xlim = c(8,31))
-    lines(pdt.i$MidTemp, pdt.i$Depth, col='blue', lwd = 2)
-    legend(26,800,c('hycom','tag'),col=c('black','blue'),lty=c(1,1),lwd=c(3,3))
     print(time)
+    
   }
   
   dev.off()

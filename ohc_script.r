@@ -10,14 +10,14 @@ pdt = extract.pdt(data)
 
 # download daily hycom products
 #time <- c(as.Date(min(pdt$Date)),as.Date(max(pdt$Date)))
-lon = c(-90, -30)
-lat = c(20, 50)
+lon = c(-70, -15)
+lat = c(20, 60)
 
 ohc.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
 
 udates <- unique(as.Date(pdt$Date))
 
-for(i in 10:length(udates)){
+for(i in 1:5){#length(udates)){
   time <- as.Date(udates[i])
   repeat{
     get.hycom(lon,lat,time,filename=paste(ptt,'_',time,'.nc',sep=''),download.file=TRUE,dir=ohc.dir) # filenames based on dates from above

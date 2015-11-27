@@ -63,3 +63,24 @@ species = 'WhiteSharks'
   plot.woa(lik, return.woa, '106795_woa.pdf', pdt = pdt, write.dir = getwd())
 
   
+  lon <- limits[c(1, 2)]
+  lat <- limits[c(3, 4)]
+  
+  ohc.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
+  
+  for(i in 1:length(udates)){
+    time <- as.Date(udates[i])
+    repeat{
+      get.hycom(lon,lat,time,filename=paste(ptt,'_',time,'.nc',sep=''),download.file=TRUE,dir=ohc.dir) # filenames based on dates from above
+      tryCatch({
+        err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
+      }, error=function(e){print(paste('ERROR: Download of data at ',time,' failed. Trying call to server again.',sep=''))})
+      if(class(err) != 'try-error') break
+    }
+  }
+  
+  likelihood <- calc.ohc(pdt, ohc.dir = ohc.dir, ptt = 106795, sdx = 10)
+  
+  plot.ohc(lik = likelihood, filename='lyd lik.pdf', write.dir = getwd())
+  
+  
