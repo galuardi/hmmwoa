@@ -74,11 +74,11 @@ plot.woa(L.pdt, return.woa, '106795_woa.pdf', pdt = pdt, write.dir = getwd())
 # Light-based Longitude Likelihood
 ##
 
-light <- read.table('106795-Locations.csv', sep=',', header = T, blank.lines.skip = F)
-light <- light[light$Type == 'GPE',]
+locs <- read.table('106795-Locations.csv', sep=',', header = T, blank.lines.skip = F)
+#light <- light[light$Type == 'GPE',]
 
 ngrid <- c(limits[2] - limits[1], limits[4] - limits[3])
-g <- setup.grid(light)
+g <- setup.grid(locs)
 lon <- g$lon[1,]
 lat <- g$lat[,1]
 
@@ -88,7 +88,7 @@ lat <- g$lat[,1]
 
 colnames(iniloc) = list('day','month','year','lat','lon')
 
-L.light <- light.wc(light, iniloc, g)
+L.locs <- lik.locs(locs, iniloc, g)
 
 
 ##
