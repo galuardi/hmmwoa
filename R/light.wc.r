@@ -1,7 +1,7 @@
-light.wc <- function(light,iniloc,g){
+lik.locs <- function(locs,iniloc,g){
   ## Calculate the "data" likelihood, i.e. the likelihood field for each observation
   
-  T <- length(light$Longitude)
+  T <- length(locs$Longitude)
   row <- dim(g$lon)[1]
   col <- dim(g$lon)[2]
   
@@ -17,8 +17,24 @@ light.wc <- function(light,iniloc,g){
   sl.sd <- 35/111 # Converting from kms to degrees
   
   for(t in 1:T){
+    if(locs$Type[t] == 'GPS'){
+      
+      glo <- which.min(abs(g$lon[1,]-locs$Longitude[t]))
+      gla <- which.min(abs(g$lat[,1]-locs$Latitude[t]))
+      L[glo, gla, (t+1)] <- 1
+      
+    } else if(locs$Type[t] == 'Argos'){
+      
+      alo <- which.min(abs(g$lon[1,]-locs$Longitude[t]))
+      ala <- which.min(abs(g$lat[,1]-locs$Latitude[t]))
+      L[alo, ala, (t+1)] <- 1
+      
+    } else if(locs$Type[t] == 'GPE'){
+      
+      L[,, (t + 1)] <- dnorm(t(g$lon), light$Longitude[t], sl.sd) # Longitude data
+      
+    } else{}
     #time <- date2time(as.POSIXct(light$Date[t], format = findDateFormat(light$Date)))
-    L[,, (t + 1)] <- dnorm(t(g$lon), light$Longitude[t], sl.sd) # Longitude data
     #L[,,t] <- Lsst*Llon
   }
   
