@@ -30,8 +30,8 @@ lik.locs <- function(locs,iniloc,g){
       L[alo, ala, (t+1)] <- 1
       
     } else if(locs$Type[t] == 'GPE'){
-      
-      L[,, (t + 1)] <- dnorm(t(g$lon), light$Longitude[t], sl.sd) # Longitude data
+      L.light <- dnorm(t(g$lon), light$Longitude[t], sl.sd) # Longitude data
+      L[,, (t + 1)] <- (L.light / max(L.light, na.rm = T)) - .05
       
     } else{}
     #time <- date2time(as.POSIXct(light$Date[t], format = findDateFormat(light$Date)))

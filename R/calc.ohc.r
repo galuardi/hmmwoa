@@ -50,6 +50,7 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, ptt, sdx){
     # compare hycom to that day's tag-based ohc
     #lik.dt <- matrix(dtnorm(ohc, tag.ohc, sdx, 0, 150), dim(ohc)[1], dim(ohc)[2])
     lik <- dnorm(ohc, tag.ohc, sdx) 
+    lik <- (lik / max(lik, na.rm = T)) - .05
     print(paste(max(lik), time))
     
     # result should be array of likelihood surfaces
