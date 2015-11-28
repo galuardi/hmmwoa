@@ -1,5 +1,5 @@
 
-get.hycom = function(lon, lat, time, vars=c('temperature'), include_latlon=TRUE,
+get.hycom = function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
                           filename='',download.file=TRUE, dir = getwd()) {
   #' Downloads data from the HYCOM + NCODA Global 1/12 Degree Analysis.
   #'
@@ -46,11 +46,11 @@ get.hycom = function(lon, lat, time, vars=c('temperature'), include_latlon=TRUE,
     end=c(as.Date('2009-05-06'), as.Date('2011-01-02'),
           as.Date('2013-08-20'), as.Date('2014-04-04'),
           Sys.Date() + 1),
-    url=c('http://ncss.hycom.org/thredds/ncss/GLBa0.08/expt_90.6?',
-          'http://ncss.hycom.org/thredds/ncss/GLBa0.08/expt_90.8?',
-          'http://ncss.hycom.org/thredds/ncss/GLBa0.08/expt_90.9?',
-          'http://ncss.hycom.org/thredds/ncss/GLBa0.08/expt_91.0?',
-          'http://ncss.hycom.org/thredds/ncss/GLBa0.08/expt_91.1?'))
+    url=c('http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_90.6?',
+          'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_90.8?',
+          'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_90.9?',
+          'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_91.0?',
+          'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_91.1?'))
   if(time[1] < expts$start[1])
     stop('Data begins at %s and is not available at %s.',
          strftime(expts$start[1], '%d %b %Y'),

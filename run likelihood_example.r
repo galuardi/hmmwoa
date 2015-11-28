@@ -76,6 +76,9 @@ plot.woa(L.pdt, return.woa, '106795_woa.pdf', pdt = pdt, write.dir = getwd())
 
 locs <- read.table('106795-Locations.csv', sep=',', header = T, blank.lines.skip = F)
 #light <- light[light$Type == 'GPE',]
+dts <- format(as.POSIXct(locs$Date, format = findDateFormat(locs$Date)), '%Y-%m-%d')
+didx <- dts > tag & dts < pop
+locs <- locs[didx,]
 
 ngrid <- c(limits[2] - limits[1], limits[4] - limits[3])
 g <- setup.grid(locs)
