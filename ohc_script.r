@@ -4,7 +4,7 @@
 # read in data
 setwd('~/Documents/WHOI/RData/Swords/2013/106795/')
 ptt = 106795
-data = read.table('106795-PDTs.csv',sep=',',header=T,blank.lines.skip=F)
+data = read.table('106795-PDTs.csv',sep=',',header=T,blank.lines.skip=F, skip = 2)
 
 pdt = extract.pdt(data)
 

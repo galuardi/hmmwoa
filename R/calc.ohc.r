@@ -21,9 +21,27 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, ptt, sdx){
   
   udates <- unique(pdt$Date)
   
+  ohcVec <- vector(0, length = length(udates))
+  
   if(isotherm != '') iso.def <- TRUE else iso.def <- FALSE
   
   for(i in 1:length(udates)){
+    
+    if(i == 1){
+      i = 2
+      time <- udates[i]
+      pdt.i <- pdt[which(pdt$Date == time),]
+      if(iso.def == FALSE) isotherm <- min(pdt.i$MidTemp, na.rm = T)
+      
+      # perform tag data integration
+      tag <- approx(pdt.i$Depth, pdt.i$MidTemp, xout = depth)
+      tag <- tag$y - isotherm
+      tag.ohc <- cp * rho * sum(tag, na.rm = T) / 10000
+      
+      ohcVec[i] <- tag.ohc
+      
+    }
+    
     # define time based on tag data
     time <- udates[i]
     
@@ -47,6 +65,13 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, ptt, sdx){
     tag <- tag$y - isotherm
     tag.ohc <- cp * rho * sum(tag, na.rm = T) / 10000
     
+    ohcVec[i] <- tag.ohc
+    
+    if(i == 1){
+      sdx <- sd(ohcVec[c(1,2)])
+    } else{
+      sdx <- sd(ohcVec[c((i - 1), i, (i + 1))])
+    }
     # compare hycom to that day's tag-based ohc
     #lik.dt <- matrix(dtnorm(ohc, tag.ohc, sdx, 0, 150), dim(ohc)[1], dim(ohc)[2])
     lik <- dnorm(ohc, tag.ohc, sdx) 
