@@ -44,7 +44,7 @@ calc.pdt <- function(pdt, dat, lat, lon){
       
       for (b in depIdx){
         lik.b <- dnorm(dat[,, b, pdtMonth], tag$x[which(depIdx == b)], .5) 
-        lik.b <- (lik.b / max(lik.b, na.rm = T)) - .05
+        #lik.b <- (lik.b / max(lik.b, na.rm = T)) - .05
         if(min(which(depIdx == b)) == 1){
           lik.pdt <- as.array(lik.b)
         } else{
@@ -53,6 +53,7 @@ calc.pdt <- function(pdt, dat, lat, lon){
       }
       
       lik.pdt <- apply(lik.pdt, 1:2, prod)
+      lik.pdt <- (lik.pdt / max(lik.pdt, na.rm = T)) - .05
 
     } else{
       # what to do if y<3?

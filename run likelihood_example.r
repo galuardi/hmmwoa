@@ -27,7 +27,7 @@ udates <- unique(as.Date(pdt$Date))
 for(i in 1:length(udates)){
   time <- as.Date(udates[i])
   repeat{
-    get.hycom(lon,lat,time,filename=paste(ptt,'_',time,'.nc',sep=''),download.file=TRUE,dir=ohc.dir) # filenames based on dates from above
+    get.hycom(lon,lat,time,filename=paste(ptt,'_-',time,'.nc',sep=''),download.file=TRUE,dir=ohc.dir, vars = 'water_temp') # filenames based on dates from above
     #err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
     tryCatch({
       err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
@@ -66,9 +66,13 @@ dat = removePacific(dat, lat, lon)
 
 # perform matching
 L.pdt = calc.pdt(pdt, dat, lat, lon)
-
 plot.woa(L.pdt, return.woa, '106795_woa.pdf', pdt = pdt, write.dir = getwd())
 
+
+#list.pdt <- list(x=lon,y=lat,z=L.pdt)
+#L.pdt <- rasterizeStack(L.pdt, lon, lat)
+#br <- brick(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4])
+#ex <- extent(list.pdt)
 
 ##
 # Light-based Longitude Likelihood
