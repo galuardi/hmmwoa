@@ -12,8 +12,6 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, ptt, sdx){
   #' @return: likelihood is array of likelihood surfaces representing
   #' matches between daily tag-based ohc and hycom ohc maps
   
-  require(ncdf); require(abind)
-  
   # constants for OHC calc
   cp <- 3.993 # kJ/kg*C
   rho <- 1025 # kg/m3
@@ -21,19 +19,37 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, ptt, sdx){
   # calculate midpoint of tag-based min/max temps
   pdt$MidTemp <- (pdt$MaxTemp + pdt$MinTemp) / 2
   
-  udates <- unique(as.Date(pdt$Date))
+  udates <- unique(pdt$Date)
+  
+  ohcVec <- vector(0, length = length(udates))
   
   if(isotherm != '') iso.def <- TRUE else iso.def <- FALSE
   
   for(i in 1:length(udates)){
-    # define time based on tag data
-    time <- as.Date(udates[i])
     
-    nc <- open.ncdf(paste(ohc.dir, ptt, '_', time, '.nc', sep=''))
+    if(i == 1){
+      i = 2
+      time <- udates[i]
+      pdt.i <- pdt[which(pdt$Date == time),]
+      if(iso.def == FALSE) isotherm <- min(pdt.i$MidTemp, na.rm = T)
+      
+      # perform tag data integration
+      tag <- approx(pdt.i$Depth, pdt.i$MidTemp, xout = depth)
+      tag <- tag$y - isotherm
+      tag.ohc <- cp * rho * sum(tag, na.rm = T) / 10000
+      
+      ohcVec[i] <- tag.ohc
+      
+    }
+    
+    # define time based on tag data
+    time <- udates[i]
+    
+    nc <- open.ncdf(paste(ohc.dir, ptt, '_', as.Date(time), '.nc', sep=''))
     dat <- get.var.ncdf(nc, 'temperature')
     depth <- get.var.ncdf(nc, 'Depth')
     
-    pdt.i <- pdt[which(as.Date(pdt$Date) == time),]
+    pdt.i <- pdt[which(pdt$Date == time),]
     
     # calculate daily isotherm based on tag data
     if(iso.def == FALSE) isotherm <- min(pdt.i$MidTemp, na.rm = T)
@@ -49,9 +65,17 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, ptt, sdx){
     tag <- tag$y - isotherm
     tag.ohc <- cp * rho * sum(tag, na.rm = T) / 10000
     
+    ohcVec[i] <- tag.ohc
+    
+    if(i == 1){
+      sdx <- sd(ohcVec[c(1,2)])
+    } else{
+      sdx <- sd(ohcVec[c((i - 1), i, (i + 1))])
+    }
     # compare hycom to that day's tag-based ohc
     #lik.dt <- matrix(dtnorm(ohc, tag.ohc, sdx, 0, 150), dim(ohc)[1], dim(ohc)[2])
     lik <- dnorm(ohc, tag.ohc, sdx) 
+    lik <- (lik / max(lik, na.rm = T)) - .05
     print(paste(max(lik), time))
     
     # result should be array of likelihood surfaces

@@ -1,10 +1,11 @@
 
-get.hycom = function(lon, lat, time, vars=c('temperature'), include_latlon=TRUE,
+get.hycom <- function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
                           filename='',download.file=TRUE, dir = getwd()) {
+
   #' Downloads data from the HYCOM + NCODA Global 1/12 Degree Analysis.
   #'
   #' The method may return before the download is completed. It will continue
-  #' to display a progress bar until the download completes. 
+  #' to display progress  until the download completes. 
   #' 
   #' Ideally download.file (default method) would be used instead of curl (optional), but this does not 
   #' seem to work on some platforms.
@@ -13,9 +14,8 @@ get.hycom = function(lon, lat, time, vars=c('temperature'), include_latlon=TRUE,
   #' @param lat An vector of length 2 with the minimum and maximum latitude.
   #' @param time An vector of length 2 with the minimum and maximum times.
   #' @param vars A list of variables to download. This should only contain
-  #' 'emp', 'mld', 'mlp', qtot', 'ssh', 'surface_salinity_trend',
-  #' 'surface_temperature_trend', 'salinity', 'temperature', 'u', and 'v', but is
-  #' not checked for errors.
+  #' 'surf_el', 'salinity', 'water_u', water_v','water_temp' but is
+  #' not checked for errors
   #' @param include_latlon Should the array of latitude and longitude values be
   #' included?
   #' @param filename An optional filename. If provided, then the data is
@@ -31,6 +31,7 @@ get.hycom = function(lon, lat, time, vars=c('temperature'), include_latlon=TRUE,
     
   ## Function originally written for R by Ben Jones (WHOI) and modified by Camrin
   ## Braun and Ben Galuardi.
+  
   require(ncdf)
   
   dir.create(file.path(dir),recursive=TRUE)
@@ -46,11 +47,11 @@ get.hycom = function(lon, lat, time, vars=c('temperature'), include_latlon=TRUE,
     end=c(as.Date('2009-05-06'), as.Date('2011-01-02'),
           as.Date('2013-08-20'), as.Date('2014-04-04'),
           Sys.Date() + 1),
-    url=c('http://ncss.hycom.org/thredds/ncss/GLBa0.08/expt_90.6?',
-          'http://ncss.hycom.org/thredds/ncss/GLBa0.08/expt_90.8?',
-          'http://ncss.hycom.org/thredds/ncss/GLBa0.08/expt_90.9?',
-          'http://ncss.hycom.org/thredds/ncss/GLBa0.08/expt_91.0?',
-          'http://ncss.hycom.org/thredds/ncss/GLBa0.08/expt_91.1?'))
+    url=c('http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_90.6?',
+          'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_90.8?',
+          'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_90.9?',
+          'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_91.0?',
+          'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_91.1?'))
   if(time[1] < expts$start[1])
     stop('Data begins at %s and is not available at %s.',
          strftime(expts$start[1], '%d %b %Y'),

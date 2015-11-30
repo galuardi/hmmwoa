@@ -13,7 +13,13 @@ extract.pdt = function(data){
 
   # format accordingly
   
-  data = data[,c(1:which(colnames(data)=='MaxTemp8'))]
+  #data = data[,c(1:which(colnames(data)=='MaxTemp8'))]
+  
+  if(any('X.Ox1' %in% names(data))){
+    dropidx <- c(grep('Ox', names(data)), grep('Disc', names(data)))
+    data <- data[,-dropidx]
+  }
+  
   vars = names(data[,c(which(names(data)=='Depth1'):length(names(data)))])
   pdt <- reshape(data, ids = data$Date, direction='long',
                  varying = vars, times = vars, sep='', timevar = 'BinNum')
@@ -24,7 +30,7 @@ extract.pdt = function(data){
   # need to figure out date conversion then sort
   pdt$Date <- as.POSIXct(pdt$Date, format=findDateFormat(pdt$Date))
   pdt <- pdt[order(pdt$Date,pdt$Depth),]               
-  
+  pdt <- pdt[which(!is.na(pdt$Depth)),]
   # write out / return
   return(pdt)
   
