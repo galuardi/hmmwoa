@@ -1,24 +1,20 @@
 # calculate light-based likelihood
-setwd('~/Documents/WHOI/RData/Swords/2013/106795/')
-ptt <- 106795
-iniloc <- data.frame(matrix(c(27, 9, 2013, 46.47683333, -45.5640, 
-                   2, 11, 2013, 30.92645, -39.6919), nrow = 2, ncol = 5, byrow = T))
+setwd('~/Documents/WHOI/RData/BaskingSharks/2008/88143/')
+ptt <- 88143
+iniloc <- data.frame(matrix(c(11, 10, 2008, 42.0650, -70.2893, 
+                   1, 10, 2009, 42.105, -68.34), nrow = 2, ncol = 5, byrow = T))
 
-pdt <- read.table('106795-PDTs.csv',sep=',',header=T,blank.lines.skip=F, skip = 2)
-pdt <- pdt[,c(grep('X.Ox', colnames(pdt)) * -1)]
-pdt <- pdt[,c(grep('Disc', colnames(pdt)) * -1)]
-data  <- pdt
+pdt <- read.table(paste(ptt,'-PDTs.csv', sep=''), sep=',',header=T,blank.lines.skip=F, skip = 2)
 
 pdt <- extract.pdt(pdt)
-pdt <- pdt[!is.na(pdt$Depth),]
 tag <- as.POSIXct(paste(iniloc[1,1], '/', iniloc[1,2], '/', iniloc[1,3], sep=''), format = '%d/%m/%Y')
 pop <- as.POSIXct(paste(iniloc[2,1], '/', iniloc[2,2], '/', iniloc[2,3], sep=''), format = '%d/%m/%Y')
 dts <- as.POSIXct(pdt$Date, format = findDateFormat(pdt$Date))
 didx <- dts >= tag & dts <= pop
 pdt <- pdt[didx,]
 
-lon = c(-70, -15)
-lat = c(20, 60)
+lon = c(-90, -30)
+lat = c(-30, 50)
 
 ohc.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
 
@@ -38,15 +34,11 @@ for(i in 1:length(udates)){
 
 
 # calc.ohc
-# how to paramaterize sdx? seems like it should scale relative to
-# magnitude of ohc?
-# maybe best way is, after testing double tag data, to use known locations
-# and ohc at those positions compared to that calculated from the tags
-# pdt data. that should be a great way to get sd estimates for ohc based on real data
 
-L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, ptt = 106795, sdx = 10)
+L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir)
 
-plot.ohc(lik = L.ohc, ohc.dir = ohcdir, pdt = pdt.data, filename = '106795_lik.pdf', write.dir = getwd())
+plot.ohc(lik = L.ohc, ohc.dir = ohcdir, pdt = pdt.data, 
+         filename = paste(ptt,'_ohclik.pdf', sep = ''), write.dir = getwd())
 
 
 ##
@@ -54,7 +46,7 @@ plot.ohc(lik = L.ohc, ohc.dir = ohcdir, pdt = pdt.data, filename = '106795_lik.p
 ##
 
 # set limits of interest
-limits = c(lon,lat) # (min long, max long, min lat, max lat)
+limits = c(lon, lat) # (min long, max long, min lat, max lat)
 
 nc.dir = '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/'
 
@@ -66,7 +58,7 @@ dat = removePacific(dat, lat, lon)
 
 # perform matching
 L.pdt = calc.pdt(pdt, dat, lat, lon)
-plot.woa(L.pdt, return.woa, '106795_woa.pdf', pdt = pdt, write.dir = getwd())
+plot.woa(L.pdt, return.woa, paste(ptt, '_woalik.pdf', sep=''), pdt = pdt, write.dir = getwd())
 
 
 #list.pdt <- list(x=lon,y=lat,z=L.pdt)
@@ -78,7 +70,7 @@ plot.woa(L.pdt, return.woa, '106795_woa.pdf', pdt = pdt, write.dir = getwd())
 # Light-based Longitude Likelihood
 ##
 
-locs <- read.table('106795-Locations.csv', sep=',', header = T, blank.lines.skip = F)
+locs <- read.table(paste(ptt, '-Locations.csv', sep=''), sep=',', header = T, blank.lines.skip = F)
 #light <- light[light$Type == 'GPE',]
 dts <- format(as.POSIXct(locs$Date, format = findDateFormat(locs$Date)), '%Y-%m-%d')
 didx <- dts > tag & dts < pop
@@ -104,34 +96,34 @@ L.locs <- lik.locs(locs, iniloc, g)
 
 #data <- read.table(file='106795-PDTs.csv',sep=',',header=T,blank.lines.skip=F, skip = 2)
 
-depths = as.vector(as.matrix(cbind(data[,c(seq(15,ncol(data)-2,by=3))])))
-mintemps = as.vector(as.matrix(cbind(data[,c(seq(16,ncol(data)-1,by=3))])))
-maxtemps = as.vector(as.matrix(cbind(data[,c(seq(17,ncol(data),by=3))])))
+depths = as.vector(as.matrix(cbind(data[,c(seq(15, ncol(data) - 2, by = 3))])))
+mintemps = as.vector(as.matrix(cbind(data[,c(seq(16, ncol(data) - 1, by = 3))])))
+maxtemps = as.vector(as.matrix(cbind(data[,c(seq(17, ncol(data), by = 3))])))
 midtemps = (maxtemps + mintemps) / 2
 
-ddates = as.POSIXct(strptime(as.character(data$Date),format = findDateFormat(data$Date))) #reads dates as dates
+ddates = as.POSIXct(strptime(as.character(data$Date), format = findDateFormat(data$Date))) #reads dates as dates
 year = as.numeric(format(ddates, '%Y')) #extracts year
 tagyear <- year[1]
-DOY = round(julian(ddates,origin=as.Date(paste(year[1],'-01-01',sep=''))),digits=0) #calculate DOY
-jday = as.numeric(DOY+((year[1]-tagyear)*365)) #finish DOY calculation
+DOY = round(julian(ddates, origin = as.Date(paste(year[1], '-01-01', sep = ''))), digits = 0) #calculate DOY
+jday = as.numeric(DOY + ((year[1] - tagyear) * 365)) #finish DOY calculation
 
 #creates matrix of days
 jd_for_interp <- as.vector(as.matrix(cbind(rep(jday, (ncol(data) - 14 / 3)))))
 
 # clean data using NA values in depths
-ii=which(!is.na(depths));
-depths=depths[ii];midtemps=midtemps[ii];jd_for_interp=jd_for_interp[ii];
+ii = which(!is.na(depths));
+depths = depths[ii]; midtemps = midtemps[ii]; jd_for_interp = jd_for_interp[ii];
 
 # sets depth constraint
 z = 1:max(depths, na.rm = T)
 
 # run the LOESS interp
-results=grid2dloess(data=midtemps,xgrid=jd_for_interp,ygrid=depths,
-                    span_x=5,span_y=150,xgrid_est=jday,ygrid_est=z)
+results = grid2dloess(data = midtemps, xgrid = jd_for_interp, ygrid = depths,
+                    span_x = 5, span_y = 150, xgrid_est = jday, ygrid_est = z)
 
 # then plot
-plot.days=seq(0,length(jday)-1,by=1) #x axis setup
-plot.loess.pdt(plot.days,z,results$sm_data,year,filename='106795_pdt.pdf',DOY.first=min(jday),zissou=FALSE,tempRange=c(4,26))
+plot.days = seq(0, length(jday) - 1, by = 1) #x axis setup
+plot.loess.pdt(plot.days, z, results$sm_data, year, filename = '106795_pdt.pdf', DOY.first = min(jday), zissou = FALSE, tempRange = c(4, 26))
 
 
 #######

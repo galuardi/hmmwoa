@@ -1,24 +1,23 @@
-calc.ohc <- function(pdt, isotherm = '', ohc.dir, ptt, sdx){
+calc.ohc <- function(tagdata, isotherm = '', ohc.dir){
   # compare tag data to ohc map and calculate likelihoods
   
   #' @param: tagdata is variable containing tag-collected PDT data
-  #' @param: time is vector of unique dates (daily) used to step
-  #' through the integration / ohc calculations
   #' @param: isotherm is default '' in which isotherm is calculated
-  #' on the fly based on daily shark data. Otherwise, numeric isotherm
-  #' constraint can be specified.
+  #' on the fly based on daily tag data. Otherwise, numeric isotherm
+  #' constraint can be specified (e.g. 20).
   #' @param: ohc.dir is local directory where get.hycom downloads are
   #' stored.
   #' @return: likelihood is array of likelihood surfaces representing
-  #' matches between daily tag-based ohc and hycom ohc maps
+  #' matches between tag-based ohc and hycom ohc maps
   
   # constants for OHC calc
-  cp <- 3.993 # kJ/kg*C
-  rho <- 1025 # kg/m3
+  cp <- 3.993 # kJ/kg*C <- heat capacity of seawater
+  rho <- 1025 # kg/m3 <- assumed density of seawater
   
   # calculate midpoint of tag-based min/max temps
   pdt$MidTemp <- (pdt$MaxTemp + pdt$MinTemp) / 2
   
+  # get unique time points
   udates <- unique(pdt$Date)
   
   ohcVec <- vector(0, length = length(udates))
@@ -31,7 +30,9 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, ptt, sdx){
       i = 2
       time <- udates[i]
       pdt.i <- pdt[which(pdt$Date == time),]
-      if(iso.def == FALSE) isotherm <- min(pdt.i$MidTemp, na.rm = T)
+      
+      # isotherm is minimum temperature recorded for that time point
+      if(iso.def == FALSE) isotherm <- min(pdt.i$MinTemp, na.rm = T)
       
       # perform tag data integration
       tag <- approx(pdt.i$Depth, pdt.i$MidTemp, xout = depth)
@@ -45,6 +46,7 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, ptt, sdx){
     # define time based on tag data
     time <- udates[i]
     
+    # open day's hycom data
     nc <- open.ncdf(paste(ohc.dir, ptt, '_', as.Date(time), '.nc', sep=''))
     dat <- get.var.ncdf(nc, 'temperature')
     depth <- get.var.ncdf(nc, 'Depth')
@@ -52,7 +54,7 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, ptt, sdx){
     pdt.i <- pdt[which(pdt$Date == time),]
     
     # calculate daily isotherm based on tag data
-    if(iso.def == FALSE) isotherm <- min(pdt.i$MidTemp, na.rm = T)
+    if(iso.def == FALSE) isotherm <- min(pdt.i$MinTemp, na.rm = T)
     
     dat[dat<isotherm] <- NA
     
@@ -65,6 +67,7 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, ptt, sdx){
     tag <- tag$y - isotherm
     tag.ohc <- cp * rho * sum(tag, na.rm = T) / 10000
     
+    # store tag ohc
     ohcVec[i] <- tag.ohc
     
     if(i == 1){
@@ -72,10 +75,11 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, ptt, sdx){
     } else{
       sdx <- sd(ohcVec[c((i - 1), i, (i + 1))])
     }
+    
     # compare hycom to that day's tag-based ohc
     #lik.dt <- matrix(dtnorm(ohc, tag.ohc, sdx, 0, 150), dim(ohc)[1], dim(ohc)[2])
     lik <- dnorm(ohc, tag.ohc, sdx) 
-    lik <- (lik / max(lik, na.rm = T)) - .05
+    lik <- (lik / max(lik, na.rm = T)) - .05 # normalize
     print(paste(max(lik), time))
     
     # result should be array of likelihood surfaces

@@ -1,54 +1,49 @@
-grid2dloess <- function (data,xgrid,ygrid,span_x,span_y,xgrid_est,ygrid_est,flagout=TRUE){
-#
-#--------------------------------------------------------------------------
-  # [SM_DATA,FLAG] = grid2d_loess(DATA,XGRID,YGRID,SPAN_X,SPAN_Y, ...
-                                  #                                 XGRID_EST,YGRID_EST)
-#
-# 2-dimensional loess gridder. The smoothed value at each grid point 
-# is found from a weighted least-squares regression of the points within 
-# +/- SPAN_X and SPAN_Y of the grid point to a quadratic surface.
-#
-# Inputs (all required):
-#   DATA is a row vector array of the data to be smoothed. 
-#        Missing value flag is NaN.
-#   XGRID is x locations of DATA. This must be the same size as DATA array.
-#   YGRID is y locations of DATA. This must be the same size as DATA array.
-#   SPAN_X, SPAN_Y are the filter half-power points (each a scalar). The larger the 
-#          number, the more smoothing is performed. For the tricubic 
-#          weighting function used here, the smoothing is approximately 
-#          equivalent to using a running average of length equal to 
-#          ~0.6*SPAN_X. However, the spectral characteristics of this 
-#          smoother are usually much more desirable. The filter cutoff
-#          frequencies are approximately (1/SPAN_X, 1/SPAN_Y).
-#   XGRID_EST, YGRID_EST are column and row vectors, respectivly, where smoothed estimates are
-#            desired. The estimate grid can be irregular and non-monotonic.
-#            Any points in XGRID_EST and YGRID_EST outside of the range of 
-#  		        XGRID and YGRID, respectively, will have SM_DATA=NaN.
-#   FLAGOUT is logical indicating whether you want to output FLAG as described below
-#
-# Outputs:
-#   SM_DATA is a 2-dimensional array with LENGTH(XGRID_EST) columns and LENGTH(YGRID_EST) rows 
-#           with the smoothed DATA.
-#   FLAG is an array the same size as SM_DATA that is set to 1 when the 
-#        smoothed estimate is outside the range of the data within +/- 
-#        SPAN_X of that grid point and 0 otherwise. When the smoothed 
-#        estimate is out of range, the estimate will be included in the 
-#        output SM_DATA. This will typically occur near the edges of the 
-#        DATA series or when SPAN_X only encompasses a small number of grid
-#        points in XGRID. While the smoothed estimate is usually only
-#        marginally out-of-range in these cases, care should be used when 
-#        considering these points because the smoothed estimate may not be 
-#        very good at that particular point. If there are many such points, 
-#        consider using a larger SPAN_X (smoothing over more points).
-#
-#  
-#--------------------------------------------------------------------------
-# - Written by Peter Gaube in MatLab, December 8, 2009. 
-# - Translated to R by Camrin Braun, April 2014.
-# - Based on smooth2d_loess.m by Larry O'Neill, September 25, 2007
-#--------------------------------------------------------------------------
+grid2dloess <- function (data, xgrid, ygrid, span_x, span_y, xgrid_est,
+                         ygrid_est, flagout=TRUE){
+  
+#' 2-dimensional loess gridder. The smoothed value at each grid point 
+#' is found from a weighted least-squares regression of the points within 
+#'  +/- SPAN_X and SPAN_Y of the grid point to a quadratic surface.
+#'  
+#'  @param data is a row vector array of the data to be smoothed. missing
+#'          value flag is Na.
+#'  @param xgrid is x locations of data. Must be same size as data array.
+#'  @param ygrid is y locations of data. Must be same size as data array.
+#'  @param span_x, span_y are the filter half-power points (each a scalar).
+#'          The larger number, the more smoothing is performed. For the tricubic
+#'          weighting function used here the smoothing is approximately 
+#'          equivalent to using a running average of length equal to 
+#'          ~0.6*SPAN_X. However, the spectral characteristics of this 
+#'          smoother are usually much more desirable. The filter cutoff
+#'          frequencies are approximately (1/SPAN_X, 1/SPAN_Y).
+#' @param XGRID_EST, YGRID_EST are column and row vectors, respectivly, where smoothed estimates are
+#'            desired. The estimate grid can be irregular and non-monotonic.
+#'            Any points in XGRID_EST and YGRID_EST outside of the range of 
+#'  		        XGRID and YGRID, respectively, will have SM_DATA=NaN.
+#' @param FLAGOUT is logical indicating whether you want to output FLAG as described below
+#' 
+#' @return SM_DATA is a 2-dimensional array with LENGTH(XGRID_EST) columns and LENGTH(YGRID_EST) rows 
+#'           with the smoothed DATA.
+#' @return FLAG is an array the same size as SM_DATA that is set to 1 when the 
+#'        smoothed estimate is outside the range of the data within +/- 
+#'        SPAN_X of that grid point and 0 otherwise. When the smoothed 
+#'        estimate is out of range, the estimate will be included in the 
+#'        output SM_DATA. This will typically occur near the edges of the 
+#'        DATA series or when SPAN_X only encompasses a small number of grid
+#'        points in XGRID. While the smoothed estimate is usually only
+#'        marginally out-of-range in these cases, care should be used when 
+#'        considering these points because the smoothed estimate may not be 
+#'        very good at that particular point. If there are many such points, 
+#'        consider using a larger SPAN_X (smoothing over more points).
+#'
+#'  
+#'--------------------------------------------------------------------------
+#' - Written by Peter Gaube in MatLab, December 8, 2009. 
+#' - Translated to R by Camrin Braun, April 2014.
+#' - Based on smooth2d_loess.m by Larry O'Neill, September 25, 2007
+#'--------------------------------------------------------------------------
 
-require(Matrix);require(pracma);require(fields)
+#require(Matrix); require(pracma); require(fields)
 
 ny = length(data);
 
@@ -133,12 +128,12 @@ ygrid_est = ygrid_est/span_y;
 # Preallocate the output arrays
 #
 
-sm_data = matrix(ncol=nx_est,nrow=ny_est)
+sm_data = matrix(ncol = nx_est, nrow = ny_est)
                  
 # Preallocate NaNs for output SM_DATA array
 
 if (flagout){
-  flag = matrix(0,nrow=ny_est,ncol=nx_est);
+  flag = matrix(0, nrow = ny_est, ncol = nx_est);
   # Preallocate 0's for output FLAG array
 }
 
@@ -166,7 +161,7 @@ for (j in sy){
     dx = mxgrid - xgrid_est[i];
     dist = dx*dx + dy2;
     igood = (dist+nan_data_loc) < 1;
-    ngood = sum(as.vector(igood),na.rm=T);
+    ngood = sum(as.vector(igood), na.rm = T);
     if (is.na(ngood)){
       ngood = 0
     }
@@ -191,13 +186,13 @@ for (j in sy){
       #
       
       #equivalent to matlab's repmat function to repeat a matrix
-      xin = kronecker(matrix(1,1,6),w) 
+      xin = kronecker(matrix(1, 1, 6), w) 
       
-      xin[,2] = xin[,2]*dxsel;
-      xin[,3] = xin[,3]*dysel;
-      xin[,4] = xin[,2]*dxsel;
-      xin[,5] = xin[,3]*dysel;
-      xin[,6] = xin[,2]*dysel;
+      xin[,2] = xin[,2] * dxsel;
+      xin[,3] = xin[,3] * dysel;
+      xin[,4] = xin[,2] * dxsel;
+      xin[,5] = xin[,3] * dysel;
+      xin[,6] = xin[,2] * dysel;
       
       #
       # Least-squares solution to the over-determined set of 
@@ -214,9 +209,9 @@ for (j in sy){
       # if mldivide() fails.
       #
       
-      B = try(mldivide(xin, (w*datasel)),silent=T)
+      B = try(mldivide(xin, (w*datasel)), silent = T)
       if(!is.numeric(B)){
-        B=NA
+        B = NA
       }
       #
       # Smoothed value is just the first regression coefficient, since
@@ -241,6 +236,6 @@ for (j in sy){
 
 }
 
-result = list(sm_data=sm_data, flag=flag)
+result = list(sm_data = sm_data, flag = flag)
 return(result)
-} #end function
+} 

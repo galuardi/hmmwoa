@@ -10,4 +10,4 @@ Authors@R: c(
 Description: this will be the HMM using WOA data. The guts follow Pedersen et al. 2008
 License: MIT
 Depends: mvtnorm, fields, rworldmap, ncdf, abind
-Suggests: raster
+Suggests: raster, Matrix, pracma, oce

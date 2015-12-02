@@ -34,7 +34,7 @@ get.hycom <- function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
   
   require(ncdf)
   
-  dir.create(file.path(dir),recursive=TRUE)
+  dir.create(file.path(dir), recursive = TRUE)
   setwd(dir)
   
   ## Set the base URL based on the start date. If the ending date exceeds the

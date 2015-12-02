@@ -2,23 +2,15 @@
 calc.pdt <- function(pdt, dat, lat, lon){
   
   ##  This program matches depth temperature profiles collected by a WC PSAT
-  ##  tag to climatological profiles from World Ocean Database. Program 
-  ##  calculates a MSE for each oceanographic profile compared to each dive,
-  ##  and writes the grid cell number, tag day, and MSE to variable
+  ##  tag to climatological profiles from the World Ocean Atlas.
   
-  #==============================
-  # Creates MSE variable in the workspace where data will be stored
-  #==============================
-  
-  #cellidx = gridPts$cellNo
-  
-  # mse: Mean Square Error value calculated for each oceanographic profile
-  # fill array with MSE values for each day and each grid cell
-  #mse = array(dim = c(lon = length(lon), lat = length(lat), uid = max(pdt[,9]))) #creates MSE array
-  
-  #============================
-  #For loops calculate MSE for each profile for each tag uid
-  #============================
+  #' @param pdt is -PDT data from WC psat tag summarizing depth/temperature
+  #'        data over a programmed time interval
+  #' @param dat is monthly global 1/4deg climatology data from WOA13
+  #' @param lat is vector of latitudes from dat
+  #' @param lon is vector of longitudes from dat
+  #' @return lik is array of likelihoods for depth-temp profile
+  #'        matching between tag data and WOA
   
   pdt$MidTemp <- (pdt$MaxTemp + pdt$MinTemp) / 2
   
@@ -37,12 +29,13 @@ calc.pdt <- function(pdt, dat, lat, lon){
       
       dat.i = dat[,,,pdtMonth] #extract months climatology
       
-      depIdx <- findInterval(y, depth)
-      datDep = depth[depIdx] #locates climatology dep points nearest to tag's recorded depths
-      tag = approx(y,x,xout=datDep,rule=2) #interpolates temperatures in y to 1 m intervals in DepInt
-      names(tag) = list('y','x')
+      depIdx <- findInterval(y, depth) #locates climatology dep points nearest to tag's recorded depths
+      datDep = depth[depIdx] 
+      tag = approx(y, x, xout=datDep, rule=2) #interpolates temperatures in y to relevant WOA depths
+      names(tag) = list('y', 'x')
       
       for (b in depIdx){
+        # calculate likelihood at each depth for a given tag time point
         lik.b <- dnorm(dat[,, b, pdtMonth], tag$x[which(depIdx == b)], .5) 
         #lik.b <- (lik.b / max(lik.b, na.rm = T)) - .05
         if(min(which(depIdx == b)) == 1){
