@@ -1,5 +1,5 @@
 
-calc.pdt <- function(pdt, dat, lat, lon){
+calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE){
   
   ##  This program matches depth temperature profiles collected by a WC PSAT
   ##  tag to climatological profiles from the World Ocean Atlas.
@@ -62,6 +62,15 @@ calc.pdt <- function(pdt, dat, lat, lon){
     
   }
   
+  if(raster){
+    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+    list.pdt <- list(x = lon, y = lat, z = lik)
+    ex <- extent(list.pdt)
+    lik <- brick(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+    lik <- flip(lik, direction = 'y')
+  }
+  
+  print(class(lik))
   return(lik)
   
 }

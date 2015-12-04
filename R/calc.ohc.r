@@ -20,7 +20,7 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir){
   # get unique time points
   udates <- unique(pdt$Date)
   
-  ohcVec <- vector(0, length = length(udates))
+  ohcVec <- rep(0, length.out = length(udates))
   
   if(isotherm != '') iso.def <- TRUE else iso.def <- FALSE
   
@@ -47,9 +47,11 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir){
     time <- udates[i]
     
     # open day's hycom data
-    nc <- open.ncdf(paste(ohc.dir, ptt, '_', as.Date(time), '.nc', sep=''))
-    dat <- get.var.ncdf(nc, 'temperature')
-    depth <- get.var.ncdf(nc, 'Depth')
+    nc <- open.ncdf(paste(ohc.dir, ptt, '_-', as.Date(time), '.nc', sep=''))
+    dat <- get.var.ncdf(nc, 'water_temp')
+    depth <- get.var.ncdf(nc, 'depth')
+    lon <- get.var.ncdf(nc, 'lon')
+    lat <- get.var.ncdf(nc, 'lat')
     
     pdt.i <- pdt[which(pdt$Date == time),]
     
@@ -97,7 +99,16 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir){
     
   }
   
-  # return ohc likelihood surfaces as an array
+  if(raster){
+    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+    list.pdt <- list(x = lon-360, y = lat, z = likelihood)
+    ex <- extent(list.pdt)
+    likelihood <- brick(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+    likelihood <- flip(likelihood, direction = 'y')
+  }
+  
+  print(class(likelihood))
+  # return ohc likelihood surfaces
   return(likelihood)
   
 }

@@ -148,10 +148,15 @@ if(plot == T)
   
   library(raster)
 f <- dat
-r <- raster(t(f[,,1]),xmn=-90,xmx=-40,ymx=55,ymn=10)
+r <- raster(t(f[,,1,1]),xmn=-90,xmx=-30,ymx=50,ymn=-30)
 r <- flip(r,direction='y')
 plot(r)
 plot(countriesLow, add = TRUE)
+
+L.ext <- extent(c(xmin=min(lon),xmax=max(lon),ymin=min(lat),ymax=max(lat)))
+l <- raster(t(L.locs[,,30]),xmn=L.ext[1],xmx=L.ext[2],ymn=L.ext[3],ymx=L.ext[4])
+projection(l) <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+projection(r) <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
 
 ## check we get sensible orientation and scaling and offset and
 ## interpretation etc. etc.

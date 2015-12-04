@@ -57,14 +57,22 @@ dat = return.woa$dat; lon = return.woa$lon; lat = return.woa$lat; depth = return
 dat = removePacific(dat, lat, lon)
 
 # perform matching
-L.pdt = calc.pdt(pdt, dat, lat, lon)
-plot.woa(L.pdt, return.woa, paste(ptt, '_woalik.pdf', sep=''), pdt = pdt, write.dir = getwd())
+L.pdt = calc.pdt(pdt, dat, lat, lon, raster = T)
 
+plot.woa(as.array(L.pdt), return.woa, paste(ptt, '_woalik.pdf', sep=''), pdt = pdt, write.dir = getwd())
 
 #list.pdt <- list(x=lon,y=lat,z=L.pdt)
-#L.pdt <- rasterizeStack(L.pdt, lon, lat)
-#br <- brick(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4])
 #ex <- extent(list.pdt)
+#br <- brick(L.pdt, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4],transpose=T,crs)
+#br <- flip(br,direction='y')
+#projection(br) <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+plot(L.pdt[[100]])
+plot(countriesLow,add=T)
+#sync.l <- spatial_sync_raster(l,br)
+# now they have same extent and resolution and can be multiplied!
+
+#plot(sync.l[[5]])
+#plot(countriesLow,add=T)
 
 ##
 # Light-based Longitude Likelihood
@@ -87,7 +95,12 @@ lat <- g$lat[,1]
 
 colnames(iniloc) = list('day','month','year','lat','lon')
 
-L.locs <- lik.locs(locs, iniloc, g)
+L.locs <- lik.locs(locs, iniloc, g, raster = T)
+# convert to rasterBrick and project
+L.ext <- extent(c(xmin=min(lon),xmax=max(lon),ymin=min(lat),ymax=max(lat)))
+crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+l <- brick(L.locs,xmn=L.ext[1],xmx=L.ext[2],ymn=L.ext[3],ymx=L.ext[4],transpose=T,crs)
+
 
 
 ##

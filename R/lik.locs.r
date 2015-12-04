@@ -1,4 +1,4 @@
-lik.locs <- function(locs,iniloc,g){
+lik.locs <- function(locs, iniloc, g, raster = TRUE){
   ## Calculate the "data" likelihood, i.e. the likelihood field for each
   ## location observation
 
@@ -54,6 +54,15 @@ lik.locs <- function(locs,iniloc,g){
   ela <- which.min(abs(g$lat[,1]-iniloc$lat[2]))
   L[elo, ela, T + 2] <- 1
   
+  if(raster){
+    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+    list.pdt <- list(x = g$lon[1,], y = g$lat[,1], z = L)
+    ex <- extent(list.pdt)
+    L <- brick(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+    L <- flip(L, direction = 'y')
+  }
+  
+  print(class(L))
   return(L)
   
 }
