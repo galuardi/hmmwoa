@@ -2,23 +2,23 @@ setup.grid <- function(locations){
   ## Setup the discrete spatial grid for the HMM
 #' @param locations is dataframe of -Locations from WC psat tag
   
-  T <- length(light$Longitude)
+  T <- length(locations$Longitude)
   
   # Find longitude extents
-  il <- floor(min(light$Longitude))
-  al <- ceiling(max(light$Longitude))
+  il <- floor(min(locations$Longitude))
+  al <- ceiling(max(locations$Longitude))
   lx <- 0.1 * (al - il)
   lonl <- il - lx
   lonu <- al + lx
-  lo.out <- 4 * (lonu - lonl)
+  lo.out <- 25/2 * (lonu - lonl)
   
   # Find latitude extents
-  ila <- floor(min(light$Latitude))
-  ala <- ceiling(max(light$Latitude))
+  ila <- floor(min(locations$Latitude))
+  ala <- ceiling(max(locations$Latitude))
   ly <- 0.1 * (ala - ila)
   latl <- ila - ly
   latu <- ala + ly
-  la.out <- 4 * (latu - latl)
+  la.out <- (25/2) * (latu - latl)
   
   #  latvec <- seq(0,90)
   #  lats <- rep(0,T)
