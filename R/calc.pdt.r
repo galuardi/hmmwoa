@@ -1,5 +1,5 @@
 
-calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE){
+calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE, dateVec){
   
   ##  This program matches depth temperature profiles collected by a WC PSAT
   ##  tag to climatological profiles from the World Ocean Atlas.
@@ -52,11 +52,10 @@ calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE){
       # what to do if y<3?
     }
     
-    if(i == 1){
-      lik <- lik.pdt
-    } else{
-      lik <- abind(lik, lik.pdt, along = 3)
-    }
+    L.pdt <- array(0, dim = c(dim(lik.pdt), length(dateVec)))
+    
+    idx <- which(dateVec == as.Date(time))
+    L.pdt[,,idx] = lik.pdt
     
     print(time)
     
@@ -64,13 +63,13 @@ calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE){
   
   if(raster){
     crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-    list.pdt <- list(x = lon, y = lat, z = lik)
+    list.pdt <- list(x = lon, y = lat, z = L.pdt)
     ex <- extent(list.pdt)
-    lik <- brick(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
-    lik <- flip(lik, direction = 'y')
+    L.pdt <- brick(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+    L.pdt <- flip(L.pdt, direction = 'y')
   }
   
-  print(class(lik))
-  return(lik)
+  print(class(L.pdt))
+  return(L.pdt)
   
 }

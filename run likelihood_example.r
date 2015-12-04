@@ -1,8 +1,8 @@
 # calculate light-based likelihood
-setwd('~/Documents/WHOI/RData/BaskingSharks/2008/88143/')
-ptt <- 88143
-iniloc <- data.frame(matrix(c(11, 10, 2008, 42.0650, -70.2893, 
-                   1, 10, 2009, 42.105, -68.34), nrow = 2, ncol = 5, byrow = T))
+setwd('~/Documents/WHOI/RData/Swords/2013/106795/')
+ptt <- 106795
+iniloc <- data.frame(matrix(c(27, 9, 2013, 46.47683333, -45.5640, 
+                   2, 11, 2013, 30.92645, -39.6919), nrow = 2, ncol = 5, byrow = T))
 
 pdt <- read.table(paste(ptt,'-PDTs.csv', sep=''), sep=',',header=T,blank.lines.skip=F, skip = 2)
 
@@ -13,12 +13,13 @@ dts <- as.POSIXct(pdt$Date, format = findDateFormat(pdt$Date))
 didx <- dts >= tag & dts <= pop
 pdt <- pdt[didx,]
 
-lon = c(-90, -30)
-lat = c(-30, 50)
+lon = c(-70, -15)
+lat = c(20, 60)
 
 ohc.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
 
 udates <- unique(as.Date(pdt$Date))
+dateVec <- as.Date(seq(tag, pop, by = 'day'))
 
 for(i in 1:length(udates)){
   time <- as.Date(udates[i])
@@ -95,11 +96,14 @@ lat <- g$lat[,1]
 
 colnames(iniloc) = list('day','month','year','lat','lon')
 
-L.locs <- lik.locs(locs, iniloc, g, raster = T)
+L.locs <- calc.locs(locs, iniloc, g, raster = T, dateVec = dateVec)
+plot(L.locs[[10]])
+plot(countriesLow, add = T)
+
 # convert to rasterBrick and project
-L.ext <- extent(c(xmin=min(lon),xmax=max(lon),ymin=min(lat),ymax=max(lat)))
-crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-l <- brick(L.locs,xmn=L.ext[1],xmx=L.ext[2],ymn=L.ext[3],ymx=L.ext[4],transpose=T,crs)
+#L.ext <- extent(c(xmin=min(lon),xmax=max(lon),ymin=min(lat),ymax=max(lat)))
+#crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+#l <- brick(L.locs,xmn=L.ext[1],xmx=L.ext[2],ymn=L.ext[3],ymx=L.ext[4],transpose=T,crs)
 
 
 

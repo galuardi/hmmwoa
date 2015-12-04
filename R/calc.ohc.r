@@ -1,4 +1,4 @@
-calc.ohc <- function(tagdata, isotherm = '', ohc.dir){
+calc.ohc <- function(tagdata, isotherm = '', ohc.dir, dateVec){
   # compare tag data to ohc map and calculate likelihoods
   
   #' @param: tagdata is variable containing tag-collected PDT data
@@ -85,15 +85,11 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir){
     print(paste(max(lik), time))
     
     # result should be array of likelihood surfaces
-    if(i == 1){
-      
-      likelihood <- as.array(lik)
-      
-    } else{
-      
-      likelihood <- abind(likelihood, lik, along = 3)
-      
-    }
+    
+    L.ohc <- array(0, dim = c(dim(lik), length(dateVec)))
+    
+    idx <- which(dateVec == as.Date(time))
+    L.ohc[,,idx] = lik
     
     print(paste(time, ' finished.', sep=''))
     
@@ -101,14 +97,14 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir){
   
   if(raster){
     crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-    list.pdt <- list(x = lon-360, y = lat, z = likelihood)
-    ex <- extent(list.pdt)
-    likelihood <- brick(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
-    likelihood <- flip(likelihood, direction = 'y')
+    list.ohc <- list(x = lon-360, y = lat, z = L.ohc)
+    ex <- extent(list.ohc)
+    L.ohc <- brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+    L.ohc <- flip(L.ohc, direction = 'y')
   }
   
-  print(class(likelihood))
+  print(class(L.ohc))
   # return ohc likelihood surfaces
-  return(likelihood)
+  return(L.ohc)
   
 }
