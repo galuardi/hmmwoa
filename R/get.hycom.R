@@ -1,6 +1,6 @@
 
 get.hycom <- function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
-                          filename='',download.file=TRUE, dir = getwd()) {
+                          filename='', type = 'r', download.file=TRUE, dir = getwd()) {
 
   #' Downloads data from the HYCOM + NCODA Global 1/12 Degree Analysis.
   #'
@@ -26,6 +26,8 @@ get.hycom <- function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
   #' @param: dir is directory where nc files should be downloaded to. default is
   #' current working directory. if enter a directory that doesn't exist, it will
   #' be created.
+  #' @param type indicates type of HYCOM product to download. 'r' is reanalysis
+  #'        and 'a' is analysis. see https://hycom.org/dataserver for details.
   #' @return The url used to extract the requested data from the NetCDF subset
   #' service.
     
@@ -40,18 +42,30 @@ get.hycom <- function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
   ## Set the base URL based on the start date. If the ending date exceeds the
   ## period for this experiment, then print a warning and truncate the output
   ## early.
-  expts = data.frame(
-    start=c(as.Date('2008-09-19'), as.Date('2009-05-07'),
-            as.Date('2011-01-03'), as.Date('2013-08-21'),
-            as.Date('2014-04-05')),
-    end=c(as.Date('2009-05-06'), as.Date('2011-01-02'),
-          as.Date('2013-08-20'), as.Date('2014-04-04'),
-          Sys.Date() + 1),
-    url=c('http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_90.6?',
-          'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_90.8?',
-          'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_90.9?',
-          'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_91.0?',
-          'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_91.1?'))
+  
+  if(type == 'a'){
+    expts = data.frame(
+      start=c(as.Date('2008-09-19'), as.Date('2009-05-07'),
+              as.Date('2011-01-03'), as.Date('2013-08-21'),
+              as.Date('2014-04-05')),
+      end=c(as.Date('2009-05-06'), as.Date('2011-01-02'),
+            as.Date('2013-08-20'), as.Date('2014-04-04'),
+            Sys.Date() + 1),
+      url=c('http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_90.6?',
+            'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_90.8?',
+            'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_90.9?',
+            'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_91.0?',
+            'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_91.1?'))
+  } else if(type == 'r'){
+    expts = data.frame(
+      start=c(as.Date('1992-10-02'),
+              as.Date('1995-08-01')),
+      end=c(as.Date('1995-07-31'),
+            as.Date('2012-12-31')),
+      url=c('http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_19.0',
+            'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_19.1'))
+    }
+  
   if(time[1] < expts$start[1])
     stop('Data begins at %s and is not available at %s.',
          strftime(expts$start[1], '%d %b %Y'),
@@ -64,6 +78,12 @@ get.hycom <- function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
     if((time[1] >= expts$start[i]) & (time[1] <= expts$end[i]))
       url = expts$url[i]
   }
+  
+  if(type == 'r'){
+    url = sprintf('%s/%s', url, as.numeric(format(time, '%Y')))
+    url = sprintf('%s?%s', url, '')
+  }
+  
   ## Add the variables.
   for(var in vars)
     url = sprintf('%svar=%s&', url, var)
