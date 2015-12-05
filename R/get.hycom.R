@@ -88,9 +88,9 @@ get.hycom <- function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
   url = sprintf('%sdisableProjSubset=on&vertCoord=&accept=netcdf', url)
   ## Download the data if a filename was provided.
   if(filename != ''){
-    if(download.file==TRUE){
-      download.file(url,filename)
-    } else if(download.file==FALSE){
+    if(download.file == TRUE){
+      download.file(url, filename, method = 'curl')
+    } else if(download.file == FALSE){
       system(sprintf('curl -o "%s" "%s"', filename, url))
     }
   }
