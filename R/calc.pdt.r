@@ -46,7 +46,7 @@ calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE, dateVec){
       }
       
       lik.pdt <- apply(lik.pdt, 1:2, prod)
-      lik.pdt <- (lik.pdt / max(lik.pdt, na.rm = T)) - .05
+      #lik.pdt <- (lik.pdt / max(lik.pdt, na.rm = T)) - .05
 
     } else{
       # what to do if y<3?

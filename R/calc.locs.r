@@ -44,8 +44,8 @@ calc.locs <- function(locs, iniloc, g, raster = TRUE, dateVec){
     } else if(locs$Type[t] == 'GPE'){
      # create longitude likelihood based on GPE data
      # for now, latitude is ignored
-       L.light <- dnorm(t(g$lon), locs$Longitude[t], sl.sd) # Longitude data
-      L.locs[,,which(dateVec == locDates[t])] <- (L.light / max(L.light, na.rm = T)) - .05
+      L.light <- dnorm(t(g$lon), locs$Longitude[t], sl.sd) # Longitude data
+      L.locs[,,which(dateVec == locDates[t])] <- L.light #(L.light / max(L.light, na.rm = T)) - .05
       
     } else{}
 
