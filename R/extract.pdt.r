@@ -28,7 +28,46 @@ extract.pdt = function(data){
   #pdt <- pdt[which(!is.na(pdt$Depth)),]
   pdt <- pdt[!is.na(pdt$Depth),]
   
+  udates <- unique(format(pdt$Date, '%Y-%m-%d'))
+  dates.tr <- format(pdt$Date, '%Y-%m-%d')
+  dateidx <- match(dates.tr, udates)
+  
+  ## THIS SECTION NEEDS WORK. CURRENTLY USING MULTIPLE POINTS PER DAY
+  ## TO CONSTRUCT A SINGLE PDT PROFILE. MOSTLY WORKS WELL BUT IN SOME
+  ## CASES THE ANIMAL USES VERY DISTINCT WATER MASSES CAUSING THIS
+  ## AVERAGING TECHNIQUE TO DO WEIRD THINGS AND CONSTRUCT UNREALISTIC
+  ## PROFILES
+  
+  for(i in 1:max(dateidx)){
+    pdt.i <- pdt[which(dateidx == i),]
+    #print(pdt.i)
+    if(length(unique(pdt.i[,5])) <= 2){ #print(i,' 1')#break
+    } else{
+      #print(i,' 2')
+      if(length(which(pdt.i$BinNum == 1)) > 1){
+        #print(i,' 3')
+        pdt.i <- pdt.i[order(pdt.i$Depth),]
+        z <- unique(pdt.i$Depth)#; z <- sort(z)
+        z[z < 0] = 0; z <- unique(z)
+        minT <- approx(pdt.i$Depth, pdt.i$MinTemp, xout = z)$y
+        maxT <- approx(pdt.i$Depth, pdt.i$MaxTemp, xout = z)$y
+        pdt.t <- pdt.i[1:length(z),]
+        pdt.t[,c(5:7)] <- cbind(z,minT,maxT)
+        pdt.t[,4] <- seq(1, length(z), by = 1)
+        pdt.t[,3] <- length(z)
+        pdt.t[,2] <- paste(format(pdt.t$Date, '%Y-%m-%d'),' 00:00:00', sep = '')
+      } else{
+        #print(i,' 4')
+        pdt.t <- pdt.i
+        }
+      
+      if(i == 1) pdtNew <- pdt.t else pdtNew <- rbind(pdtNew, pdt.t)
+      #print(i,' 5')
+    
+    }
+    
+  }
   # write out / return
-  return(pdt)
+  return(pdtNew)
   
 }
