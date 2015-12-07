@@ -54,7 +54,7 @@ calc.locs <- function(locs, iniloc, g, raster = TRUE, dateVec, errEll = F){
        L.locs[,,which(dateVec == locDates[t])] <- L.light
        
      } else if(errEll == TRUE){
-       stop('Error: Error ellipse functionality is not yet available.') break
+       stop('Error: Error ellipse functionality is not yet available.')
        #slon.sd <- locs$Error.Semi.minor.axis[t] / 1000 / 111 #semi minor axis
        #L.light.lon <- dnorm(t(g$lon), locs$Longitude[t], slon.sd) # Longitude data
        #slat.sd <- locs$Error.Semi.major.axis[t] / 1000 / 111 #semi major axis

@@ -25,7 +25,7 @@ calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE, dateVec){
     
     if (length(y) > 3){
       x <- pdt.i$MidTemp[!is.na(pdt.i$Depth)]  #extract temperature from tag data for day i
-      pdtMonth <- as.numeric(format(pdt.i$Date, format='%m'))[1]
+      pdtMonth <- as.numeric(format(as.Date(pdt.i$Date), format='%m'))[1]
       
       dat.i = dat[,,,pdtMonth] #extract months climatology
       
