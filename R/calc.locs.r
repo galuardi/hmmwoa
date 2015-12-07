@@ -1,4 +1,4 @@
-calc.locs <- function(locs, iniloc, g, raster = TRUE, dateVec){
+calc.locs <- function(locs, iniloc, g, raster = TRUE, dateVec, errEll = F){
   ## Calculate the "data" likelihood, i.e. the likelihood field for each
   ## location observation
 
@@ -8,6 +8,9 @@ calc.locs <- function(locs, iniloc, g, raster = TRUE, dateVec){
   #'          lat, lon for both tag and pop locations
   #' @param: g is output from setup.grid and indicates extent and resolution
   #'        of grid used to calculate likelihoods
+  #' @param errEll is logical indicating whether error ellipses should be 
+  #'        generated for light-based likelihoods as given from output
+  #'        of WC-GPE. False if only longitude should be used.
   #' @return: L is array of lon x lat likelihood surfaces (matrices)
   #'          for each time point (3rd dimension)
     
@@ -23,9 +26,7 @@ calc.locs <- function(locs, iniloc, g, raster = TRUE, dateVec){
   L.locs[ilo, ila, 1] <- 1
   
   # Calculate data likelihood
-  # SD for light-based longitude from Musyl et al. (2001)
-  sl.sd <- 35/111 # Converting from kms to degrees
-  
+   
   locDates <- as.Date(locs$Date, format = findDateFormat(locs$Date))
   
   for(t in 1:T){
@@ -42,30 +43,43 @@ calc.locs <- function(locs, iniloc, g, raster = TRUE, dateVec){
       L.locs[alo, ala, which(dateVec == locDates[t])] <- 1
       
     } else if(locs$Type[t] == 'GPE'){
-     # create longitude likelihood based on GPE data
-     # for now, latitude is ignored
-      slon.sd <- locs$Error.Semi.minor.axis[t] / 1000 / 111 #semi minor axis
-      L.light.lon <- dnorm(t(g$lon), locs$Longitude[t], slon.sd) # Longitude data
-      slat.sd <- locs$Error.Semi.major.axis[t] / 1000 / 111 #semi major axis
-      L.light.lat <- dnorm(t(g$lat), locs$Latitude[t], slat.sd)
-      
-      L <- raster(L.light.lat * L.light.lon, xmn=min(lon), 
-                  xmx=max(lon),ymn=min(lat),ymx=max(lat))
-      # offset
-      Lext <- extent(L)
-      Ls <- shift(L, y = -1 * (locs$Offset[t] / 1000 / 111))
-      Lsx <- extend(Ls, Lext)
-      Lsx <- crop(Lsx, Lext)
-      #Lsx <- raster(matrix(extract(Ls, Lext), nrow=nrow(L), ncol=ncol(L)), xmn=min(lon), 
-      #              xmx=max(lon),ymn=min(lat),ymx=max(lat))
-      
-      # rotate?
-      
-      #xres <- lon[2] - lon[1]; yres <- lat[2] - lat[1]
-      #locs$Offset[t] / 1000 / 111 # offset in degrees
-      
-      L.locs[,,which(dateVec == locDates[t])] <- L.light.lat * L.light.lon
-      
+     if(errEll == FALSE){
+       # create longitude likelihood based on GPE data
+       # for now, latitude is ignored
+       # SD for light-based longitude from Musyl et al. (2001)
+       slon.sd <- 35/111 # Converting from kms to degrees
+       
+       L.light <- dnorm(t(g$lon), locs$Longitude[t], slon.sd)
+       
+       L.locs[,,which(dateVec == locDates[t])] <- L.light
+       
+     } else if(errEll == TRUE){
+       stop('Error: Error ellipse functionality is not yet available.') break
+       #slon.sd <- locs$Error.Semi.minor.axis[t] / 1000 / 111 #semi minor axis
+       #L.light.lon <- dnorm(t(g$lon), locs$Longitude[t], slon.sd) # Longitude data
+       #slat.sd <- locs$Error.Semi.major.axis[t] / 1000 / 111 #semi major axis
+       #L.light.lat <- dnorm(t(g$lat), locs$Latitude[t], slat.sd)
+       
+       #L <- raster(L.light.lat * L.light.lon, xmn=min(lon), 
+      #             xmx=max(lon),ymn=min(lat),ymx=max(lat))
+       # offset
+       #Lext <- extent(L)
+       #Ls <- shift(L, y = -1 * (locs$Offset[t] / 1000 / 111))
+       #Lsx <- extend(Ls, Lext)
+       #Lsx <- crop(Lsx, Lext)
+       ###Lsx <- raster(matrix(extract(Ls, Lext), nrow=nrow(L), ncol=ncol(L)), xmn=min(lon), 
+       ###              xmx=max(lon),ymn=min(lat),ymx=max(lat))
+       
+       # rotate?
+       #Lsx <- rotateProj(Lsx, locs$Error.Ellipse.orientation[t])
+       
+       ###xres <- lon[2] - lon[1]; yres <- lat[2] - lat[1]
+       ###locs$Offset[t] / 1000 / 111 # offset in degrees
+       
+       #L.locs[,,which(dateVec == locDates[t])] <- L.light.lat * L.light.lon
+       
+     }
+     
     } else{}
 
       }
