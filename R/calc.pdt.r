@@ -9,6 +9,8 @@ calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE, dateVec){
   #' @param dat is monthly global 1/4deg climatology data from WOA13
   #' @param lat is vector of latitudes from dat
   #' @param lon is vector of longitudes from dat
+  #' @param raster is character indicating whether likelihood 'array',
+  #'        'stack' or 'brick' should be output
   #' @return lik is array of likelihoods for depth-temp profile
   #'        matching between tag data and WOA
   
@@ -23,7 +25,9 @@ calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE, dateVec){
     y <- pdt.i$Depth[!is.na(pdt.i$Depth)] #extracts depth from tag data for day i
     y[y<0] <- 0
     
-    if (length(y) > 3){
+    if(i == 1) L.pdt <- array(0, dim = c(dim(dat)[1:2], length(dateVec)))
+    
+    if (length(y) >= 3){
       x <- pdt.i$MidTemp[!is.na(pdt.i$Depth)]  #extract temperature from tag data for day i
       pdtMonth <- as.numeric(format(as.Date(pdt.i$Date), format='%m'))[1]
       
@@ -47,29 +51,38 @@ calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE, dateVec){
       
       lik.pdt <- apply(lik.pdt, 1:2, prod)
       #lik.pdt <- (lik.pdt / max(lik.pdt, na.rm = T)) - .05
-
+      
+      idx <- which(dateVec == as.Date(time))
+      L.pdt[,,idx] = lik.pdt
+      
+      print(time)
+      
     } else{
       # what to do if y<3?
     }
     
-    L.pdt <- array(0, dim = c(dim(lik.pdt), length(dateVec)))
-    
-    idx <- which(dateVec == as.Date(time))
-    L.pdt[,,idx] = lik.pdt
-    
-    print(time)
-    
   }
   
-  if(raster){
+  if(raster == 'brick'){
     crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
     list.pdt <- list(x = lon, y = lat, z = L.pdt)
     ex <- extent(list.pdt)
-    L.pdt <- brick(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+    L.pdt <- stack(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
     L.pdt <- flip(L.pdt, direction = 'y')
-  }
-  
-  print(class(L.pdt))
-  return(L.pdt)
+    s <- L.pdt
+  } else if(raster == 'stack'){
+    for(ii in 1:length(dateVec)){
+      r <- raster(t(L.pdt[,,ii]), xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], crs)
+      r <- flip(r, direction = 'y')
+      if(ii == 1){
+        s <- stack(r, quick = T)
+      } else{
+        s <- stack(s, r, quick = T)
+      }
+    }
+  } else if(raster == 'array'){}
+ 
+  print(class(s))
+  return(s)
   
 }
