@@ -58,7 +58,7 @@ dat = return.woa$dat; lon = return.woa$lon; lat = return.woa$lat; depth = return
 dat = removePacific(dat, lat, lon)
 
 # perform matching
-L.pdt = calc.pdt(pdt, dat, lat, lon, raster = T)
+L.pdt = calc.pdt(pdt, dat, lat, lon, raster = T, dateVec = dateVec)
 
 plot.woa(as.array(L.pdt), return.woa, paste(ptt, '_woalik.pdf', sep=''), pdt = pdt, write.dir = getwd())
 
@@ -67,7 +67,7 @@ plot.woa(as.array(L.pdt), return.woa, paste(ptt, '_woalik.pdf', sep=''), pdt = p
 #br <- brick(L.pdt, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4],transpose=T,crs)
 #br <- flip(br,direction='y')
 #projection(br) <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-plot(L.pdt[[100]])
+plot(L.pdt[[10]])
 plot(countriesLow,add=T)
 #sync.l <- spatial_sync_raster(l,br)
 # now they have same extent and resolution and can be multiplied!
@@ -85,8 +85,9 @@ dts <- format(as.POSIXct(locs$Date, format = findDateFormat(locs$Date)), '%Y-%m-
 didx <- dts > tag & dts < pop
 locs <- locs[didx,]
 
-ngrid <- c(limits[2] - limits[1], limits[4] - limits[3])
-g <- setup.grid(locs)
+#ngrid <- c(limits[2] - limits[1], limits[4] - limits[3])
+g <- setup.grid(locs) # make sure loading function from misc_funs.r
+ngrid <- rev(dim(g$lon))
 lon <- g$lon[1,]
 lat <- g$lat[,1]
 
@@ -96,9 +97,59 @@ lat <- g$lat[,1]
 
 colnames(iniloc) = list('day','month','year','lat','lon')
 
-L.locs <- calc.locs(locs, iniloc, g, raster = T, dateVec = dateVec)
-plot(L.locs[[10]])
-plot(countriesLow, add = T)
+L.locs.a <- calc.locs(locs, iniloc, g, raster = F, dateVec = dateVec)
+#plot(L.locs[[10]])
+#plot(countriesLow, add = T)
+
+# this does the same for formatting as raster = F in calc.locs
+#La <- as.array(L.locs)
+#Laa <- aperm(La, c(2,1,3))
+
+# now need to re-format the array to match dims in sphmm (time, lat, lon)
+La.re <- aperm(L.locs.a, c(3,2,1))
+# maybe this worked but need to ensure correct orientation in each matrix
+# looks to be right
+
+image.plot(g$lon,g$lat,La.re[10,,])
+
+# try sphmm
+## Number of time steps
+T <- dim(La.re)[1]
+
+## Fixed parameter values
+par0=c(8.908,10.27,1.152,0.0472,0.707,0.866)
+D1 <- par0[1:2]
+D2 <- par0[3:4]
+p <- par0[5:6]
+
+#if(do.fit){
+#  guess <- c(log(10),log(10),log(0.5),log(0.5),log(0.95/0.05),log(0.95/0.05))
+#  fit <- nlm(neg.log.lik.fun,guess,g,L,dt)
+#  D1 <- exp(fit$estimate[1:2])
+#  D2 <- exp(fit$estimate[3:4])
+#  p <- 1/(1+exp(-fit$estimate[5:6]))
+#}
+
+# LOAD SPHMMFUNS.R
+
+## Setup transition matrices
+G1 <- make.kern(D1,g)
+K1 <- uniformization(G1,dt)
+G2 <- make.kern(D2,g)
+K2 <- uniformization(G2,dt)
+P <- matrix(c(p[1],1-p[1],1-p[2],p[2]),2,2,byrow=TRUE)
+
+## Run smoother and filter
+f <- hmm.filter(g,L,K1,K2,P)
+s <- hmm.smoother(f,K1,K2,P)
+sphmm <- calc.track(s,g)
+sphmm$date <- lsst$date
+sphmm$p.resid <- apply(s,c(1,2),sum)[2,]
+
+tr <- read.table('../sim/argosdata.csv',header=TRUE,sep=',')
+
+
+
 
 # convert to rasterBrick and project
 #L.ext <- extent(c(xmin=min(lon),xmax=max(lon),ymin=min(lat),ymax=max(lat)))
