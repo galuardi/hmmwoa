@@ -63,11 +63,12 @@ calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE, dateVec){
     
   }
   
+  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+  list.pdt <- list(x = lon, y = lat, z = L.pdt)
+  ex <- extent(list.pdt)
+  
   if(raster == 'brick'){
-    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-    list.pdt <- list(x = lon, y = lat, z = L.pdt)
-    ex <- extent(list.pdt)
-    L.pdt <- stack(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+    L.pdt <- brick(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
     L.pdt <- flip(L.pdt, direction = 'y')
     s <- L.pdt
   } else if(raster == 'stack'){
@@ -80,7 +81,7 @@ calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE, dateVec){
         s <- stack(s, r, quick = T)
       }
     }
-  } else if(raster == 'array'){}
+  } else if(raster == 'array'){s <- L.pdt}
  
   print(class(s))
   return(s)

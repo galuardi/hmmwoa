@@ -89,15 +89,29 @@ calc.locs <- function(locs, iniloc, g, raster = TRUE, dateVec, errEll = F){
   ela <- which.min(abs(g$lat[,1]-iniloc$lat[2]))
   L.locs[elo, ela, length(dateVec)] <- 1
   
-  if(raster){
-    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-    list.locs <- list(x = g$lon[1,], y = g$lat[,1], z = L.locs)
-    ex <- extent(list.locs)
+  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+  list.locs <- list(x = g$lon[1,], y = g$lat[,1], z = L.locs)
+  ex <- extent(list.locs)
+  
+  if(raster == 'brick'){
     L.locs <- brick(list.locs$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
     L.locs <- flip(L.locs, direction = 'y')
-  }
+    s <- L.locs
+    
+  } else if(raster == 'stack'){
+    for(ii in 1:length(dateVec)){
+      r <- raster(t(L.locs[,,ii]), xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], crs)
+      r <- flip(r, direction = 'y')
+      if(ii == 1){
+        s <- stack(r, quick = T)
+      } else{
+        s <- stack(s, r, quick = T)
+      }
+    }
+  } else if(raster == 'array'){s <- L.locs}
   
-  print(class(L.locs))
-  return(L.locs)
+  
+  print(class(s))
+  return(s)
   
 }
