@@ -1,3 +1,11 @@
+##CDB: you should really install devtools and use git for rstudio
+##    once you do that, you just push ctrl+shift+L when you make
+##    modifications to your code and it re-loads your package
+##    with any changes you've made since last load. if you do 
+##    this in a new session, it loads all the package dependencies
+##    and functions. seriously cool. will save you from all this
+##    library() and source() stuff ;)
+
 # RUN LYDIA EXAMPLE
 
 library(fields)
@@ -144,6 +152,12 @@ L.pdt <- spatial_sync_raster(L.pdt, L.locs)
 plot(L.pdt[[4]])
 plot(countriesLow, add = T)
 
+## CDB: I initially tried this too but if there are any days
+##    missing data in the likelihood then all the 0's cancel
+##    out anything that might be in the likelihood for the
+##    other data source. I'll make this whole next step
+##    better if the following filter/smooth steps can
+##    handle 0 likelihood.
 # multiply daily likelihood matrices
 T = L.locs*L.pdt
 
@@ -220,7 +234,7 @@ dt <- 1
 G1 <- make.kern(D1,g)
 K1 <- uniformization(G1,dt)
 ##
-# [1] Error in diag(A) : no method for coercing this S4 class to a vector
+#CDB: [1] Error in diag(A) : no method for coercing this S4 class to a vector
 
 G2 <- make.kern(D2,g)
 K2 <- uniformization(G2,dt)
