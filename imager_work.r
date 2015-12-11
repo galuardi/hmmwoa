@@ -263,6 +263,8 @@ calc.track(s, g)  # dimensions flipped...
 
 # switch the dimensions in the calc.track.r... gives a weird output.. ON FIN LAND!
 # this is either 1) right and we have to deal with the L and K elements or 2) the dimensions need adjusting..
+
+distr = s 
 meanlat <- apply(apply(distr,c(2,4),sum)*repmat(t(as.matrix(g$lat[,1])),T,1),1,sum)
 meanlon <- apply(apply(distr,c(2,3),sum)*repmat(t(as.matrix(g$lon[1,])),T,1),1,sum)
 
@@ -273,5 +275,13 @@ sres = apply(s,c(3,4), sum, na.rm=T)
 image.plot(lon, lat, sres/max(sres), zlim = c(.01,1))
 lines(meanlon, meanlat, pch=19, col=2)
 plot(countriesLow, add = T)
+
+sr = raster(sres/max(sres),xmn = min(lon), xmx = max(lon), ymn = min(lat), ymx = max(lat))
+spot = read.csv('C:/Users/benjamin.galuardi/Google Drive/Camrin-WOA/hmmwoa_files/121325-SPOT.csv')
+
+plot(sr)
+plot(countriesLow, add = T)
+lines(meanlon, meanlat, pch=19, col=2)
+lines(spot$Longitude, spot$Latitude, typ='o', pch=19)
 
 
