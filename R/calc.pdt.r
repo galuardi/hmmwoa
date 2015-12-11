@@ -62,25 +62,21 @@ calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE, dateVec){
     }
     
   }
+
   
+  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+  list.pdt <- list(x = lon, y = lat, z = L.pdt)
+  ex <- extent(list.pdt)
+  L.pdt <- brick(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+  L.pdt <- flip(L.pdt, direction = 'y')
+    
   if(raster == 'brick'){
-    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-    list.pdt <- list(x = lon, y = lat, z = L.pdt)
-    ex <- extent(list.pdt)
-    L.pdt <- stack(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
-    L.pdt <- flip(L.pdt, direction = 'y')
     s <- L.pdt
   } else if(raster == 'stack'){
-    for(ii in 1:length(dateVec)){
-      r <- raster(t(L.pdt[,,ii]), xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], crs)
-      r <- flip(r, direction = 'y')
-      if(ii == 1){
-        s <- stack(r, quick = T)
-      } else{
-        s <- stack(s, r, quick = T)
-      }
+      s <- stack(L.pdt)
+  } else if(raster == 'array'){
+    s <- as.array(L.pdt)
     }
-  } else if(raster == 'array'){}
  
   print(class(s))
   return(s)

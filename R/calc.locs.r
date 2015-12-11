@@ -95,7 +95,8 @@ calc.locs <- function(locs, iniloc, g, raster = TRUE, dateVec, errEll = F){
     ex <- extent(list.locs)
     L.locs <- brick(list.locs$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
     L.locs <- flip(L.locs, direction = 'y')
-  }
+    L.locs <- stack(L.locs)
+    }
   
   print(class(L.locs))
   return(L.locs)

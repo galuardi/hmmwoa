@@ -4,13 +4,13 @@
 #-------------------------------------------#
 library(imager)
 
-# sstf = open.ncdf('C:/Users/benjamin.galuardi/Google Drive/SCDNR/ANALYSIS/SSTNEW (1)/37078-SST/oisst.nc')
+# sstf = open.ncdf('C:/Users/ben/Google Drive/SCDNR/ANALYSIS/SSTNEW (1)/37078-SST/oisst.nc')
 # sst = get.var.ncdf(sstf, 'sst')
-# sstr = stack('C:/Users/benjamin.galuardi/Google Drive/SCDNR/ANALYSIS/SSTNEW (1)/37078-SST/oisst.nc')
-# source('C:/Users/benjamin.galuardi/Google Drive/Camrin-WOA/sphmmInR/sim/sstdb.r')
-source('C:/Users/benjamin.galuardi/Google Drive/Camrin-WOA/sphmmInR/spathmm/sphmmfuns.r')
-source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\misc_funs.r')
-source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\normalise.r')
+# sstr = stack('C:/Users/ben/Google Drive/SCDNR/ANALYSIS/SSTNEW (1)/37078-SST/oisst.nc')
+# source('C:/Users/ben/Google Drive/Camrin-WOA/sphmmInR/sim/sstdb.r')
+source('C:/Users/ben/Google Drive/Camrin-WOA/sphmmInR/spathmm/sphmmfuns.r')
+source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\misc_funs.r')
+source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\normalise.r')
 
 gausskern <-
 	function(siz, sigma, muadv = 0){
@@ -120,7 +120,7 @@ print(Sys.time()-time1)
 par0=c(8.908,10.27,3,1,0.707,0.866) # what units are these?
 D1 <- par0[1:2] # parameters for kernel 1. this is behavior mode transit
 D2 <- par0[3:4] # parameters for kernel 2. resident behavior mode
-P <- par0[5:6] # not sure what these parameters are.. look like the diagonal of a 2x2 transition matrix.  
+p <- par0[5:6] # not sure what these parameters are.. look like the diagonal of a 2x2 transition matrix.  
 
 # Probably need to express kernel movement in terms of pixels per time step. The sparse matrix work likely renders this unnecessary, but going back to gausskern, it is. For example, if we have .25 degree and daily time step, what would the speed of the fish be when moving fast? 4 pixels/day?
 
@@ -128,8 +128,10 @@ K1 = as.cimg(gausskern(D1[1], D1[2], muadv = 0))
 K2 = as.cimg(gausskern(D2[1], D2[2], muadv = 0))
 P <- matrix(c(p[1],1-p[1],1-p[2],p[2]),2,2,byrow=TRUE)
 
-# make all NA's zeros for the convolution
-L[is.na(L)] = 1e-15
+# make all NA's very tiny for the convolution
+# the previous steps may have taken care of this...
+# L[L==0] = 1e-15
+# L[is.na(L)] = 1e-15
 
 # add a 'skip' index for missing days in the L.. 
 
@@ -140,7 +142,7 @@ hmm.filter2 <- function(g,L,K1,K2,P){
   require(magic) # has a rotate function.. and isn't matlab
   ## Filter data to estimate locations and behaviour
   
-  T <- dim(L)[3] # dimension of time 
+  T <- dim(L)[1] # dimension of time 
   row <- dim(g$lon)[1] # nrows
   col <- dim(g$lon)[2] # ncols
   m <- 2 # Number of behavioural states
@@ -169,9 +171,9 @@ hmm.filter2 <- function(g,L,K1,K2,P){
 	q1 = t(as.matrix(q1))
 	q2 = t(as.matrix(q2))
 	
-	par(mfrow=c(1,2))
-	image(q1)
-	image(q2)
+# 	par(mfrow=c(1,2))
+# 	image(q1)
+# 	image(q2)
 	
     # pred[1,t,,] <- matrix(P[1,1]*q1+P[2,1]*q2,row,col)
     # pred[2,t,,] <- matrix(P[1,2]*q1+P[2,2]*q2,row,col)
@@ -180,17 +182,23 @@ hmm.filter2 <- function(g,L,K1,K2,P){
 	pred[1,t,,] <- P[1,1]*q1+P[2,1]*q2
     pred[2,t,,] <- P[1,2]*q1+P[2,2]*q2
    
+  sumL = sum(L[t,,])  
+  if(sumL > 0){
     post1 <- pred[1,t,,]*L[t,,]
     post2 <- pred[2,t,,]*L[t,,]
+  }else{
+    post1 <- pred[1,t,,]
+    post2 <- pred[2,t,,]
+  }
 
     psi[t-1] <- sum(as.vector(post1), na.rm=T) + sum(as.vector(post2), na.rm=T)
 	
 	# remove NaNs... 
 	# normalise (divide here by sum, not max)
-	post1 <- normalise(post1)
-	post2 <- normalise(post2)
-	post1[is.nan(post1)] = 0
-	post2[is.nan(post2)] = 0
+# 	post1 <- normalise(post1)
+# 	post2 <- normalise(post2)
+# 	post1[is.nan(post1)] = 0
+# 	post2[is.nan(post2)] = 0
 	
     phi[1,t,,] <- post1/(psi[t-1]+1e-15)
     phi[2,t,,] <- post2/(psi[t-1]+1e-15)
@@ -198,6 +206,9 @@ hmm.filter2 <- function(g,L,K1,K2,P){
   list(phi=phi,pred=pred,psi=psi)
 }
 
+f = hmm.filter2(g,L,K1,K2,P)
+res = apply(f$phi[1,,,],2:3,sum, na.rm=T)
+image.plot(lon, lat, res/max(res), zlim = c(.05,1)
 
 # Next up.... 
 hmm.smoother <- function(f,K1,K2,P){
@@ -211,8 +222,22 @@ hmm.smoother <- function(f,K1,K2,P){
   smooth[,T,,] <- f$phi[,T,,]
   for(t in T:2){
     RAT <- smooth[,t,,]/(f$pred[,t,,]+1e-15)
-    Rp1 <- as.vector(K1 %*% as.vector(RAT[1,,]))
-    Rp2 <- as.vector(K2 %*% as.vector(RAT[2,,]))
+#     Rp1 <- as.vector(K1 %*% as.vector(RAT[1,,]))
+#     Rp2 <- as.vector(K2 %*% as.vector(RAT[2,,]))
+    
+    
+    p1 = as.cimg(t(RAT[1,,]))
+    Rp1 <- convolve(p1, K1)
+    p2 = as.cimg(t(RAT[2,,]))
+    Rp2 <- convolve(p2, K2)
+    
+    Rp1 = t(as.matrix(Rp1))
+    Rp2 = t(as.matrix(Rp2))
+    
+    par(mfrow=c(1,2))
+    image.plot(Rp1)
+    image.plot(Rp2)
+    
     post1 <- matrix(P[1,1]*Rp1 + P[1,2]*Rp2,row,col)
     post2 <- matrix(P[2,1]*Rp1 + P[2,2]*Rp2,row,col)
     post1 <- post1 * f$phi[1,t-1,,]
@@ -223,4 +248,30 @@ hmm.smoother <- function(f,K1,K2,P){
   }
   smooth
 }
+
+s = hmm.smoother(f, K1, K2, P)
+
+sres = apply(s[1,,,],2:3,sum, na.rm=T)
+image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
+
+sres = apply(s[2,,,],2:3,sum, na.rm=T)
+image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
+
+# calculate track
+
+calc.track(s, g)  # dimensions flipped...
+
+# switch the dimensions in the calc.track.r... gives a weird output.. ON FIN LAND!
+# this is either 1) right and we have to deal with the L and K elements or 2) the dimensions need adjusting..
+meanlat <- apply(apply(distr,c(2,4),sum)*repmat(t(as.matrix(g$lat[,1])),T,1),1,sum)
+meanlon <- apply(apply(distr,c(2,3),sum)*repmat(t(as.matrix(g$lon[1,])),T,1),1,sum)
+
+plot(meanlon, meanlat)
+plot(countriesLow, add = T)
+
+sres = apply(s,c(3,4), sum, na.rm=T)
+image.plot(lon, lat, sres/max(sres), zlim = c(.01,1))
+lines(meanlon, meanlat, pch=19, col=2)
+plot(countriesLow, add = T)
+
 

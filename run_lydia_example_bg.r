@@ -19,16 +19,16 @@ library(rworldmap)
 library(spatial.tools)
 
 # calculate light-based likelihood
-setwd('C:/Users/benjamin.galuardi/Google Drive/Camrin-WOA/hmmwoa_files/')
+setwd('C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/')
 
-source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\findDateFormat.r')
-source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\extract.pdt.r')
-source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\extract.woa.r')
-source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\removePacific.r')
-source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\calc.pdt.r')
-source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\plot.woa.r')
-source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\calc.locs.r')
-source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\misc_funs.r')
+source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\findDateFormat.r')
+source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\extract.pdt.r')
+source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\extract.woa.r')
+source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\removePacific.r')
+source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\calc.pdt.r')
+source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\plot.woa.r')
+source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\calc.locs.r')
+source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\misc_funs.r')
 
 
 ptt <- 121325
@@ -93,7 +93,7 @@ if (ohc){
 limits = c(lon, lat) # (min lon, max lon, min lat, max lat)
 
 # woa.dir = '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/'
-woa.dir = "C:/Users/benjamin.galuardi/Google Drive/Camrin-WOA/hmmwoa_files/"
+woa.dir = "C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/"
 
 return.woa = extract.woa(woa.dir, limits, resolution = 'quarter')
 dat = return.woa$dat; 
@@ -137,7 +137,7 @@ ngrid <- rev(dim(g$lon))
 lon <- g$lon[1,]
 lat <- g$lat[,1]
 
-L.locs <- calc.locs(locs, iniloc, g, raster = 'stack', dateVec = dateVec)
+L.locs <- calc.locs(locs, iniloc, g, raster = T, dateVec = dateVec)
 # try quick plot to check, if raster = 'stack' or 'brick' above
 plot(L.locs[[2]])
 plot(countriesLow, add = T)
@@ -159,54 +159,80 @@ plot(countriesLow, add = T)
 ##    better if the following filter/smooth steps can
 ##    handle 0 likelihood.
 # multiply daily likelihood matrices
-T = L.locs*L.pdt
 
-T <- dim(L.pdt)[3]
-idx.pdt <- vector('logical', length = T)
-idx.locs <- vector('logical', length = T)
+# check sums of L components
 
-for(i in 2:(T-1)){
-  idx.pdt[i] <- any(as.matrix(L.pdt[[i]]) != 0)
-  idx.locs[i] <- any(!is.na(as.matrix(L.locs[[i]])))
-}
+# need an index of where likelihoods are zeros.. for each L component
 
-dateIdx <- 0
-for(i in 2:(T-1)){
-  idx <- which(c(idx.locs[i], idx.pdt[i]))
-  if(sum(idx) == 3){
-    r <- L.pdt[[i]] * L.locs[[i]]
-  } else if(sum(idx) == 2){
-    r <- L.pdt[[i]]
-  } else if(sum(idx) == 1){
-    r <- L.locs[[i]]
-  } else if(sum(idx) == 0){
-    dateIdx = c(dateIdx, i)
-  }
+L.locs = as.array(L.locs)
+L.pdt = as.array(L.pdt)
+L.locs[is.na(L.locs)] = 0
+L.pdt[is.na(L.pdt)] = 0
+
+nalocidx = apply(L.locs,3, sum, na.rm=T)==0
+napdtidx = apply(L.pdt,3, sum, na.rm=T)==0
+
+naLidx = nalocidx+napdtidx # where both are zeros. These will be interpolted in the filter
+dateIdx = naLidx==0 # may not need this but here for now..
+
+Lmat = L.pdt*0
+idx1 = naLidx==1
+idx2 = naLidx==2
+
+Lmat[,,idx1] = L.pdt[,,idx1]+L.locs[,,idx1]
+Lmat[,,idx2] = L.pdt[,,idx2]*L.locs[,,idx2]
+
+# T = L.locs*L.pdt
+# 
+# T <- dim(L.pdt)[3]
+# idx.pdt <- vector('logical', length = T)
+# idx.locs <- vector('logical', length = T)
+# 
+# for(i in 2:(T-1)){
+#   idx.pdt[i] <- any(as.matrix(L.pdt[[i]]) != 0)
+#   idx.locs[i] <- any(!is.na(as.matrix(L.locs[[i]])))
+# }
+# 
+# dateIdx <- 
+# for(i in 2:(T-1)){
+#   idx <- which(c(idx.locs[i], idx.pdt[i]))
+#   if(sum(idx) == 3){
+#     r <- L.pdt[[i]] * L.locs[[i]]
+#   } else if(sum(idx) == 2){
+#     r <- L.pdt[[i]]
+#   } else if(sum(idx) == 1){
+#     r <- L.locs[[i]]
+#   } else if(sum(idx) == 0){
+#     dateIdx = c(dateIdx, i)
+#   }
  # r <- L.pdt[[i]] * L.locs[[i]]
-  if(i == 2){
-    s <- stack(r)
-  } else{
-    s <- stack(s, r)
-  }
-}
+#   if(i == 2){
+#     s <- stack(r)
+#   } else{
+#     s <- stack(s, r)
+#   }
+# }
 
 # add known tag/pop locations
-tagL <- spatial_sync_raster(L.locs[[1]], s)
-popL <- spatial_sync_raster(L.locs[[T]], s)
-s <- stack(tagL, s, popL)
+# tagL <- spatial_sync_raster(L.locs[[1]], s)
+# popL <- spatial_sync_raster(L.locs[[T]], s)
+# s <- stack(tagL, s, popL)
 
-# cut out days for which no pdt/loc data exists
+# cut out days for which no pdt/loc data exists.
+#nope! leave them in.. will deal with it in the filter. hopefully
+
 #dateIdx <- sort(unique(c(which(dateVec %in% as.Date(pdt$Date)), c(1,which(dateVec %in% as.Date(locs$Date)),T))))
-s.sub <- subset(s, which(!(seq(1:T) %in% dateIdx)))
-
-T <- dim(s.sub)[3]
+# s.sub <- subset(s, which(!(seq(1:T) %in% dateIdx)))
+# 
+# T <- dim(s.sub)[3]
 
 # trim out matrices from time array that don't have any likelihood 
 # data right now. this will be improved later.
 #L.locs <- L.locs.a[,,c(1,which(dateVec %in% as.Date(locs$Date)),T)]
 
 # now need to re-format the array to match dims in sphmm (time, lat, lon)
-L <- aperm(as.array(flip(s.sub, direction = 'y')), c(3,2,1)) # this is transposed and is still time, lon, lat
+# L <- aperm(as.array(flip(s.sub, direction = 'y')), c(3,2,1)) # this is transposed and is still time, lon, lat
+L <- aperm(Lmat, c(3,2,1))  # using arrays..
 # L <- aperm(as.array(flip(s.sub, direction = 'y')), c(3,1,2))  # this looks better.. or not!
 # check that it worked ok
 image.plot(lon, lat, L[3,,])
