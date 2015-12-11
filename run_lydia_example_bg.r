@@ -1,10 +1,3 @@
-##CDB: you should really install devtools and use git for rstudio
-##    once you do that, you just push ctrl+shift+L when you make
-##    modifications to your code and it re-loads your package
-##    with any changes you've made since last load. if you do 
-##    this in a new session, it loads all the package dependencies
-##    and functions. seriously cool. will save you from all this
-##    library() and source() stuff ;)
 
 # RUN LYDIA EXAMPLE
 
@@ -13,7 +6,7 @@ library(raster)
 library(imager)
 library(ncdf)
 library(plyr)
-library(abind) # don't need this with modified funciton
+#library(abind) # don't need this with modified funciton
 library(reshape2)
 library(rworldmap)
 library(spatial.tools)
@@ -152,12 +145,6 @@ L.pdt <- spatial_sync_raster(L.pdt, L.locs)
 plot(L.pdt[[4]])
 plot(countriesLow, add = T)
 
-## CDB: I initially tried this too but if there are any days
-##    missing data in the likelihood then all the 0's cancel
-##    out anything that might be in the likelihood for the
-##    other data source. I'll make this whole next step
-##    better if the following filter/smooth steps can
-##    handle 0 likelihood.
 # multiply daily likelihood matrices
 
 # check sums of L components
@@ -237,6 +224,10 @@ L <- aperm(Lmat, c(3,2,1))  # using arrays..
 # check that it worked ok
 image.plot(lon, lat, L[3,,])
 
+## ******
+## switch to imager_work.r to calc track
+
+
 # try sphmm
 ## Number of time steps
 T <- dim(L)[1]
@@ -259,7 +250,6 @@ if(do.fit){
 dt <- 1
 G1 <- make.kern(D1,g)
 K1 <- uniformization(G1,dt)
-##
 #CDB: [1] Error in diag(A) : no method for coercing this S4 class to a vector
 
 G2 <- make.kern(D2,g)
