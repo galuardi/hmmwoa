@@ -1,5 +1,5 @@
 
-calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE, dateVec){
+calc.pdt <- function(pdt, dat, lat, lon, g, raster = 'stack', dateVec){
   
   ##  This program matches depth temperature profiles collected by a WC PSAT
   ##  tag to climatological profiles from the World Ocean Atlas.
@@ -14,18 +14,19 @@ calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE, dateVec){
   #' @return lik is array of likelihoods for depth-temp profile
   #'        matching between tag data and WOA
   
+  udates <- unique(pdt$Date)
+  T <- length(udates)
+   
   pdt$MidTemp <- (pdt$MaxTemp + pdt$MinTemp) / 2
   
-  udates <- unique(pdt$Date)
+  L.pdt <- array(0, dim = c(dim(dat)[1:2], length(dateVec)))
   
-  for(i in 1:length(udates)){
+  for(i in 1:T){
     # define time based on tag data
     time <- udates[i]
     pdt.i <- pdt[which(pdt$Date == time),]
     y <- pdt.i$Depth[!is.na(pdt.i$Depth)] #extracts depth from tag data for day i
     y[y<0] <- 0
-    
-    if(i == 1) L.pdt <- array(0, dim = c(dim(dat)[1:2], length(dateVec)))
     
     if (length(y) >= 3){
       x <- pdt.i$MidTemp[!is.na(pdt.i$Depth)]  #extract temperature from tag data for day i
@@ -50,8 +51,7 @@ calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE, dateVec){
       }
       
       lik.pdt <- apply(lik.pdt, 1:2, prod)
-      #lik.pdt <- (lik.pdt / max(lik.pdt, na.rm = T)) - .05
-      
+
       idx <- which(dateVec == as.Date(time))
       L.pdt[,,idx] = lik.pdt
       
@@ -69,15 +69,23 @@ calc.pdt <- function(pdt, dat, lat, lon, raster = TRUE, dateVec){
   ex <- extent(list.pdt)
   L.pdt <- brick(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
   L.pdt <- flip(L.pdt, direction = 'y')
-    
+ 
+  # make L.pdt match resolution/extent of g
+  row <- dim(g$lon)[1]
+  col <- dim(g$lon)[2]
+  ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
+  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+  rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
+  L.pdt <- spatial_sync_raster(L.pdt, rasMatch)
+
   if(raster == 'brick'){
     s <- L.pdt
   } else if(raster == 'stack'){
-      s <- stack(L.pdt)
+    s <- stack(L.pdt)
   } else if(raster == 'array'){
-    s <- as.array(L.pdt)
-    }
- 
+    s <- raster::as.array(L.pdt, transpose = T)
+  }
+  
   print(class(s))
   return(s)
   

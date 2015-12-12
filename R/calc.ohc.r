@@ -1,4 +1,4 @@
-calc.ohc <- function(tagdata, isotherm = '', ohc.dir, dateVec){
+calc.ohc <- function(tagdata, isotherm = '', ohc.dir, dateVec, raster = T){
   # compare tag data to ohc map and calculate likelihoods
   
   #' @param: tagdata is variable containing tag-collected PDT data
@@ -47,7 +47,7 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, dateVec){
     time <- udates[i]
     
     # open day's hycom data
-    nc <- open.ncdf(paste(ohc.dir, ptt, '_-', as.Date(time), '.nc', sep=''))
+    nc <- open.ncdf(paste(ohc.dir, 'Lyd_', as.Date(time), '.nc', sep=''))
     dat <- get.var.ncdf(nc, 'water_temp')
     depth <- get.var.ncdf(nc, 'depth')
     lon <- get.var.ncdf(nc, 'lon')
@@ -101,6 +101,7 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, dateVec){
     ex <- extent(list.ohc)
     L.ohc <- brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
     L.ohc <- flip(L.ohc, direction = 'y')
+    L.ohc <- stack(L.ohc)
   }
   
   print(class(L.ohc))
