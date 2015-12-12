@@ -40,7 +40,14 @@ source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\plot.woa.r')
 source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\calc.locs.r')
 source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\misc_funs.r')
 
+#---------------------------------------------------------------#
+# add map data
+#---------------------------------------------------------------#
+data("countriesLow")
 
+#---------------------------------------------------------------#
+# read in tag data
+#---------------------------------------------------------------#
 ptt <- 121325
 
 iniloc <- data.frame(matrix(c(3, 3, 2013, 30.3917, -81.3802, 
@@ -63,9 +70,9 @@ lat = c(10, 55)
 udates <- unique(as.Date(pdt$Date))
 dateVec <- as.Date(seq(tag, pop, by = 'day'))
 
-##
+#---------------------------------------------------------------#
 # OHC / HYCOM
-##
+#---------------------------------------------------------------#
 
 ## LET'S IGNORE HYCOM / OHC FOR NOW. CURRENTLY LYDIA'S TIMESPAN ISN'T
 ## AVAILABLE IN THE UNIFORM SPATIAL PROJECTION. THIS ISN'T A HUGE
@@ -96,9 +103,37 @@ if (ohc){
   #         filename = paste(ptt,'_ohclik.pdf', sep = ''), write.dir = getwd())
 }
 
-##
+#---------------------------------------------------------------#
+# Light-based Longitude Likelihood (ellipse error is a work in progress)
+# do light first so that g is setup for both
+#---------------------------------------------------------------#
+
+locs <- read.table(paste(ptt, '-Locations.csv', sep=''), sep=',', header = T, blank.lines.skip = F)
+dts <- format(as.POSIXct(locs$Date, format = findDateFormat(locs$Date)), '%Y-%m-%d')
+didx <- dts > (tag + d1) & dts < (pop - d1)
+locs <- locs[didx,]
+
+g <- setup.grid(locs, res = 'quarter') # make sure loading function from misc_funs.r
+ngrid <- rev(dim(g$lon))
+lon <- g$lon[1,]
+lat <- g$lat[,1]
+
+L.locs <- calc.locs(locs, iniloc, g, raster = T, dateVec = dateVec)
+# try quick plot to check, if raster = 'stack' or 'brick' above
+plot(L.locs[[4]])
+plot(countriesLow, add = T)
+
+#plot WOA and light likelihood together
+# plot(L.locs[[4]]*L.pdt[[4]]) This won't be right beacuse multiplying by zero..
+# plot(countriesLow, add = T)
+
+# sync resolutions of pdt to locs to match grid, g
+#L.pdt <- spatial_sync_raster(L.pdt, L.locs)
+
+
+#---------------------------------------------------------------#
 # PDT / WOA
-##
+#---------------------------------------------------------------#
 
 # set limits of interest
 limits = c(lon, lat) # (min lon, max lon, min lat, max lat)
@@ -125,44 +160,15 @@ image.plot(lon,lat,dat[,,1,1])
 L.pdt <- calc.pdt(pdt, dat, lat, lon, g, depth, raster = 'stack', dateVec = dateVec)
 
 # try quick plot to check, if raster = 'stack' or 'brick' above
-#data(countriesLow)
-#plot(lon,lat,L.pdt[,,2])
-#plot(countriesLow, add = T)
+plot(L.pdt[[2]])
+plot(countriesLow, add = T)
 
 # plot = FALSE
 # if(plot){
   # plot.woa(as.array(L.pdt), return.woa, paste(ptt, '_woalik.pdf', sep=''), pdt = pdt, write.dir = getwd())
 # }
 
-##
-# Light-based Longitude Likelihood (ellipse error is a work in progress)
-##
-
-locs <- read.table(paste(ptt, '-Locations.csv', sep=''), sep=',', header = T, blank.lines.skip = F)
-dts <- format(as.POSIXct(locs$Date, format = findDateFormat(locs$Date)), '%Y-%m-%d')
-didx <- dts > (tag + d1) & dts < (pop - d1)
-locs <- locs[didx,]
-
-g <- setup.grid(locs, res = 'quarter') # make sure loading function from misc_funs.r
-ngrid <- rev(dim(g$lon))
-lon <- g$lon[1,]
-lat <- g$lat[,1]
-
-L.locs <- calc.locs(locs, iniloc, g, raster = T, dateVec = dateVec)
-# try quick plot to check, if raster = 'stack' or 'brick' above
-plot(L.locs[[1]])
-plot(countriesLow, add = T)
-
-#plot WOA and light likelihood together
-plot(L.locs[[4]]*L.pdt[[4]])
-plot(countriesLow, add = T)
-
-# sync resolutions of pdt to locs to match grid, g
-#L.pdt <- spatial_sync_raster(L.pdt, L.locs)
-
-plot(L.pdt[[4]])
-plot(countriesLow, add = T)
-
+#---------------------------------------------------------------#
 # multiply daily likelihood matrices
 
 # check sums of L components
@@ -210,13 +216,15 @@ for(i in 1:T){
 }
 #ex <- extent(L)
 # now need to re-format the array to match dims in sphmm (time, lat, lon)
+
+## bg: you don't need to worry about the time dimension. That can be in either position
 L <- aperm(as.array(flip(L, direction = 'y')), c(3,2,1))
 # check that it worked ok
 #lon <- seq(ex[1], ex[2], length=dim(L)[2])
 lon <- g$lon[1,]
 lat <- g$lat[,1]
 #lat <- seq(ex[3], ex[4], length=dim(L)[3])
-image.plot(lon, lat, L[1,,])
+image.plot(lon, lat, L[12,,])
 plot(countriesLow,add=T)
 
 ## ******
@@ -274,7 +282,7 @@ plot(countriesLow, add = T)
 ## CDB: not sure what this raster is here but something about its orientation
 ##      is screwed up. worth having a look at.
 #sr = raster(sres/max(sres),xmn = min(lon), xmx = max(lon), ymn = min(lat), ymx = max(lat))
-spot = read.csv('C:/Users/benjamin.galuardi/Google Drive/Camrin-WOA/hmmwoa_files/121325-SPOT.csv')
+spot = read.csv('C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/121325-SPOT.csv')
 #spot = read.csv('~/Documents/WHOI/RData/WhiteSharks/2013/121325/121325-SPOT.csv')
 dts <- as.POSIXct(spot$Date, format=findDateFormat(spot$Date))
 didx <- dts >= tag & dts <= pop
