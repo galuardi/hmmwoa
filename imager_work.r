@@ -208,7 +208,7 @@ hmm.filter2 <- function(g,L,K1,K2,P){
 
 f = hmm.filter2(g,L,K1,K2,P)
 res = apply(f$phi[1,,,],2:3,sum, na.rm=T)
-image.plot(lon, lat, res/max(res), zlim = c(.05,1)
+image.plot(lon, lat, res/max(res), zlim = c(.05,1))
 
 # Next up.... 
 hmm.smoother <- function(f,K1,K2,P){
@@ -263,8 +263,10 @@ calc.track(s, g)  # dimensions flipped...
 
 # switch the dimensions in the calc.track.r... gives a weird output.. ON FIN LAND!
 # this is either 1) right and we have to deal with the L and K elements or 2) the dimensions need adjusting..
-meanlat <- apply(apply(distr,c(2,4),sum)*repmat(t(as.matrix(g$lat[,1])),T,1),1,sum)
-meanlon <- apply(apply(distr,c(2,3),sum)*repmat(t(as.matrix(g$lon[1,])),T,1),1,sum)
+distr = s
+meanlat <- apply(apply(distr,c(2,4),sum)*as.vector(repmat(t(as.matrix(g$lat[,1])),T,1)),1,sum)
+meanlon <- apply(apply(distr,c(2,3),sum)*as.vector(repmat(t(as.matrix(g$lon[1,])),T,1)),1,sum)
+
 
 plot(meanlon, meanlat)
 plot(countriesLow, add = T)

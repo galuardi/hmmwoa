@@ -9,5 +9,5 @@ Authors@R: c(
               )
 Description: this will be the HMM using WOA data. The guts follow Pedersen et al. 2008
 License: MIT
-Depends: mvtnorm, fields, rworldmap, ncdf, abind, rgdal, raster, Matrix, spatial.tools
+Depends: mvtnorm, fields, rworldmap, ncdf, abind, rgdal, raster, Matrix, spatial.tools, magic, Imager
 Suggests: pracma, oce
