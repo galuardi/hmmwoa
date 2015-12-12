@@ -122,7 +122,7 @@ image.plot(lon,lat,dat[,,1,1])
 # perform matching
 # 'stack' makes the end of this routine much slower than 'brick' or 'array'
 # but is only 10 extra seconds or so
-L.pdt <- calc.pdt(pdt, dat, lat, lon, g, raster = 'stack', dateVec = dateVec)
+L.pdt <- calc.pdt(pdt, dat, lat, lon, g, depth, raster = 'stack', dateVec = dateVec)
 
 # try quick plot to check, if raster = 'stack' or 'brick' above
 #data(countriesLow)
