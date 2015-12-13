@@ -1,5 +1,5 @@
 
-calc.pdt <- function(pdt, dat, lat, lon, g, raster = 'stack', dateVec){
+calc.pdt <- function(pdt, dat, lat, lon, g, depth, raster = 'stack', dateVec){
   
   ##  This program matches depth temperature profiles collected by a WC PSAT
   ##  tag to climatological profiles from the World Ocean Atlas.
