@@ -90,7 +90,7 @@ if (ohc){
   }
   
   # calc.ohc
-  L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec, isotherm='')
+  L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec, isotherm='', raster = T)
   
   #plot.ohc(lik = L.ohc, ohc.dir = ohcdir, pdt = pdt.data, 
   #         filename = paste(ptt,'_ohclik.pdf', sep = ''), write.dir = getwd())

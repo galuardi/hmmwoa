@@ -26,10 +26,14 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, dateVec, raster = T){
   
   for(i in 1:length(udates)){
     
-    if(i == 1){
-      i = 2
       time <- udates[i]
       pdt.i <- pdt[which(pdt$Date == time),]
+      
+      # open day's hycom data
+      nc <- open.ncdf(paste(ohc.dir, 'Lyd_', as.Date(time), '.nc', sep=''))
+      depth <- get.var.ncdf(nc, 'depth')
+      lon <- get.var.ncdf(nc, 'lon')
+      lat <- get.var.ncdf(nc, 'lat')
       
       # isotherm is minimum temperature recorded for that time point
       if(iso.def == FALSE) isotherm <- min(pdt.i$MinTemp, na.rm = T)
@@ -39,19 +43,22 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, dateVec, raster = T){
       tag <- tag$y - isotherm
       tag.ohc <- cp * rho * sum(tag, na.rm = T) / 10000
       
+      # store tag ohc
       ohcVec[i] <- tag.ohc
       
-    }
-    
+  }
+  
+  for(i in 1:length(udates)){
+
     # define time based on tag data
     time <- udates[i]
     
     # open day's hycom data
     nc <- open.ncdf(paste(ohc.dir, 'Lyd_', as.Date(time), '.nc', sep=''))
     dat <- get.var.ncdf(nc, 'water_temp')
-    depth <- get.var.ncdf(nc, 'depth')
-    lon <- get.var.ncdf(nc, 'lon')
-    lat <- get.var.ncdf(nc, 'lat')
+    #depth <- get.var.ncdf(nc, 'depth')
+    #lon <- get.var.ncdf(nc, 'lon')
+    #lat <- get.var.ncdf(nc, 'lat')
     
     pdt.i <- pdt[which(pdt$Date == time),]
     
@@ -64,14 +71,6 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, dateVec, raster = T){
     dat <- dat - isotherm
     ohc <- cp * rho * apply(dat, 1:2, sum, na.rm = T) / 10000 
     
-    # perform tag data integration
-    tag <- approx(pdt.i$Depth, pdt.i$MidTemp, xout = depth)
-    tag <- tag$y - isotherm
-    tag.ohc <- cp * rho * sum(tag, na.rm = T) / 10000
-    
-    # store tag ohc
-    ohcVec[i] <- tag.ohc
-    
     if(i == 1){
       sdx <- sd(ohcVec[c(1,2)])
     } else{
@@ -80,13 +79,14 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, dateVec, raster = T){
     
     # compare hycom to that day's tag-based ohc
     #lik.dt <- matrix(dtnorm(ohc, tag.ohc, sdx, 0, 150), dim(ohc)[1], dim(ohc)[2])
-    lik <- dnorm(ohc, tag.ohc, sdx) 
+    lik <- dnorm(ohc, ohcVec[i], sdx) 
     #lik <- (lik / max(lik, na.rm = T)) - .05 # normalize
-    print(paste(max(lik), time))
+    #print(paste(max(lik), time))
     
-    # result should be array of likelihood surfaces
-    
-    L.ohc <- array(0, dim = c(dim(lik), length(dateVec)))
+    if(i == 1){
+      # result should be array of likelihood surfaces
+      L.ohc <- array(0, dim = c(dim(lik), length(dateVec)))
+    }
     
     idx <- which(dateVec == as.Date(time))
     L.ohc[,,idx] = lik
