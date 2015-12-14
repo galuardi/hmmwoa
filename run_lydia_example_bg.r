@@ -97,7 +97,7 @@ if (ohc){
   }
   
   # calc.ohc
-  L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec, isotherm='', raster = 'stack')
+  L.ohc <- calc.ohc(tagdata=pdt, g = g, ohc.dir = ohc.dir, dateVec=dateVec, isotherm='', raster = 'stack')
   
   #plot.ohc(lik = L.ohc, ohc.dir = ohcdir, pdt = pdt.data, 
   #         filename = paste(ptt,'_ohclik.pdf', sep = ''), write.dir = getwd())
@@ -165,7 +165,7 @@ plot(countriesLow, add = T)
 
 # plot = FALSE
 # if(plot){
-  # plot.woa(as.array(L.pdt), return.woa, paste(ptt, '_woalik.pdf', sep=''), pdt = pdt, write.dir = getwd())
+# plot.woa(as.array(L.pdt), return.woa, paste(ptt, '_woalik.pdf', sep=''), pdt = pdt, write.dir = getwd())
 # }
 
 #---------------------------------------------------------------#
@@ -175,28 +175,31 @@ plot(countriesLow, add = T)
 
 # need an index of where likelihoods are zeros.. for each L component
 
+L.ohc = as.array(L.ohc)
 L.locs = as.array(L.locs)
-L.pdt = as.array(L.pdt)
+#L.pdt = as.array(L.pdt)
+L.ohc[is.na(L.ohc)] = 0
 L.locs[is.na(L.locs)] = 0 # turn NA to 0
-L.pdt[is.na(L.pdt)] = 0
+#L.pdt[is.na(L.pdt)] = 0
 
 # you're the king of apply(). it's so handy!
+naohcidx = apply(L.ohc,3, sum, na.rm=T)==0 # does sum of likelihood surface
 nalocidx = apply(L.locs,3, sum, na.rm=T)==0 # does sum of likelihood surface
 # at each time point == 0?
-napdtidx = apply(L.pdt,3, sum, na.rm=T)==0
+#napdtidx = apply(L.pdt,3, sum, na.rm=T)==0
 
-naLidx = nalocidx+napdtidx # where both are zeros. These will be interpolted in the filter
+naLidx = nalocidx+naohcidx#+napdtidx # where both are zeros. These will be interpolted in the filter
 dateIdx = naLidx==0 # may not need this but here for now..
 
-Lmat = L.pdt*0
+Lmat = L.locs*0
 # where naLidx==0, both likelihoods are zero
 #       naLidx==1, one has data
 #       naLidx==2, both have data
 idx1 = naLidx==1
 idx2 = naLidx==2
 
-Lmat[,,idx1] = L.pdt[,,idx1]+L.locs[,,idx1] # when only 1 has data
-Lmat[,,idx2] = L.pdt[,,idx2]*L.locs[,,idx2] # when both have data
+Lmat[,,idx1] = L.ohc[,,idx1]+L.locs[,,idx1] # when only 1 has data
+Lmat[,,idx2] = L.ohc[,,idx2]*L.locs[,,idx2] # when both have data
 
 ## cdb: we get to here just fine now with simple array outputs from likelihood
 ##      calculations; however, we need to adjust dims of Lmat array and
@@ -206,8 +209,8 @@ Lmat[,,idx2] = L.pdt[,,idx2]*L.locs[,,idx2] # when both have data
 ##      alleviate this dims/flip issue at some point soon.
 
 crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-list.pdt <- list(x = lon, y = lat, z = L.pdt)
-ex <- extent(list.pdt)
+list.locs <- list(x = lon, y = lat, z = L.locs)
+ex <- extent(list.locs)
 
 T <- dim(Lmat)[3]
 for(i in 1:T){
@@ -224,7 +227,7 @@ L <- aperm(as.array(flip(L, direction = 'y')), c(3,2,1))
 lon <- g$lon[1,]
 lat <- g$lat[,1]
 #lat <- seq(ex[3], ex[4], length=dim(L)[3])
-image.plot(lon, lat, L[12,,])
+image.plot(lon, lat, L[10,,])
 plot(countriesLow,add=T)
 
 ## ******
@@ -245,8 +248,8 @@ P <- matrix(c(p[1],1-p[1],1-p[2],p[2]),2,2,byrow=TRUE)
 
 # make all NA's very tiny for the convolution
 # the previous steps may have taken care of this...
- L[L==0] = 1e-15
- L[is.na(L)] = 1e-15
+L[L==0] = 1e-15
+L[is.na(L)] = 1e-15
 
 # add a 'skip' index for missing days in the L.. 
 

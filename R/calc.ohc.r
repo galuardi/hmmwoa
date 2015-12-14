@@ -1,4 +1,4 @@
-calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = T){
+calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = 'stack'){
   # compare tag data to ohc map and calculate likelihoods
   
   #' @param: tagdata is variable containing tag-collected PDT data
@@ -26,30 +26,30 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = T){
   
   for(i in 1:length(udates)){
     
-      time <- udates[i]
-      pdt.i <- pdt[which(pdt$Date == time),]
-      
-      # open day's hycom data
-      nc <- open.ncdf(paste(ohc.dir, 'Lyd_', as.Date(time), '.nc', sep=''))
-      depth <- get.var.ncdf(nc, 'depth')
-      lon <- get.var.ncdf(nc, 'lon')
-      lat <- get.var.ncdf(nc, 'lat')
-      
-      # isotherm is minimum temperature recorded for that time point
-      if(iso.def == FALSE) isotherm <- min(pdt.i$MinTemp, na.rm = T)
-      
-      # perform tag data integration
-      tag <- approx(pdt.i$Depth, pdt.i$MidTemp, xout = depth)
-      tag <- tag$y - isotherm
-      tag.ohc <- cp * rho * sum(tag, na.rm = T) / 10000
-      
-      # store tag ohc
-      ohcVec[i] <- tag.ohc
-      
+    time <- udates[i]
+    pdt.i <- pdt[which(pdt$Date == time),]
+    
+    # open day's hycom data
+    nc <- open.ncdf(paste(ohc.dir, 'Lyd_', as.Date(time), '.nc', sep=''))
+    depth <- get.var.ncdf(nc, 'depth')
+    lon <- get.var.ncdf(nc, 'lon')
+    lat <- get.var.ncdf(nc, 'lat')
+    
+    # isotherm is minimum temperature recorded for that time point
+    if(iso.def == FALSE) isotherm <- min(pdt.i$MinTemp, na.rm = T)
+    
+    # perform tag data integration
+    tag <- approx(pdt.i$Depth, pdt.i$MidTemp, xout = depth)
+    tag <- tag$y - isotherm
+    tag.ohc <- cp * rho * sum(tag, na.rm = T) / 10000
+    
+    # store tag ohc
+    ohcVec[i] <- tag.ohc
+    
   }
   
   for(i in 1:length(udates)){
-
+    
     # define time based on tag data
     time <- udates[i]
     
@@ -101,7 +101,7 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = T){
   ex <- extent(list.ohc)
   L.ohc <- brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
   L.ohc <- flip(L.ohc, direction = 'y')
-
+  
   # make L.pdt match resolution/extent of g
   row <- dim(g$lon)[1]
   col <- dim(g$lon)[2]
