@@ -39,6 +39,7 @@ source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\calc.pdt.r')
 source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\plot.woa.r')
 source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\calc.locs.r')
 source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\misc_funs.r')
+source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\hmm2.r')
 
 #---------------------------------------------------------------#
 # add map data
