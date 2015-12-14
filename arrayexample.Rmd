@@ -1,0 +1,64 @@
+---
+title: "array example"
+author: "Benjamin Galuardi"
+date: "Monday, December 14, 2015"
+output: html_document
+---
+
+Populates top to bottom, left to right
+```{r}
+a = array(1:12, dim = c(3,4))
+a 
+```
+
+use Matrix. Populates by column unless specified
+```{r}
+# By Column
+b = matrix(1:12, nrow = 3, ncol = 4)
+b 
+```
+Populate by row: Populates left to right, top to bottom
+```{r}
+# By Row
+b = matrix(1:12, nrow = 3, ncol = 4, byrow=T)
+b 
+```
+
+Now flip across the y axis
+```{r}
+s = b[nrow(b):1,]
+s
+```
+Now, populates left to right, bottom to top. This is typically how satellite data is presented. Bottom left as (0,0)
+
+What if you start with satellite data and make an array?
+---
+```{r}
+as.array(s)
+```
+
+If you transpose an array with different dimensions, things can get messed up
+```{r}
+# Transpose
+t(s)
+```
+
+
+more tricks
+---
+designate the total size of the matrix/array/list before populating. This uses memory more efficiently and is faster.
+
+```{r}
+z = array(0, dim=c(3,4,2))
+z
+```
+
+now populate the array
+
+```{r}
+z[,,1] = a
+z[,,2] = b
+z
+```
+
+
