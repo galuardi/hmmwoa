@@ -1,4 +1,4 @@
-calc.ohc <- function(tagdata, isotherm = '', ohc.dir, dateVec, raster = T){
+calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = T){
   # compare tag data to ohc map and calculate likelihoods
   
   #' @param: tagdata is variable containing tag-collected PDT data
@@ -95,13 +95,27 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, dateVec, raster = T){
     
   }
   
-  if(raster){
-    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-    list.ohc <- list(x = lon-360, y = lat, z = L.ohc)
-    ex <- extent(list.ohc)
-    L.ohc <- brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
-    L.ohc <- flip(L.ohc, direction = 'y')
-    L.ohc <- stack(L.ohc)
+  
+  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+  list.ohc <- list(x = lon-360, y = lat, z = L.ohc)
+  ex <- extent(list.ohc)
+  L.ohc <- brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+  L.ohc <- flip(L.ohc, direction = 'y')
+
+  # make L.pdt match resolution/extent of g
+  row <- dim(g$lon)[1]
+  col <- dim(g$lon)[2]
+  ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
+  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+  rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
+  L.ohc <- spatial_sync_raster(L.ohc, rasMatch)
+  
+  if(raster == 'brick'){
+    s <- L.ohc
+  } else if(raster == 'stack'){
+    s <- stack(L.ohc)
+  } else if(raster == 'array'){
+    s <- raster::as.array(L.ohc, transpose = T)
   }
   
   print(class(L.ohc))
