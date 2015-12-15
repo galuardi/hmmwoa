@@ -20,8 +20,6 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = 'stac
   # get unique time points
   udates <- unique(pdt$Date)
   
-  ohcVec <- rep(0, length.out = length(udates))
-  
   if(isotherm != '') iso.def <- TRUE else iso.def <- FALSE
   
   for(i in 1:length(udates)){
@@ -31,6 +29,7 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = 'stac
     
     # open day's hycom data
     nc <- open.ncdf(paste(ohc.dir, 'Lyd_', as.Date(time), '.nc', sep=''))
+    dat <- get.var.ncdf(nc, 'water_temp')
     depth <- get.var.ncdf(nc, 'depth')
     lon <- get.var.ncdf(nc, 'lon')
     lat <- get.var.ncdf(nc, 'lat')
@@ -43,48 +42,28 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = 'stac
     tag <- tag$y - isotherm
     tag.ohc <- cp * rho * sum(tag, na.rm = T) / 10000
     
-    # store tag ohc
-    ohcVec[i] <- tag.ohc
+    # calc ohc for min/max temps for each day to calc sdx for dnorm
+    minTag <- approx(pdt.i$Depth, pdt.i$MinTemp, xout = depth)
+    minTag <- minTag$y - isotherm
+    minT.ohc <- cp * rho * sum(minTag, na.rm = T) / 10000
     
-  }
-  
-  for(i in 1:length(udates)){
+    maxTag <- approx(pdt.i$Depth, pdt.i$MaxTemp, xout = depth)
+    maxTag <- maxTag$y - isotherm
+    maxT.ohc <- cp * rho * sum(maxTag, na.rm = T) / 10000
     
-    # define time based on tag data
-    time <- udates[i]
-    
-    # open day's hycom data
-    nc <- open.ncdf(paste(ohc.dir, 'Lyd_', as.Date(time), '.nc', sep=''))
-    dat <- get.var.ncdf(nc, 'water_temp')
-    #depth <- get.var.ncdf(nc, 'depth')
-    #lon <- get.var.ncdf(nc, 'lon')
-    #lat <- get.var.ncdf(nc, 'lat')
-    
-    pdt.i <- pdt[which(pdt$Date == time),]
-    
-    # calculate daily isotherm based on tag data
-    if(iso.def == FALSE) isotherm <- min(pdt.i$MinTemp, na.rm = T)
-    
-    dat[dat<isotherm] <- NA
+    sdx <- sd(c(minT.ohc, maxT.ohc))
+    print(sdx)
     
     # Perform hycom integration
+    dat[dat<isotherm] <- NA
     dat <- dat - isotherm
     ohc <- cp * rho * apply(dat, 1:2, sum, na.rm = T) / 10000 
     
-    if(i == 1){
-      sdx <- sd(ohcVec[c(1,2)])
-    } else{
-      sdx <- sd(ohcVec[c((i - 1), i, (i + 1))])
-    }
-    
     # compare hycom to that day's tag-based ohc
-    #lik.dt <- matrix(dtnorm(ohc, tag.ohc, sdx, 0, 150), dim(ohc)[1], dim(ohc)[2])
-    lik <- dnorm(ohc, ohcVec[i], sdx) 
-    #lik <- (lik / max(lik, na.rm = T)) - .05 # normalize
-    #print(paste(max(lik), time))
+    lik <- dnorm(ohc, tag.ohc, sdx) 
     
     if(i == 1){
-      # result should be array of likelihood surfaces
+      # result will be array of likelihood surfaces
       L.ohc <- array(0, dim = c(dim(lik), length(dateVec)))
     }
     
@@ -101,7 +80,9 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = 'stac
   ex <- extent(list.ohc)
   L.ohc <- brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
   L.ohc <- flip(L.ohc, direction = 'y')
-  
+  s <- stack(L.ohc)
+  return(s)
+}
   # make L.pdt match resolution/extent of g
   row <- dim(g$lon)[1]
   col <- dim(g$lon)[2]
