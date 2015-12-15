@@ -28,17 +28,17 @@ library(magic)
 #library(Matrix) # no longer used
 
 # calculate light-based likelihood
-setwd('C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/')
+setwd('C:/Users/benjamin.galuardi/Google Drive/Camrin-WOA/hmmwoa_files/')
 #setwd('~/Documents/WHOI/RData/WhiteSharks/2013/121325/')
 
-source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\findDateFormat.r')
-source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\extract.pdt.r')
-source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\extract.woa.r')
-source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\removePacific.r')
-source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\calc.pdt.r')
-source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\plot.woa.r')
-source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\calc.locs.r')
-source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\misc_funs.r')
+source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\findDateFormat.r')
+source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\extract.pdt.r')
+source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\extract.woa.r')
+source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\removePacific.r')
+source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\calc.pdt.r')
+source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\plot.woa.r')
+source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\calc.locs.r')
+source('C:\\Users\\benjamin.galuardi\\Documents\\GitHub\\hmmwoa\\R\\misc_funs.r')
 
 #---------------------------------------------------------------#
 # add map data
