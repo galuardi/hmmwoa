@@ -169,6 +169,36 @@ plot(countriesLow, add = T)
 # }
 
 #---------------------------------------------------------------#
+# sst likelihood
+#---------------------------------------------------------------#
+
+sst <- read.table(paste(ptt,'-SST.csv', sep=''), sep=',',header=T,blank.lines.skip=F, skip = 0)
+
+tag <- as.POSIXct(paste(iniloc[1,1], '/', iniloc[1,2], '/', iniloc[1,3], sep=''), format = '%d/%m/%Y')
+pop <- as.POSIXct(paste(iniloc[2,1], '/', iniloc[2,2], '/', iniloc[2,3], sep=''), format = '%d/%m/%Y')
+dts <- as.POSIXct(sst$Date, format = findDateFormat(sst$Date))
+d1 <- as.POSIXct('1900-01-02') - as.POSIXct('1900-01-01')
+didx <- dts >= (tag + d1) & dts <= (pop - d1)
+sst <- sst[didx,]
+udates <- unique(as.Date(dts))
+
+sst.dir <- '~/Documents/WHOI/RData/sst/'
+
+for(i in 1:length(udates)){
+  #time <- as.Date(udates[i])
+  time <- c(as.Date(udates[1]), as.Date(udates[5]))
+  repeat{
+    get.oi.sst(lon,lat,time,filename=paste(ptt,'_-',time,'.nc',sep=''), download.file=TRUE, dir=sst.dir) # filenames based on dates from above
+    #err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
+    tryCatch({
+      err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
+    }, error=function(e){print(paste('ERROR: Download of data at ',time,' failed. Trying call to server again.',sep=''))})
+    if(class(err) != 'try-error') break
+  }
+}
+L.sst <- calc.sst(sst, sst.dir = sst.dir, g, dateVec, raster = 'stack')
+
+#---------------------------------------------------------------#
 # multiply daily likelihood matrices
 
 # check sums of L components
