@@ -136,6 +136,8 @@ plot(countriesLow, add = T)
 #---------------------------------------------------------------#
 
 # set limits of interest
+lon = c(-90, -40)
+lat = c(10, 55)
 limits = c(lon, lat) # (min lon, max lon, min lat, max lat)
 
 # woa.dir = '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/'
@@ -180,18 +182,19 @@ dts <- as.POSIXct(sst$Date, format = findDateFormat(sst$Date))
 d1 <- as.POSIXct('1900-01-02') - as.POSIXct('1900-01-01')
 didx <- dts >= (tag + d1) & dts <= (pop - d1)
 sst <- sst[didx,]
+dts <- as.POSIXct(sst$Date, format = findDateFormat(sst$Date))
 udates <- unique(as.Date(dts))
 
 sst.dir <- '~/Documents/WHOI/RData/sst/'
 
 for(i in 1:length(udates)){
-  #time <- as.Date(udates[i])
-  time <- c(as.Date(udates[1]), as.Date(udates[5]))
+  time <- as.Date(udates[i])
+  #time <- c(as.Date(udates[1]), as.Date(udates[length(udates)]))
   repeat{
-    get.oi.sst(lon,lat,time,filename=paste(ptt,'_-',time,'.nc',sep=''), download.file=TRUE, dir=sst.dir) # filenames based on dates from above
-    #err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
+    get.oi.sst(lon,lat,time,filename=paste(ptt,'_',time,'.nc',sep=''), download.file=TRUE, dir=sst.dir) # filenames based on dates from above
+    err <- try(open.ncdf(paste(sst.dir,ptt,'_',time,'.nc',sep='')),silent=T)
     tryCatch({
-      err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
+      err <- try(open.ncdf(paste(sst.dir,ptt,'_',time,'.nc',sep='')),silent=T)
     }, error=function(e){print(paste('ERROR: Download of data at ',time,' failed. Trying call to server again.',sep=''))})
     if(class(err) != 'try-error') break
   }

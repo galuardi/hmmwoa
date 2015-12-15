@@ -84,23 +84,23 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = 'stac
   return(s)
 }
   # make L.pdt match resolution/extent of g
-  row <- dim(g$lon)[1]
-  col <- dim(g$lon)[2]
-  ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
-  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-  rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
-  L.ohc <- spatial_sync_raster(L.ohc, rasMatch)
+  #row <- dim(g$lon)[1]
+  #col <- dim(g$lon)[2]
+  #ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
+  #crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+  #rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
+  #L.ohc <- spatial_sync_raster(L.ohc, rasMatch)
   
-  if(raster == 'brick'){
-    s <- L.ohc
-  } else if(raster == 'stack'){
-    s <- stack(L.ohc)
-  } else if(raster == 'array'){
-    s <- raster::as.array(L.ohc, transpose = T)
-  }
+  #if(raster == 'brick'){
+   # s <- L.ohc
+  #} else if(raster == 'stack'){
+  #  s <- stack(L.ohc)
+  #} else if(raster == 'array'){
+  #  s <- raster::as.array(L.ohc, transpose = T)
+  #}
   
-  print(class(L.ohc))
+#  print(class(L.ohc))
   # return ohc likelihood surfaces
-  return(L.ohc)
+ # return(L.ohc)
   
-}
+#}
