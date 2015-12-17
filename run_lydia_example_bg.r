@@ -136,9 +136,9 @@ plot(countriesLow, add = T)
 #---------------------------------------------------------------#
 
 # set limits of interest
-lon = c(-90, -40)
-lat = c(10, 55)
-limits = c(lon, lat) # (min lon, max lon, min lat, max lat)
+lon.lim = c(-90, -40)
+lat.lim = c(10, 55)
+limits = c(lon.lim, lat.lim) # (min lon, max lon, min lat, max lat)
 
 # woa.dir = '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/'
 woa.dir = "C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/"
