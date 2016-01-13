@@ -1,6 +1,8 @@
 
 # RUN LYDIA EXAMPLE
 
+# ** put g throughout to standardize likelihood calculations
+
 # 1) simplify all likelihood calculations such that they are outputting L
 #    according to extent and resolution of g and as an array. drop all this
 #    raster manipulation post hoc
@@ -97,7 +99,7 @@ if (ohc){
   }
   
   # calc.ohc
-  L.ohc <- calc.ohc(tagdata=pdt, g = g, ohc.dir = ohc.dir, dateVec=dateVec, isotherm='', raster = 'stack')
+  L.ohc <- calc.ohc(tagdata = pdt, g = g, ohc.dir = ohc.dir, dateVec = dateVec, isotherm='', raster = 'stack')
   
   #plot.ohc(lik = L.ohc, ohc.dir = ohcdir, pdt = pdt.data, 
   #         filename = paste(ptt,'_ohclik.pdf', sep = ''), write.dir = getwd())
