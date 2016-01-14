@@ -1,4 +1,4 @@
-calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = T){
+calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = 'stack'){
   # compare tag data to ohc map and calculate likelihoods
   
   #' @param: tagdata is variable containing tag-collected PDT data
@@ -20,71 +20,50 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = T){
   # get unique time points
   udates <- unique(pdt$Date)
   
-  ohcVec <- rep(0, length.out = length(udates))
-  
   if(isotherm != '') iso.def <- TRUE else iso.def <- FALSE
   
   for(i in 1:length(udates)){
     
-      time <- udates[i]
-      pdt.i <- pdt[which(pdt$Date == time),]
-      
-      # open day's hycom data
-      nc <- open.ncdf(paste(ohc.dir, 'Lyd_', as.Date(time), '.nc', sep=''))
-      depth <- get.var.ncdf(nc, 'depth')
-      lon <- get.var.ncdf(nc, 'lon')
-      lat <- get.var.ncdf(nc, 'lat')
-      
-      # isotherm is minimum temperature recorded for that time point
-      if(iso.def == FALSE) isotherm <- min(pdt.i$MinTemp, na.rm = T)
-      
-      # perform tag data integration
-      tag <- approx(pdt.i$Depth, pdt.i$MidTemp, xout = depth)
-      tag <- tag$y - isotherm
-      tag.ohc <- cp * rho * sum(tag, na.rm = T) / 10000
-      
-      # store tag ohc
-      ohcVec[i] <- tag.ohc
-      
-  }
-  
-  for(i in 1:length(udates)){
-
-    # define time based on tag data
     time <- udates[i]
+    pdt.i <- pdt[which(pdt$Date == time),]
     
     # open day's hycom data
     nc <- open.ncdf(paste(ohc.dir, 'Lyd_', as.Date(time), '.nc', sep=''))
     dat <- get.var.ncdf(nc, 'water_temp')
-    #depth <- get.var.ncdf(nc, 'depth')
-    #lon <- get.var.ncdf(nc, 'lon')
-    #lat <- get.var.ncdf(nc, 'lat')
+    depth <- get.var.ncdf(nc, 'depth')
+    lon <- get.var.ncdf(nc, 'lon')
+    lat <- get.var.ncdf(nc, 'lat')
     
-    pdt.i <- pdt[which(pdt$Date == time),]
-    
-    # calculate daily isotherm based on tag data
+    # isotherm is minimum temperature recorded for that time point
     if(iso.def == FALSE) isotherm <- min(pdt.i$MinTemp, na.rm = T)
     
-    dat[dat<isotherm] <- NA
+    # perform tag data integration
+    tag <- approx(pdt.i$Depth, pdt.i$MidTemp, xout = depth)
+    tag <- tag$y - isotherm
+    tag.ohc <- cp * rho * sum(tag, na.rm = T) / 10000
+    
+    # calc ohc for min/max temps for each day to calc sdx for dnorm
+    minTag <- approx(pdt.i$Depth, pdt.i$MinTemp, xout = depth)
+    minTag <- minTag$y - isotherm
+    minT.ohc <- cp * rho * sum(minTag, na.rm = T) / 10000
+    
+    maxTag <- approx(pdt.i$Depth, pdt.i$MaxTemp, xout = depth)
+    maxTag <- maxTag$y - isotherm
+    maxT.ohc <- cp * rho * sum(maxTag, na.rm = T) / 10000
+    
+    sdx <- sd(c(minT.ohc, maxT.ohc))
+    print(sdx)
     
     # Perform hycom integration
+    dat[dat<isotherm] <- NA
     dat <- dat - isotherm
     ohc <- cp * rho * apply(dat, 1:2, sum, na.rm = T) / 10000 
     
-    if(i == 1){
-      sdx <- sd(ohcVec[c(1,2)])
-    } else{
-      sdx <- sd(ohcVec[c((i - 1), i, (i + 1))])
-    }
-    
     # compare hycom to that day's tag-based ohc
-    #lik.dt <- matrix(dtnorm(ohc, tag.ohc, sdx, 0, 150), dim(ohc)[1], dim(ohc)[2])
-    lik <- dnorm(ohc, ohcVec[i], sdx) 
-    #lik <- (lik / max(lik, na.rm = T)) - .05 # normalize
-    #print(paste(max(lik), time))
+    lik <- dnorm(ohc, tag.ohc, sdx) 
     
     if(i == 1){
-      # result should be array of likelihood surfaces
+      # result will be array of likelihood surfaces
       L.ohc <- array(0, dim = c(dim(lik), length(dateVec)))
     }
     
@@ -101,25 +80,27 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = T){
   ex <- extent(list.ohc)
   L.ohc <- brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
   L.ohc <- flip(L.ohc, direction = 'y')
-
-  # make L.pdt match resolution/extent of g
-  row <- dim(g$lon)[1]
-  col <- dim(g$lon)[2]
-  ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
-  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-  rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
-  L.ohc <- spatial_sync_raster(L.ohc, rasMatch)
-  
-  if(raster == 'brick'){
-    s <- L.ohc
-  } else if(raster == 'stack'){
-    s <- stack(L.ohc)
-  } else if(raster == 'array'){
-    s <- raster::as.array(L.ohc, transpose = T)
-  }
-  
-  print(class(L.ohc))
-  # return ohc likelihood surfaces
-  return(L.ohc)
-  
+  s <- stack(L.ohc)
+  return(s)
 }
+  # make L.pdt match resolution/extent of g
+  #row <- dim(g$lon)[1]
+  #col <- dim(g$lon)[2]
+  #ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
+  #crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+  #rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
+  #L.ohc <- spatial_sync_raster(L.ohc, rasMatch)
+  
+  #if(raster == 'brick'){
+   # s <- L.ohc
+  #} else if(raster == 'stack'){
+  #  s <- stack(L.ohc)
+  #} else if(raster == 'array'){
+  #  s <- raster::as.array(L.ohc, transpose = T)
+  #}
+  
+#  print(class(L.ohc))
+  # return ohc likelihood surfaces
+ # return(L.ohc)
+  
+#}
