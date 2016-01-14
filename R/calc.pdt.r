@@ -39,9 +39,11 @@ calc.pdt <- function(pdt, dat, lat, lon, g, depth, raster = 'stack', dateVec){
       tag = approx(y, x, xout=datDep, rule=2) #interpolates temperatures in y to relevant WOA depths
       names(tag) = list('y', 'x')
       
+      sdx <- sd((pdt.i$MaxTemp - pdt.i$MinTemp), na.rm = T)
+      
       for (b in depIdx){
         # calculate likelihood at each depth for a given tag time point
-        lik.b <- dnorm(dat[,, b, pdtMonth], tag$x[which(depIdx == b)], .5) 
+        lik.b <- dnorm(dat[,, b, pdtMonth], tag$x[which(depIdx == b)], sdx) 
         #lik.b <- (lik.b / max(lik.b, na.rm = T)) - .05
         if(min(which(depIdx == b)) == 1){
           lik.pdt <- as.array(lik.b)
