@@ -34,21 +34,45 @@ calc.pdt <- function(pdt, dat, lat, lon, g, depth, raster = 'stack', dateVec){
       
       dat.i = dat[,,,pdtMonth] #extract months climatology
       
-      depIdx <- findInterval(y, depth) #locates climatology dep points nearest to tag's recorded depths
-      datDep = depth[depIdx] 
-      tag = approx(y, x, xout=datDep, rule=2) #interpolates temperatures in y to relevant WOA depths
-      names(tag) = list('y', 'x')
+      # do the regression
+      fit <- locfit(x ~ y)
+      n = length(y)
       
-      sdx <- sd((pdt.i$MaxTemp - pdt.i$MinTemp), na.rm = T)
+      # find the standard depth levels that correspond to the depths the tag data is measured at
+      # use the which.min
+      depIdx = apply(as.data.frame(y), 1, FUN=function(z) which.min((z-depth)^2))
+      woaDep <- depth[depIdx] 
       
-      for (b in depIdx){
+      # make predictions based on the regression model earlier for the temperature at standard WOA depth levels for low and high temperature at that depth
+      pred = predict(fit, newdata = woaDep, se = T, get.data = T)
+      
+      df <- data.frame(depth = woaDep, low=pred$fit-pred$se.fit*sqrt(n), 
+                       high=pred$fit+pred$se.fit*sqrt(n))
+      
+      #depIdx <- findInterval(y, depth) #locates climatology dep points nearest to tag's recorded depths
+      #datDep = depth[depIdx] 
+      #tag = approx(y, x, xout=datDep, rule=2) #interpolates temperatures in y to relevant WOA depths
+      #names(tag) = list('y', 'x')
+      
+      #sdx <- sd((pdt.i$MaxTemp - pdt.i$MinTemp), na.rm = T)
+      sdx <- .7
+      
+      
+      for (b in 1:length(depIdx)){
+        # sequence
+        dt = seq(df$low[b], df$high[b], length=10)
+        
+        # likelihood array for one depth
+        lik0 = aaply(dt, 1, .fun = function(z) dnorm(x[b], dat[,,depIdx[b],pdtMonth], sdx))
+        lik.b.int = apply(lik0, 2:3, sum)
+        
         # calculate likelihood at each depth for a given tag time point
-        lik.b <- dnorm(dat[,, b, pdtMonth], tag$x[which(depIdx == b)], sdx) 
+        #lik.b <- dnorm(dat[,, b, pdtMonth], tag$x[which(depIdx == b)], sdx) 
         #lik.b <- (lik.b / max(lik.b, na.rm = T)) - .05
-        if(min(which(depIdx == b)) == 1){
-          lik.pdt <- as.array(lik.b)
+        if(b == 1){
+          lik.pdt <- as.array(lik.b.int)
         } else{
-          lik.pdt <- abind(lik.pdt, lik.b, along = 3)
+          lik.pdt <- abind(lik.pdt, lik.b.int, along = 3)
         }
       }
       

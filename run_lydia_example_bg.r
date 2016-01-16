@@ -15,6 +15,7 @@
 #    smooth stages either. The distr array as a likelihood at T=181 that puts
 #    the tag in the Caribbean.
 
+library(locfit)
 library(fields)
 library(raster)
 library(imager)
@@ -161,7 +162,7 @@ image.plot(lon,lat,dat[,,1,1])
 L.pdt <- calc.pdt(pdt, dat, lat, lon, g, depth, raster = 'stack', dateVec = dateVec)
 
 # try quick plot to check, if raster = 'stack' or 'brick' above
-plot(L.pdt[[2]])
+plot(L.pdt[[30]])
 plot(countriesLow, add = T)
 
 # plot = FALSE

@@ -40,7 +40,7 @@ lines(woaDep, pred$fit-pred$se.fit*sqrt(n), col=2, lty=2)
 woa1 = matrix(1:100/3, 10,10)
 woa2 = matrix(1:100/3,10,10)
 woa = rbind(woa1[1:5,],woa2[1:5,])
-image.plot(woa,xlab='fake longitude',ylab='fake latitude', main='ocean temperature surface')
+image.plot(woa1,xlab='fake longitude',ylab='fake latitude', main='ocean temperature surface')
 
 # put everything in one spot
 out <- cbind(woaDep,fitT=pred$fit,sd_lwr=pred$fit-pred$se.fit*sqrt(n),sd_upr=pred$fit+pred$se.fit*sqrt(n))
@@ -80,8 +80,10 @@ lines(stdDepth, pred.low$fit-pred.low$se.fit*sqrt(n), col=4, lty=2)
 n =length(stdDepth)
 
 # data frame for next step
-df = data.frame(low=pred.low$fit[depIdx]-pred.low$se.fit[depIdx]*sqrt(n), high=pred.high$fit[depIdx]+pred.high$se.fit[depIdx]*sqrt(n), row.names = deps)
-
+df = data.frame(low=pred.low$fit[depIdx]-pred.low$se.fit[depIdx]*sqrt(n), high=pred.high$fit[depIdx]+pred.high$se.fit[depIdx]*sqrt(n), row.names = stdDepth[depIdx])
+df1 <- data.frame(low=pred$fit[depIdx]-pred$se.fit[depIdx]*sqrt(n), 
+                  high=pred$fit[depIdx]+pred$se.fit[depIdx]*sqrt(n),
+                  row.names = stdDepth[depIdx])
 #---------------------------------------------------------------------------------------#
 # WOA sd.. 
 #---------------------------------------------------------------------------------------#
@@ -106,7 +108,7 @@ for(i in 1:nrow(woa)){
 # image.plot(dnorm(df[1,1], woa, .7)+dnorm(df[1,2], woa, .7))
 
 # sequence
-dt = seq(df[1,1], df[1,2], length=10)
+dt = seq(df1[1,1], df1[1,2], length=10)
 
 # likelihood array for one depth
 lik0 = aaply(dt, 1, .fun = function(x) dnorm(x, woa, .7))
@@ -117,7 +119,32 @@ par(mfrow=c(1,2))
 image.plot(woa)
 image.plot(int0, col = terrain.colors(100))
 
-    
+# -----
+# 1:
+# -----
+# I'm not sure the 2 apply steps above are right. when creating lik0,
+# shouldn't each lik0[,,n] be the likelihood matrix for that dt[n]?
+# Then the likelihoods are summed (integrated) across the range of dt?
+# When I look at any lik0[,,n], it sure doesn't look like a realistic
+# likelihood array for dt[n]. When summed, the resulting likelihood
+# surface looks ok but why does it transition gradually on the top from
+# low to high likelihood then immediately drop to low likelihood below?
+
+# BUT, if you replace the woa we were using with woa1
+woa <- woa1
+# then run it again, the plots look right as does the structure of lik0.
+
+# ----
+# 2:
+# ----
+# I think setting the integration limits based on SE of the regression at
+# minT and maxT (rather than midT) makes the limits much too wide. For
+# example, temp range based on the min/max regression at max(deps) is
+# 4.5 - 10.6. Temp range based on midT regression at same depth is
+# 7.2 - 9.3. Tag measured min/maxT at that depth is 8.4-8.8.
+# Seems like we're actually adding too much range doing the regression
+# on the min/max temps.
+
 
 
 
