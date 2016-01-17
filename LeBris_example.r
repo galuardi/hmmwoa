@@ -130,6 +130,8 @@ image.plot(int0, col = terrain.colors(100))
 # surface looks ok but why does it transition gradually on the top from
 # low to high likelihood then immediately drop to low likelihood below?
 
+# BG: use image.plot(lik0[n,,]). it looks correct
+
 # BUT, if you replace the woa we were using with woa1
 woa <- woa1
 # then run it again, the plots look right as does the structure of lik0.
@@ -145,6 +147,7 @@ woa <- woa1
 # Seems like we're actually adding too much range doing the regression
 # on the min/max temps.
 
+# BG: I think we need to keep this for several reasons previously stated. However, you raise an important point I didn't think about: These individual likelihoods for dt should not be weighted equally.. The min-max we use is just that, representative of a distrubution of temps at depth, with min/max as the tails of the distribution. The mean temp should have the most bearing on the result. Let's think about how to weight it accordingly. 
 
 
 
