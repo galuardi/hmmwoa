@@ -97,27 +97,6 @@ for(i in 1:nrow(woa)){
   }
 }
 
-#---------------------------------------------------------------------------------------#
-# integration would be something like this for each WOA layer..
-# note to self: read up on integration.. 
-#---------------------------------------------------------------------------------------#
-
-# I think a sequence might hae to be set between the min and max... I tried just adding dnorm(min) and dnorm(max) and it is not right
-# for example:
-
-# image.plot(dnorm(df[1,1], woa, .7)+dnorm(df[1,2], woa, .7))
-
-# sequence
-dt = seq(df1[1,1], df1[1,2], length=10)
-
-# likelihood array for one depth
-lik0 = aaply(dt, 1, .fun = function(x) dnorm(x, woa, .7))
-int0 = apply(lik0, 2:3, sum)
-
-# plot it
-par(mfrow=c(1,2))
-image.plot(woa)
-image.plot(int0, col = terrain.colors(100))
 
 # -----
 # 1:
@@ -129,6 +108,8 @@ image.plot(int0, col = terrain.colors(100))
 # likelihood array for dt[n]. When summed, the resulting likelihood
 # surface looks ok but why does it transition gradually on the top from
 # low to high likelihood then immediately drop to low likelihood below?
+
+# BG: use image.plot(lik0[n,,]). it looks correct
 
 # BUT, if you replace the woa we were using with woa1
 woa <- woa1
@@ -145,8 +126,47 @@ woa <- woa1
 # Seems like we're actually adding too much range doing the regression
 # on the min/max temps.
 
+# BG: I think we need to keep this for several reasons previously stated. However, you raise an important point I didn't think about: These individual likelihoods for dt should not be weighted equally.. The min-max we use is just that, representative of a distrubution of temps at depth, with min/max as the tails of the distribution. The mean temp should have the most bearing on the result. Let's think about how to weight it accordingly. 
 
 
+#---------------------------------------------------------------------------------------#
+# integration would be something like this for each WOA layer..
+#---------------------------------------------------------------------------------------#
+# BG: 1-20-15
+# according to local experts (wife), integration of a function f(2x) from, for example, 0 to 1, should be f(1^2)-f(0^2)
+#I'm not sure how integration plays out using distrubutions but here's another shot at it..
+
+# just noticed that sphmm functions arranged the dnorm in this way: grid data, observation, sd (of grid??)
+
+#------------------------------------------------------------------------#
+# Rhelp and Google provide!!
+# Use integration function in R along with some fancy vector apply functions
+#------------------------------------------------------------------------#
+# apply an integration from minT to maxT at each woa cell
+woav = as.vector(woa)
+
+# use the midTemp and an adhoc sd based onthe range. 
+sdr = (df1[,2]-df1[,1])/4
+
+likint <- function(woa, minT, maxT, sdT){
+  matrix(vapply(woa, FUN = function(x) integrate(dnorm, lower = minT, upper = maxT , mean = x, sd = sdT)$value, FUN.VALUE = matrix(0,1,1)), 10, 10)
+}
+
+rmat = likint(woa, df[1,1], df[1,2], sdr[1])
+
+## This version has a different result... wtf. It's the same structure!
+# rmat = matrix(vapply(woa, FUN = function(x) integrate(dnorm, lower = df1[1,1] , upper = df1[1,2], mean = x, sd = sdr[1])$value, FUN.VALUE = matrix(0,1,1)), 10, 10)
+
+
+par(mfrow=c(2,2))
+image.plot(dnorm(woa, 22.4, sdr[1]), col = terrain.colors(100)) # something wrong with this approach
+title('using midTemp and sd from range')
+image.plot(dnorm(woa, 22.4, .7), col = terrain.colors(100))
+title('using midTemp fixed sd')
+image.plot(rmat+1e-15, col = terrain.colors(100))  #, zlim = c(.025,.975)
+title('Integrated') 
+image.plot(woa, zlim = c(df1[1,1], df1[1,2]))
+title('woa with minT-maxT limits')
 
 
 
