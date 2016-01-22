@@ -127,6 +127,7 @@ woa <- woa1
 # on the min/max temps.
 
 # BG: I think we need to keep this for several reasons previously stated. However, you raise an important point I didn't think about: These individual likelihoods for dt should not be weighted equally.. The min-max we use is just that, representative of a distrubution of temps at depth, with min/max as the tails of the distribution. The mean temp should have the most bearing on the result. Let's think about how to weight it accordingly. 
+<<<<<<< HEAD
 
 
 #---------------------------------------------------------------------------------------#
@@ -156,6 +157,8 @@ rmat = likint(woa, df[1,1], df[1,2], sdr[1])
 
 ## This version has a different result... wtf. It's the same structure!
 # rmat = matrix(vapply(woa, FUN = function(x) integrate(dnorm, lower = df1[1,1] , upper = df1[1,2], mean = x, sd = sdr[1])$value, FUN.VALUE = matrix(0,1,1)), 10, 10)
+=======
+>>>>>>> fbb35e9e2ffb1146134dad952deeabc94282d5da
 
 
 par(mfrow=c(2,2))
