@@ -138,10 +138,11 @@ plot(countriesLow, add = T)
 #---------------------------------------------------------------#
 
 # set limits of interest
-limits = c(lon, lat) # (min lon, max lon, min lat, max lat)
+# limits = c(lon, lat) # (min lon, max lon, min lat, max lat)
+limits = c(min(lon)-3, max(lon)+3, min(lat)-3, max(lat)+3)
 
 # woa.dir = '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/'
-woa.dir = "C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/"
+woa.dir = "C:/Users/ben/Documents/WOA/woa13_25deg_global.nc"
 
 return.woa = extract.woa(woa.dir, limits, resolution = 'quarter')
 dat = return.woa$dat; 
@@ -149,26 +150,30 @@ lon = as.numeric(return.woa$lon);
 lat = as.numeric(return.woa$lat); 
 depth = as.numeric(return.woa$depth)
 
+dat = return.woa; 
+dat$lon = as.numeric(dat$lon); 
+dat$lat = as.numeric(dat$lat); 
+dat$depth = as.numeric(dat$depth)
+
 # eliminate Pacific from woa data
-dat = removePacific(dat, lat, lon)
+dat$dat = removePacific(dat$dat, lat, lon)
 
 # check woa data
 graphics.off()
-image.plot(lon,lat,dat[,,1,1])
+image.plot(lon,lat,dat$dat[,,1,1])
 
 # perform matching
 # 'stack' makes the end of this routine much slower than 'brick' or 'array'
 # but is only 10 extra seconds or so
-L.pdt <- calc.pdt(pdt, dat, lat, lon, g, depth, raster = 'stack', dateVec = dateVec)
+
+### something going wrong in the integration around day 34.. maybe not enough depths?? 
+### Also pretty slow... looking into parallelization
+L.pdt <- calc.pdt.int(pdt, dat$dat, dat$lat, dat$lon, g, dat$depth, raster = 'stack', dateVec = dateVec)
 
 # try quick plot to check, if raster = 'stack' or 'brick' above
 plot(L.pdt[[30]])
 plot(countriesLow, add = T)
 
-# plot = FALSE
-# if(plot){
-  # plot.woa(as.array(L.pdt), return.woa, paste(ptt, '_woalik.pdf', sep=''), pdt = pdt, write.dir = getwd())
-# }
 
 #---------------------------------------------------------------#
 # multiply daily likelihood matrices

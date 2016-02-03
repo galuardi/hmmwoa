@@ -25,12 +25,14 @@ extract.woa <- function(nc.dir, bbox, resolution){
   depth = get.var.ncdf(nc, 'Depth')
   
   # set bounds for extracting data
-  xmin = which.min((bbox[1] - lon) ^ 2); xmax = which.min((bbox[2] - lon) ^ 2)
-  ymin = which.min((bbox[3] - lat) ^ 2); ymax = which.min((bbox[4] - lat) ^ 2)
+  xmin = which.min((bbox[1] - lon) ^ 2)
+  xmax = which.min((bbox[2] - lon) ^ 2)
+  ymin = which.min((bbox[3] - lat) ^ 2) 
+  ymax = which.min((bbox[4] - lat) ^ 2)
   
   if(resolution == 'quarter'){
-    xlen = 4*(bbox[2] - bbox[1]) # for quarter degree
-    ylen = 4*(bbox[4] - bbox[3]) 
+    xlen = floor(4*(bbox[2] - bbox[1])) # for quarter degree
+    ylen = floor(4*(bbox[4] - bbox[3])) 
   } else if(resolution == 'one'){
     xlen = bbox[2] - bbox[1] # for one degree
     ylen = bbox[4] - bbox[3]
