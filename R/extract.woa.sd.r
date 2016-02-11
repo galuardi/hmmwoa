@@ -1,4 +1,4 @@
-extract.woa <- function(nc.dir, bbox, resolution, sdDir){
+extract.woa.sd <- function(nc.dir, bbox, resolution, sdDir){
   # Extract the desired temperature data from a global
   # dataset derived from monthly gridded climatology data 
   # contained in the 2013 World Ocean Atlas

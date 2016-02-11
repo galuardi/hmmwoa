@@ -22,7 +22,7 @@ library(imager)
 library(ncdf)
 library(plyr)
 #library(abind) # don't need this with modified funciton
-library(reshape2) #need this?
+#library(reshape2) #need this?
 library(rworldmap)
 library(spatial.tools)
 library(magic)
@@ -145,10 +145,10 @@ limits = c(min(lon)-3, max(lon)+3, min(lat)-3, max(lat)+3)
 woa.dir = "C:/Users/ben/Documents/WOA/woa13_25deg_global.nc"
 
 return.woa = extract.woa(woa.dir, limits, resolution = 'quarter')
-dat = return.woa$dat; 
-lon = as.numeric(return.woa$lon); 
-lat = as.numeric(return.woa$lat); 
-depth = as.numeric(return.woa$depth)
+#dat = return.woa$dat; 
+#lon = as.numeric(return.woa$lon); 
+#lat = as.numeric(return.woa$lat); 
+#depth = as.numeric(return.woa$depth)
 
 dat = return.woa; 
 dat$lon = as.numeric(dat$lon); 
@@ -156,11 +156,11 @@ dat$lat = as.numeric(dat$lat);
 dat$depth = as.numeric(dat$depth)
 
 # eliminate Pacific from woa data
-dat$dat = removePacific(dat$dat, lat, lon)
+dat$dat = removePacific(dat$dat, dat$lat, dat$lon)
 
 # check woa data
 graphics.off()
-image.plot(lon,lat,dat$dat[,,1,1])
+image.plot(dat$lon,dat$lat,dat$dat[,,1,1])
 
 # perform matching
 # 'stack' makes the end of this routine much slower than 'brick' or 'array'
@@ -168,10 +168,13 @@ image.plot(lon,lat,dat$dat[,,1,1])
 
 ### something going wrong in the integration around day 34.. maybe not enough depths?? 
 ### Also pretty slow... looking into parallelization
-L.pdt <- calc.pdt.int(pdt, dat$dat, dat$lat, dat$lon, g, dat$depth, raster = 'stack', dateVec = dateVec)
+pdt.sub <- pdt[c(1:max(which(as.Date(pdt$Date) %in% dateVec[49]))),]
+dateVec.sub <- dateVec[1:49]
+dat1 <- dat$dat
+L.pdt <- calc.pdt.int(pdt.sub, dat = dat1, lat = dat$lat, lon = dat$lon, g, depth = dat$depth, raster = 'stack', dateVec = dateVec.sub)
 
 # try quick plot to check, if raster = 'stack' or 'brick' above
-plot(L.pdt[[30]])
+plot(L.pdt[[10]])
 plot(countriesLow, add = T)
 
 

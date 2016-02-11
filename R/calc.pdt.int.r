@@ -51,7 +51,7 @@ for(i in 1:T){
     # data frame for next step
     df = data.frame(low=pred.low$fit[depIdx]-pred.low$se.fit[depIdx]*sqrt(n)
                     , high=pred.high$fit[depIdx]+pred.high$se.fit[depIdx]*sqrt(n)
-                    , row.names = depth[depIdx])
+                    , depth = depth[depIdx])
     
 #     df1 <- data.frame(low=pred$fit[depIdx]-pred$se.fit[depIdx]*sqrt(n), 
 #                       high=pred$fit[depIdx]+pred$se.fit[depIdx]*sqrt(n),
