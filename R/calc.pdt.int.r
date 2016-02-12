@@ -27,46 +27,40 @@ for(i in 1:T){
   # define time based on tag data
   time <- udates[i]
   pdt.i <- pdt[which(pdt$Date == time),]
-  y <- pdt.i$Depth[!is.na(pdt.i$Depth)] #extracts depth from tag data for day i
+  #extracts depth from tag data for day i
+  y <- pdt.i$Depth[!is.na(pdt.i$Depth)] 
   y[y<0] <- 0
   
-  # if (length(y) >= 3){
-    x <- pdt.i$MidTemp[!is.na(pdt.i$Depth)]  #extract temperature from tag data for day i
+  #extract temperature from tag data for day i
+  x <- pdt.i$MidTemp[!is.na(pdt.i$Depth)]  
 
-    # use the which.min
-    # depIdx = apply(as.data.frame(deps), 1, FUN=function(x) which.min((x-stdDepth)^2))
-    depIdx = apply(as.data.frame(pdt.i$Depth), 1, FUN=function(x) which.min((x-depth)^2))
+  # use the which.min
+  depIdx = apply(as.data.frame(pdt.i$Depth), 1, FUN=function(x) which.min((x-depth)^2))
+  woaDep <- depth[depIdx] 
     
-    woaDep <- depth[depIdx] 
-    
-    # make predictions based on the regression model earlier for the temperature at standard WOA depth levels for low and high temperature at that depth
-    
-    fit.low <- locfit(pdt.i$MinTemp ~ pdt.i$Depth)
-    fit.high <- locfit(pdt.i$MaxTemp ~ pdt.i$Depth)
-    n = length(depth)
-#     pred = predict(fit, newdata = depth, se = T, get.data = T)
-    pred.low = predict(fit.low, newdata = depth, se = T, get.data = T)
-    pred.high = predict(fit.high, newdata = depth, se = T, get.data = T)
-    
-    # data frame for next step
-    df = data.frame(low=pred.low$fit[depIdx]-pred.low$se.fit[depIdx]*sqrt(n)
-                    , high=pred.high$fit[depIdx]+pred.high$se.fit[depIdx]*sqrt(n)
-                    , depth = depth[depIdx])
-    
-#     df1 <- data.frame(low=pred$fit[depIdx]-pred$se.fit[depIdx]*sqrt(n), 
-#                       high=pred$fit[depIdx]+pred$se.fit[depIdx]*sqrt(n),
-#                       row.names = depth[depIdx])
-    
-    pdtMonth <- as.numeric(format(as.Date(pdt.i$Date), format='%m'))[1]
-    
-    dat.i = dat[,,,pdtMonth] #extract months climatology
-    dat.i[is.na(dat.i)] = -9999
-    
-    # sdx <- .7
-    sdr = (df[,2]-df[,1])/4
+  # make predictions based on the regression model earlier for the temperature at standard WOA depth levels for low and high temperature at that depth
+  fit.low <- locfit(pdt.i$MinTemp ~ pdt.i$Depth)
+  fit.high <- locfit(pdt.i$MaxTemp ~ pdt.i$Depth)
+  n = length(depth[depIdx])
 
-# setup the likelihood array for each day. Will have length (dim[3]) = n depths
-    lik.pdt = array(1e-15, dim=c(dim(dat)[1], dim(dat)[2], length(depIdx)))
+  pred.low = predict(fit.low, newdata = depth[depIdx], se = T, get.data = T)
+  pred.high = predict(fit.high, newdata = depth[depIdx], se = T, get.data = T)
+    
+  # data frame for next step
+  df = data.frame(low=pred.low$fit-pred.low$se.fit*sqrt(n)
+                  , high=pred.high$fit+pred.high$se.fit*sqrt(n)
+                  , depth = depth[depIdx])
+    
+  pdtMonth <- as.numeric(format(as.Date(pdt.i$Date), format='%m'))[1]
+    
+  dat.i = dat[,,,pdtMonth] #extract months climatology
+  dat.i[is.na(dat.i)] = -9999
+    
+  # sdx <- .7
+  sdr = (df[,2]-df[,1])/4
+    
+  # setup the likelihood array for each day. Will have length (dim[3]) = n depths
+  lik.pdt = array(1e-15, dim=c(dim(dat)[1], dim(dat)[2], length(depIdx)))
     
         
   for (b in 1:length(depIdx)) {
