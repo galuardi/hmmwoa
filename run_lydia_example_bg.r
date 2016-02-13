@@ -171,7 +171,7 @@ image.plot(dat$lon,dat$lat,dat$dat[,,1,1])
 pdt.sub <- pdt[c(1:max(which(as.Date(pdt$Date) %in% dateVec[49]))),]
 dateVec.sub <- dateVec[1:49]
 dat1 <- dat$dat
-L.pdt <- calc.pdt.int(pdt.sub, dat = dat1, lat = dat$lat, lon = dat$lon, g, depth = dat$depth, raster = 'stack', dateVec = dateVec.sub)
+L.pdt <- calc.pdt.int(pdt, dat = dat$dat, lat = dat$lat, lon = dat$lon, g, depth = dat$depth, raster = 'stack', dateVec = dateVec)
 
 # try quick plot to check, if raster = 'stack' or 'brick' above
 plot(L.pdt[[10]])
