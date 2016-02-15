@@ -61,23 +61,25 @@ for(i in 1:T){
     
   dat.i = dat[,,,pdtMonth] #extract months climatology
   dat.i[is.na(dat.i)] = -9999
-    
-  # sdx <- .7
+  
+  # fixed this for now but need to put in WOA sd  
+  sdx <- .7
   #sdr = (df[,2]-df[,1])/4
     
   # setup the likelihood array for each day. Will have length (dim[3]) = n depths
-  lik.pdt = array(1e-15, dim=c(dim(dat)[1], dim(dat)[2], length(depIdx)))
+  lik.pdt = array(NA, dim=c(dim(dat)[1], dim(dat)[2], length(depIdx)))
     
         
   for (b in 1:length(depIdx)) {
     
     #calculate the likelihood for each depth level, b
-    lik.pdt[,,b] = likint(dat.i[,,b], df[b,1], df[b,2], sdr[b])
+    lik.pdt[,,b] = likint(dat.i[,,b], df[b,1], df[b,2], sdx)
     
     }
   
   # multiply likelihood across depth levels for each day
-  lik.pdt <- apply(lik.pdt, 1:2, prod)
+  #lik.pdt.naomit <- apply(lik.pdt, 1:2, function(x) prod(na.omit(x)))
+  lik.pdt <- apply(lik.pdt, 1:2, prod, na.rm=T)
   
   # identify date index and add completed likelihood to L.pdt array    
   idx <- which(dateVec == as.Date(time))
