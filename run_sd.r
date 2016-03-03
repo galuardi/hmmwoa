@@ -38,3 +38,12 @@ for(i in 1:3){#length(udates)){
    
 }
 
+
+japp <- apply(jan,1:2,mean)
+image.plot(japp)
+jvar <- apply(jan,1:2,function(x) var.hycom(x,mu=japp))
+
+
+http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_91.1?var=water_temp&north=50&west=-90&east=-40&south=10&disableProjSubset=on&horizStride=1&time_start=2016-01-13T00%3A00%3A00Z&time_end=2016-01-13T00%3A00%3A00Z&timeStride=1&vertCoord=&addLatLon=true&accept=netcdf
+http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_91.1?var=water_temp&north=55.000000&west=-90.000000&east=-40.000000&south=10.000000&horizStride=1&time_start=2016-01-13T00%3A00%3A00Z&time_end=2016-01-13T00%3A00%3A00Z&timeStride=1&addLatLon=true&disableProjSubset=on&vertCoord=&accept=netcdf
+
