@@ -35,7 +35,7 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = 'stac
     lat <- get.var.ncdf(nc, 'lat')
     
     if(i==1){
-      f.arr <- array(NA, dim=c(length(lon),length(lat),udates))
+      f.arr <- array(NA, dim=c(length(lon),length(lat),length(udates)))
     }
     
     # isotherm is minimum temperature recorded for that time point
@@ -55,8 +55,8 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = 'stac
     maxTag <- maxTag$y - isotherm
     maxT.ohc <- cp * rho * sum(maxTag, na.rm = T) / 10000
     
-    sdx <- sd(c(minT.ohc, maxT.ohc))
-    print(sdx)
+    #sdx <- sd(c(minT.ohc, maxT.ohc))
+    #print(sdx)
     
     # Perform hycom integration
     dat[dat<isotherm] <- NA
@@ -68,7 +68,7 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = 'stac
     list.r <- list(x = lon, y = lat, z = ohc)
     ex <- extent(list.r)
     crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-    r <- raster(t(list.r$z[,,ii]), xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], crs)
+    r <- raster(t(list.r$z), xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], crs)
     r <- flip(r, direction = 'y')
     # focal matrix and calculation
     w = matrix(1/9, nrow = 3, ncol = 3)
@@ -76,9 +76,9 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = 'stac
     
     # put results in an array
     f.arr[,,i] <- t(as.matrix(flip(f,direction='y')))
-    
+    sdx <- f.arr[,,i]
     # compare hycom to that day's tag-based ohc
-    lik <- dnorm(ohc, tag.ohc, sdx) 
+    lik <- dnorm(tag.ohc, mean=ohc, sd=sdx) 
     
     if(i == 1){
       # result will be array of likelihood surfaces
