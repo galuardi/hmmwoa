@@ -141,10 +141,12 @@ plot(countriesLow, add = T)
 # limits = c(lon, lat) # (min lon, max lon, min lat, max lat)
 limits = c(min(lon)-3, max(lon)+3, min(lat)-3, max(lat)+3)
 
-# woa.dir = '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/'
+# woa.dir = '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/woa13_25deg_global_meantemp.nc'
 woa.dir = "C:/Users/ben/Documents/WOA/woa13_25deg_global.nc"
+#sd.dir = '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/woa13_25deg_global_sd.nc'
 
 return.woa = extract.woa(woa.dir, limits, resolution = 'quarter')
+return.sd = extract.woa(sd.dir, limits, resolution = 'quarter')
 #dat = return.woa$dat; 
 #lon = as.numeric(return.woa$lon); 
 #lat = as.numeric(return.woa$lat); 
@@ -154,6 +156,7 @@ dat = return.woa;
 dat$lon = as.numeric(dat$lon); 
 dat$lat = as.numeric(dat$lat); 
 dat$depth = as.numeric(dat$depth)
+sd = return.sd$dat
 
 # eliminate Pacific from woa data
 dat$dat = removePacific(dat$dat, dat$lat, dat$lon)
@@ -161,6 +164,7 @@ dat$dat = removePacific(dat$dat, dat$lat, dat$lon)
 # check woa data
 graphics.off()
 image.plot(dat$lon,dat$lat,dat$dat[,,1,1])
+image.plot(dat$lon,dat$lat,sd[,,1,1])
 
 # perform matching
 # 'stack' makes the end of this routine much slower than 'brick' or 'array'
@@ -171,7 +175,7 @@ image.plot(dat$lon,dat$lat,dat$dat[,,1,1])
 #pdt.sub <- pdt[c(1:max(which(as.Date(pdt$Date) %in% dateVec[49]))),]
 #dateVec.sub <- dateVec[1:49]
 #dat1 <- dat$dat
-L.pdt <- calc.pdt.int(pdt, dat = dat$dat, lat = dat$lat, lon = dat$lon, g, depth = dat$depth, raster = 'stack', dateVec = dateVec)
+L.pdt <- calc.pdt.int(pdt, dat = dat$dat, lat = dat$lat, lon = dat$lon, g, sd=sd, depth = dat$depth, raster = 'stack', dateVec = dateVec)
 
 # try quick plot to check, if raster = 'stack' or 'brick' above
 plot(L.pdt[[10]])

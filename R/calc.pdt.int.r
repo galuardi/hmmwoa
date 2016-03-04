@@ -1,5 +1,5 @@
 
-calc.pdt.int <- function(pdt, dat = dat$dat, lat = dat$lat, lon = dat$lon, g, depth = dat$depth, raster = 'stack', dateVec){
+calc.pdt.int <- function(pdt, dat = dat$dat, lat = dat$lat, lon = dat$lon, g, depth = dat$depth, sd, raster = 'stack', dateVec){
   
   ##  This program matches depth temperature profiles collected by a WC PSAT
   ##  tag to climatological profiles from the World Ocean Atlas.
@@ -17,6 +17,8 @@ calc.pdt.int <- function(pdt, dat = dat$dat, lat = dat$lat, lon = dat$lon, g, de
   #' 
   #' @return lik is array of likelihoods for depth-temp profile
   #'        matching between tag data and WOA
+  
+  require(locfit)
   
   udates <- unique(pdt$Date)
   T <- length(udates)
@@ -61,9 +63,11 @@ for(i in 1:T){
     
   dat.i = dat[,,,pdtMonth] #extract months climatology
   dat.i[is.na(dat.i)] = -9999
+  sd.i = sd[,,,pdtMonth]
+  sd.i[is.na(sd.i)] = -9999
   
   # fixed this for now but need to put in WOA sd  
-  sdx <- .7
+ # sdx <- .7
   #sdr = (df[,2]-df[,1])/4
     
   # setup the likelihood array for each day. Will have length (dim[3]) = n depths
@@ -73,7 +77,9 @@ for(i in 1:T){
   for (b in 1:length(depIdx)) {
     
     #calculate the likelihood for each depth level, b
-    lik.pdt[,,b] = likint(dat.i[,,b], df[b,1], df[b,2], sdx)
+    lik.pdt[,,b] = likint(dat.i[,,b], df[b,1], df[b,2], sd.i[,,b])
+    
+    #image.plot(dnorm(df[b,1],mean=dat.i[,,b],sd=.7))
     
     }
   

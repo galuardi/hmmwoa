@@ -16,8 +16,8 @@ extract.woa <- function(nc.dir, bbox, resolution){
   #'   LON/LAT are vectors of lon/lat bounds
 
   # load global nc
-  ncfiles = dir(nc.dir, pattern = '.nc')
-  nc = open.ncdf(paste(nc.dir, ncfiles, sep = ''))
+  # ncfiles = dir(nc.dir, pattern = '.nc')
+  nc = open.ncdf(nc.dir)
   
   # retrieve var bounds from global nc
   lon = get.var.ncdf(nc, 'Longitude')
@@ -48,7 +48,7 @@ extract.woa <- function(nc.dir, bbox, resolution){
   #  tlen = 2
   #}
   
-  dat = get.var.ncdf(nc, 'temp', start = c(xmin, ymin, 1, 1), count = c(xlen + 1, ylen + 1, 57, 12))
+  dat = get.var.ncdf(nc, start = c(xmin, ymin, 1, 1), count = c(xlen + 1, ylen + 1, 57, 12))
   
   returnWOA = list(dat = dat, lon = lon[xmin:xmax], lat = lat[ymin:ymax], depth = depth)
   

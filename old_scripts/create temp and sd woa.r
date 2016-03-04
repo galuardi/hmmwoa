@@ -28,7 +28,7 @@ temp <- var.def.ncdf('temp', 'degrees C', list(dimX,dimY,dimZ,dimT), mv, longnam
 sd <- var.def.ncdf('std dev', 'degrees C', list(dimX,dimY,dimZ,dimT), mv, longname = 'Standard Deviation of Temperature') 
 
 # create new ncdf file
-ncnew <- create.ncdf('../WOA_25deg/global/woa13_25deg_global_combine.nc', sd, verbose=T) # create new ncdf on disk
+ncnew <- create.ncdf('../WOA_25deg/global/woa13_25deg_global_combine_again.nc', sd, verbose=T) # create new ncdf on disk
 #ncnew <- create.ncdf('../WOA_25deg/global/woa13_25deg_global_new.nc', list(temp,sd), verbose=T) # create new ncdf on disk
 
 # loop through monthly climatology
