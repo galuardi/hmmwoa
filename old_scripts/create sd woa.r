@@ -32,15 +32,16 @@ ncnew <- create.ncdf('../WOA_25deg/global/woa13_25deg_global_new.nc', sd, verbos
 #ncnew <- create.ncdf('../WOA_25deg/global/woa13_25deg_global_new.nc', list(temp,sd), verbose=T) # create new ncdf on disk
 
 # loop through monthly climatology
-for(i in 1:12){
+for(i in 5:12){
   nc = open.ncdf(paste(woa.dir, ncfiles[i], sep = ''))
   
   # extract mean temps and write to temp var
   mu.temp = get.var.ncdf(nc, 't_an', start = c(1, 1, 1, 1), count = c(length(lon), length(lat), length(depth), 1))
+  
   # put the extracted temp data into newly created 4d netcdf (i = month)
-  t <- Sys.time()
-  put.var.ncdf(ncnew, temp, mu.temp[,,1], start = c(1,1,1,i), count = c(-1,-1,1,1), verbose=T)
-  Sys.time() - t # takes about 6.5 mins on the mac
+  #t <- Sys.time()
+  #put.var.ncdf(ncnew, temp, mu.temp[,,1], start = c(1,1,1,i), count = c(-1,-1,1,1), verbose=T)
+  #Sys.time() - t # takes about 6.5 mins on the mac
   
   # focal calc on mean temp and write to sd var
   list.r <- list(x = lon, y = lat, z = mu.temp)
@@ -59,14 +60,16 @@ for(i in 1:12){
     
     # put results in an array
     f.arr[,,ii] <- t(as.matrix(flip(f,direction='y')))
-    put.var.ncdf(ncnew, sd, f.arr, start = c(1,1,1,1), count = c(-1,-1,-1,1),verbose=T)
+    put.var.ncdf(ncnew, sd, f.arr[,,ii], start = c(1,1,ii,i), count = c(-1,-1,1,1),verbose=F)
     print(paste(round(ii/57*100),'%',sep=''))
   }
-  Sys.time() - t # about 16 mins on the mac w/o put.var inside
+  Sys.time() - t 
   
+  # about 16 mins on the mac w/o put.var inside
+  # 20 mins on mac with put.var inside and putting in for each ii iteration.
   
   # write the sd var
-  put.var.ncdf(ncnew, sd, f.arr[,,1], start = c(1,1,1,i), count = c(-1,-1,1,1))
+  #put.var.ncdf(ncnew, sd, f.arr[,,1], start = c(1,1,1,i), count = c(-1,-1,1,1))
   
   
 }
