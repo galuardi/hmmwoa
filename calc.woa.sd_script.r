@@ -1,5 +1,5 @@
 # calculate sd on a grid
-load()
+load('C:/Users/benjamin.galuardi/Google Drive/Camrin-WOA/hmmwoa_files/HMM_WORK_LYDIA.Rdata')
 
 library(raster)
 library(fields)
@@ -82,9 +82,47 @@ contour(f1, add=T)
 contour(sstc, add=T, col ='white')
 title('COMPARE')
 
-library(spatilfil)
+# library(spatilfil)
+# 
+# K <- convKernel(sigma = 3, k = 'gaussian')
+# Mfil <- applyFilter(x = M, kernel = convKernel(sigma = 1.4, k = 'gaussian'))
 
-K <- convKernel(sigma = 3, k = 'gaussian')
-Mfil <- applyFilter(x = M, kernel = convKernel(sigma = 1.4, k = 'gaussian'))
 
+#-------------------------------------------------------------------------------------#
+### look at sd as a mtrix in the lik/int.r function
+#-------------------------------------------------------------------------------------#
 
+woa1 = matrix(1:100/3, 10,10)
+woa2 = matrix(1:100/3,10,10)
+woa = as.matrix(rbind(woa1[1:5,],woa2[1:5,]))
+
+# calc.woa.sd <- function(woa, extent = 3){
+extent = 3
+  r = flip(raster(t(woa)),2)
+  f1 = focal(r, w = matrix(1/(extent*extent),nrow = extent, ncol = extent), fun = sd)
+  # f1
+# }
+
+woasd = as.matrix(1)
+
+likint <- function(woa, minT, maxT, sdT){
+  matrix(vapply(woa, FUN = function(x) integrate(dnorm, lower = minT, upper = maxT , mean = x, sd = sdT)$value, FUN.VALUE = matrix(0,1,1)), dim(woa)[1], dim(woa)[2])
+}
+
+par(mfrow=c(2,2))
+image.plot(woa)
+contour(woa, levels=c(13,14), add=T)
+image.plot(woasd)
+image.plot(likint(woa, 13,14, 1))
+image.plot(as.matrix(aaply(wlist, 1:2, .fun = function(x) integrate(dnorm, lower = 13, upper = 14 , mean = x[1], sd = x[2])$value)))
+contour(woa, levels=c(13,14), add=T, col = 'white')
+
+likint2 <- function(woa, woasd, minT, maxT){
+  wlist = array(1e-6, dim=c(dim(woa)[1], dim(woa)[2], 2))
+  wlist[,,1] = woa
+  wlist[,,2] = woasd
+  wlist[is.na(wlist)] = 1e-6
+  as.matrix(aaply(wlist, 1:2, .fun = function(x) integrate(dnorm, lower = minT, upper = maxT , mean = x[1], sd = x[2])$value))
+}
+
+image.plot(likint2(woa, woasd, 13, 14))
