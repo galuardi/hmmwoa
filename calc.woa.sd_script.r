@@ -1,5 +1,5 @@
 # calculate sd on a grid
-load('C:/Users/benjamin.galuardi/Google Drive/Camrin-WOA/hmmwoa_files/HMM_WORK_LYDIA.Rdata')
+load('C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/HMM_WORK_LYDIA.Rdata')
 
 library(raster)
 library(fields)
@@ -105,7 +105,7 @@ extent = 3
   # f1
 # }
 
-woasd = as.matrix(1)
+woasd = as.matrix(f1)
 
 likint <- function(woa, minT, maxT, sdT){
   matrix(vapply(woa, FUN = function(x) integrate(dnorm, lower = minT, upper = maxT , mean = x, sd = sdT)$value, FUN.VALUE = matrix(0,1,1)), dim(woa)[1], dim(woa)[2])
@@ -116,7 +116,6 @@ image.plot(woa)
 contour(woa, levels=c(13,14), add=T)
 image.plot(woasd)
 image.plot(likint(woa, 13,14, 1))
-image.plot(as.matrix(aaply(wlist, 1:2, .fun = function(x) integrate(dnorm, lower = 13, upper = 14 , mean = x[1], sd = x[2])$value)))
 contour(woa, levels=c(13,14), add=T, col = 'white')
 
 likint2 <- function(woa, woasd, minT, maxT){
@@ -128,3 +127,30 @@ likint2 <- function(woa, woasd, minT, maxT){
 }
 
 image.plot(likint2(woa, woasd, 13, 14))
+contour(woa, levels=c(13,14), add=T, col = 'white')
+
+
+#-----------------------------------------------------------------------------------#
+# try with woa data
+#-----------------------------------------------------------------------------------#
+
+load('C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/HMM_WORK_LYDIA.Rdata')
+
+woa = dat
+
+calc.woa.sd <- function(woa, extent = 3){
+  extent = 3
+  r = flip(raster(t(woa)),2)
+  f1 = focal(r, w = matrix(1/(extent*extent),nrow = extent, ncol = extent), fun = sd)
+  t(as.matrix(flip(f1, 2)))
+}
+
+woasd = calc.woa.sd(woa[,,1,1])
+image.plot((woasd))
+
+
+image.plot(likint2(woa[,,1,1], woasd, 10, 20))
+contour(woa[,,1,1], levels=c(10,20), add=T, col = 'white')
+
+
+
