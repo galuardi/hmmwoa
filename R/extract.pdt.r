@@ -16,7 +16,7 @@ extract.pdt = function(data){
   
   # convert to long format
   vars = names(data[,c(which(names(data) == 'Depth1'):length(names(data)))])
-  pdt <- reshape(data, ids = data$Date, direction = 'long',
+  pdt <- stats::reshape(data, ids = data$Date, direction = 'long',
                  varying = vars, times = vars, sep='', timevar = 'BinNum')
   keepNames = c('Ptt', 'Date', 'NumBins', 'BinNum', 'Depth', 'MinTemp', 'MaxTemp')
   pdt <- pdt[,c(keepNames)]

@@ -3,15 +3,16 @@ load('C:/Users/benjamin.galuardi/Google Drive/Camrin-WOA/hmmwoa_files/HMM_WORK_L
 
 library(raster)
 library(fields)
+library(matlab)
 
 fmat = list()
 
 for(i in 1:57){
   # for(j in 1:57){
     r = flip(raster(t(dat[,,i,1])),2)
-    plot(r, col = tim.colors(100))
+    #plot(r, col = tim.colors(100))
     f1 = focal(r, w=matrix(1/9,nrow=3,ncol=3), fun=sd)
-    plot(f1, add=T)
+    #plot(f1, add=T)
     fmat[[i]] = f1
   # }
 }
@@ -59,13 +60,14 @@ gk = (array(gk, dim = c(10,10,1,1)))
 ## Compare focal w/ convolve
 
 r = flip(raster(t(dat[,,1,1])),2)
-f1 = focal(r, w = gk[1:9,1:9,1,1], fun = mean, na.rm=T) #, fun = sum, na.rm=T
+#f1 = focal(r, w = gk[1:9,1:9,1,1], fun = mean, na.rm=T) #, fun = sum, na.rm=T
 f1 = focal(r, w=matrix(1,nrow=9,ncol=9), fun = mean, na.rm=T)
 f1 = t(as.matrix(flip(f1,2)))
 ssti = as.cimg((fliplr(dat[,,1,1])))
 ssti[is.na(ssti)] = 1e-15
 sstc = fliplr(as.matrix(convolve(ssti, gk)))
 sstc[sstc==1e-15] = NA
+sstw[sstw==1e-15] = NA
 
 par(mfrow=c(2,2))
 image.plot(dat[,,1,1])
@@ -74,13 +76,13 @@ title('woa Jan, 0 depth')
 image.plot(f1, col = tim.colors(100))
 contour(f1, add=T)
 title('FOCAL')
-image.plot(sstc)
+image.plot(sstw)
 contour(sstc, add=T, col ='white')
 title('CONV')
 image.plot(sstc-f1, zlim = c(-2,2))
 contour(f1, add=T)
 contour(sstc, add=T, col ='white')
-title('COMPARE')
+title('CONV-FOC')
 
 # library(spatilfil)
 # 

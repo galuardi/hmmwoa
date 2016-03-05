@@ -156,7 +156,7 @@ dat = return.woa;
 dat$lon = as.numeric(dat$lon); 
 dat$lat = as.numeric(dat$lat); 
 dat$depth = as.numeric(dat$depth)
-sd = return.sd$dat
+#sd = return.sd$dat
 
 # eliminate Pacific from woa data
 dat$dat = removePacific(dat$dat, dat$lat, dat$lon)
@@ -164,7 +164,7 @@ dat$dat = removePacific(dat$dat, dat$lat, dat$lon)
 # check woa data
 graphics.off()
 image.plot(dat$lon,dat$lat,dat$dat[,,1,1])
-image.plot(dat$lon,dat$lat,sd[,,1,1])
+#image.plot(dat$lon,dat$lat,sd[,,1,1])
 
 # perform matching
 # 'stack' makes the end of this routine much slower than 'brick' or 'array'
