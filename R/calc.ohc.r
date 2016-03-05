@@ -65,14 +65,10 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = 'stac
     
     # calc sd of OHC
     # focal calc on mean temp and write to sd var
-    list.r <- list(x = lon, y = lat, z = ohc)
-    ex <- extent(list.r)
-    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-    r <- raster(t(list.r$z), xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], crs)
-    r <- flip(r, direction = 'y')
-    # focal matrix and calculation
-    w = matrix(1/9, nrow = 3, ncol = 3)
-    f <- focal(r, w, function(x) sd(x))
+    r = flip(raster(t(ohc)),2)
+    #plot(r, col = tim.colors(100))
+    f = focal(r, w=matrix(1/9,nrow=3,ncol=3), fun=sd)
+    f = t(as.matrix(flip(f,2)))
     
     # put results in an array
     f.arr[,,i] <- t(as.matrix(flip(f,direction='y')))
