@@ -11,7 +11,7 @@ pdt$MidTemp <- (pdt$MaxTemp + pdt$MinTemp) / 2
 #L.pdt <- array(0, dim = c(dim(dat)[1:2], length(dateVec)))
 
 #for(i in 1:T){
- i=1
+ i=10
 
   # define time based on tag data
   time <- udates[i]

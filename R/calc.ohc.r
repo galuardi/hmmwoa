@@ -74,7 +74,13 @@ calc.ohc <- function(tagdata, isotherm = '', ohc.dir, g, dateVec, raster = 'stac
     f.arr[,,i] <- t(as.matrix(flip(f,direction='y')))
     sdx <- f.arr[,,i]
     # compare hycom to that day's tag-based ohc
-    lik <- dnorm(tag.ohc, mean=ohc, sd=sdx) 
+    lik <- dnorm(tag.ohc, mean=ohc, sd=sdx)
+    
+    wlist = array(1e-6, dim=c(dim(ohc)[1], dim(ohc)[2], 2))
+    wlist[,,1] = ohc
+    wlist[,,2] = sdx
+    wlist[is.na(wlist)] = 1e-6
+    res<-as.matrix(aaply(wlist, 1:2, .fun = function(x) dnorm(tag.ohc, mean = x[1], sd = .7)))#, lower = minT, upper = maxT , )$value))
     
     if(i == 1){
       # result will be array of likelihood surfaces

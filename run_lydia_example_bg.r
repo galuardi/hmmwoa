@@ -146,16 +146,16 @@ woa.dir = "C:/Users/ben/Documents/WOA/woa13_25deg_global.nc"
 #sd.dir = '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/woa13_25deg_global_sd.nc'
 
 return.woa = extract.woa(woa.dir, limits, resolution = 'quarter')
-return.sd = extract.woa(sd.dir, limits, resolution = 'quarter')
+#return.sd = extract.woa(sd.dir, limits, resolution = 'quarter')
 #dat = return.woa$dat; 
 #lon = as.numeric(return.woa$lon); 
 #lat = as.numeric(return.woa$lat); 
 #depth = as.numeric(return.woa$depth)
 
-dat = return.woa; 
-dat$lon = as.numeric(dat$lon); 
-dat$lat = as.numeric(dat$lat); 
-dat$depth = as.numeric(dat$depth)
+dat = return.woa$dat 
+lon = as.numeric(return.woa$lon); 
+lat = as.numeric(return.woa$lat); 
+depth = as.numeric(return.woa$depth)
 #sd = return.sd$dat
 
 # eliminate Pacific from woa data
@@ -175,8 +175,10 @@ image.plot(dat$lon,dat$lat,dat$dat[,,1,1])
 #pdt.sub <- pdt[c(1:max(which(as.Date(pdt$Date) %in% dateVec[49]))),]
 #dateVec.sub <- dateVec[1:49]
 #dat1 <- dat$dat
-L.pdt <- calc.pdt.int(pdt, dat = dat$dat, lat = dat$lat, lon = dat$lon, g, sd=sd, depth = dat$depth, raster = 'stack', dateVec = dateVec)
-
+#pdt.sub <- pdt[1:50,]
+#dateVec.sub <- dateVec[1:11]
+L.pdt <- calc.pdt.int(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = 'stack', dateVec = dateVec)
+L.pdt.save <- L.pdt
 # try quick plot to check, if raster = 'stack' or 'brick' above
 plot(L.pdt[[10]])
 plot(countriesLow, add = T)
@@ -194,13 +196,13 @@ L.pdt = as.array(L.pdt)
 L.locs[is.na(L.locs)] = 0 # turn NA to 0
 L.pdt[is.na(L.pdt)] = 0
 
-# you're the king of apply(). it's so handy!
-nalocidx = apply(L.locs,3, sum, na.rm=T)==0 # does sum of likelihood surface
-# at each time point == 0?
-napdtidx = apply(L.pdt,3, sum, na.rm=T)==0
+# are all cells in a given likelihood surface == 0?
+nalocidx = apply(L.locs,3, sum, na.rm=T)!=0 # does sum of likelihood surface
+napdtidx = apply(L.pdt,3, sum, na.rm=T)!=0
 
+# indicates which L layers, if any, are all zeros for each day
 naLidx = nalocidx+napdtidx # where both are zeros. These will be interpolted in the filter
-dateIdx = naLidx==0 # may not need this but here for now..
+#dateIdx = naLidx==0 # may not need this but here for now..
 
 Lmat = L.pdt*0
 # where naLidx==0, both likelihoods are zero
@@ -211,13 +213,6 @@ idx2 = naLidx==2
 
 Lmat[,,idx1] = L.pdt[,,idx1]+L.locs[,,idx1] # when only 1 has data
 Lmat[,,idx2] = L.pdt[,,idx2]*L.locs[,,idx2] # when both have data
-
-## cdb: we get to here just fine now with simple array outputs from likelihood
-##      calculations; however, we need to adjust dims of Lmat array and
-##      if we just use aperm as below the matrices need to be flipped
-##      across y. thus, i'm keeping the raster stacking and flip for now
-##      to keep the likelihoods oriented properly. i agree that we should
-##      alleviate this dims/flip issue at some point soon.
 
 crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
 list.pdt <- list(x = lon, y = lat, z = L.pdt)
@@ -238,7 +233,7 @@ L <- aperm(as.array(flip(L, direction = 'y')), c(3,2,1))
 lon <- g$lon[1,]
 lat <- g$lat[,1]
 #lat <- seq(ex[3], ex[4], length=dim(L)[3])
-image.plot(lon, lat, L[12,,])
+image.plot(lon, lat, L[2,,])
 plot(countriesLow,add=T)
 
 ## ******
@@ -303,10 +298,10 @@ didx <- dts >= tag & dts <= pop
 spot <- spot[didx,]
 
 sres = apply(s,c(3,4), sum, na.rm=T)
-image.plot(lon, lat, sres/max(sres), zlim = c(.01,1))
+image.plot(lon, lat, sres/max(sres), zlim = c(.01,1),xlim=c(-83,-77),ylim=c(27,34))
 lines(meanlon, meanlat, pch=19, col=2)
 plot(countriesLow, add = T)
-lines(spot$Longitude, spot$Latitude, typ='o', pch=19)
+lines(spot.sub$Longitude, spot.sub$Latitude, typ='o', pch=19)
 
 #plot(sr)
 #plot(countriesLow, add = T)

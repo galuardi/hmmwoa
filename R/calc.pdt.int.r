@@ -19,7 +19,8 @@ calc.pdt.int <- function(pdt, dat = dat$dat, lat = dat$lat, lon = dat$lon, g, de
   #'        matching between tag data and WOA
   
   require(locfit)
-  
+  require(spatial.tools)
+  print(str(dat))
   udates <- unique(pdt$Date)
   T <- length(udates)
   
@@ -64,16 +65,21 @@ for(i in 1:T){
   newMonth <- as.numeric(format(as.Date(pdt.i$Date), format='%m'))[1]
   
   if(i==1 | newMonth != pdtMonth) {
+    # calculates sd but "if" statement ensures it is only calculated at
+    # the beginning and when the date switches into a new month
+    
     pdtMonth <- as.numeric(format(as.Date(pdt.i$Date), format='%m'))[1]
     dat.i = dat[,,,pdtMonth] #extract months climatology
     #dat.i[is.na(dat.i)] = -9999
 
     # calculate sd using Le Bris neighbor method and focal()
-    sd.i = array(NA,dim=dim(dat.i))
+    sd.i = array(NA,dim = dim(dat.i))
+    
     for(ii in 1:57){
       r = flip(raster(t(dat.i[,,ii])),2)
       #plot(r, col = tim.colors(100))
-      f1 = focal(r, w=matrix(1/9,nrow=3,ncol=3), fun=sd)
+      f1 = focal(r, w=matrix(1,nrow=3,ncol=3), fun=function(x) sd(x, na.rm = T))
+      #print stuff
       f1 = t(as.matrix(flip(f1,2)))
       #plot(f1, add=T)
       sd.i[,,ii] = f1
@@ -82,25 +88,17 @@ for(i in 1:T){
   
   # setup the likelihood array for each day. Will have length (dim[3]) = n depths
   lik.pdt = array(NA, dim=c(dim(dat)[1], dim(dat)[2], length(depIdx)))
-        
+     
   for (b in 1:length(depIdx)) {
-    
     #calculate the likelihood for each depth level, b
-    lik.pdt[,,b] = likint(dat.i[,,b], df[b,1], df[b,2], sd.i[,,b])
+    lik.pdt[,,b] = likint2(dat.i[,,depIdx[b]], sd.i[,,depIdx[b]], df[b,1], df[b,2])
     
-    image.plot(likint2(dat.i[,,b], sd.i[,,b], df[b,1], df[b,2]))
+    #image.plot(lon,lat,dat.i[,,depIdx[b]])
+    #image.plot(lon,lat,sd.i[,,depIdx[b]])
+    #image.plot(lon,lat,lik.pdt[,,b])
     
-    likint2 <- function(woa, woasd, minT, maxT){
-      wlist = array(1e-6, dim=c(dim(woa)[1], dim(woa)[2], 2))
-      wlist[,,1] = woa
-      wlist[,,2] = woasd
-      wlist[is.na(wlist)] = 1e-6
-      as.matrix(aaply(wlist, 1:2, .fun = function(x) integrate(dnorm, lower = minT, upper = maxT , mean = x[1], sd = x[2])$value))
-    }
-    
-    #image.plot(dnorm(df[b,1],mean=dat.i[,,b],sd=.7))
-    
-    }
+    print(paste(b,' loop within ',time,' iteration. ', Sys.time()))
+  }
   
   # multiply likelihood across depth levels for each day
   #lik.pdt.naomit <- apply(lik.pdt, 1:2, function(x) prod(na.omit(x)))
@@ -113,7 +111,6 @@ for(i in 1:T){
   print(time)
   
   }
-  
   
   crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
   list.pdt <- list(x = lon, y = lat, z = L.pdt)
@@ -141,3 +138,5 @@ for(i in 1:T){
   return(s)
   
 }
+
+
