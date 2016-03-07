@@ -69,8 +69,8 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = 'stack'){
     # perform tag data integration at limits of model fits
     minT.ohc <- cp * rho * sum(df$low - isotherm, na.rm = T) / 10000
     maxT.ohc <- cp * rho * sum(df$high - isotherm, na.rm = T) / 10000
-    midT.ohc <- cp * rho * sum(pdt.i$MidTemp - isotherm, na.rm = T) / 10000
-    datProf <- dat[lonIdx,latIdx,]
+    #midT.ohc <- cp * rho * sum(pdt.i$MidTemp - isotherm, na.rm = T) / 10000
+    #datProf <- dat[lonIdx,latIdx,]
     #dat.ohc <- cp * rho * sum(datProf[depIdx] - isotherm, na.rm = T) / 10000
     
     # Perform hycom integration
@@ -88,52 +88,13 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = 'stack'){
     # compare hycom to that day's tag-based ohc
     lik.ohc <- likint2(ohc, sdx, minT.ohc, maxT.ohc)
     
-    spot = c(26.3810005, -70.6969986)
-    
-    pdf('test ohc.pdf',height=12,width=8)
-     par(mfrow=c(3,1))
-     image.plot(lon-360,lat,ohc)
-     plot(countriesLow,add=T)
-     points(spot[2], spot[1],pch=16,col='white')
-     title('ohc')
-     image.plot(lon-360,lat,sdx)
-     plot(countriesLow,add=T)
-     points(spot[2], spot[1],pch=16,col='white')
-     title('sdx')
-     image.plot(lon-360,lat,lik.ohc)
-     plot(countriesLow,add=T)
-     points(spot[2], spot[1],pch=16,col='white')
-     title(paste('lik.ohc - ',minT.ohc,', ',maxT.ohc))
-    dev.off()
-
-    latIdx <- which.min((spot[1]-lat)^2)
-    lonIdx <- which.min((spot[2]-(lon-360))^2)
-    plot(depth~c(dat[lonIdx,latIdx,]+isotherm),type='l',ylim=c(1000,0),xlim=c(0,25))
-    lines(pdt.i$Depth~pdt.i$MidTemp,col='red')
-    lines(df[,3]~df[,2],lty=2,col='red')
-    lines(df[,3]~df[,1],lty=2,col='red')
-    abline(v=isotherm)
-    
-    ohc[lonIdx,latIdx]
-    
-    ####
-    dnorm(tag.ohc, mean=ohc, sd=sdx)
-    
-    lik.pdt[,,b] = likint2(dat.i[,,depIdx[b]], sd.i[,,depIdx[b]], df[b,1], df[b,2])
-    
-    wlist = array(1e-6, dim=c(dim(ohc)[1], dim(ohc)[2], 2))
-    wlist[,,1] = ohc
-    wlist[,,2] = sdx
-    wlist[is.na(wlist)] = 1e-6
-    res<-as.matrix(aaply(wlist, 1:2, .fun = function(x) dnorm(tag.ohc, mean = x[1], sd = .7)))#, lower = minT, upper = maxT , )$value))
-    
     if(i == 1){
       # result will be array of likelihood surfaces
-      L.ohc <- array(0, dim = c(dim(lik), length(dateVec)))
+      L.ohc <- array(0, dim = c(dim(lik.ohc), length(dateVec)))
     }
     
     idx <- which(dateVec == as.Date(time))
-    L.ohc[,,idx] = lik
+    L.ohc[,,idx] = lik.ohc
     
     print(paste(time, ' finished.', sep=''))
     
