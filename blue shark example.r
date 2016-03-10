@@ -34,10 +34,10 @@ data("countriesLow")
 #---------------------------------------------------------------#
 # read in tag data
 #---------------------------------------------------------------#
-ptt <- 121325
+ptt <- 141254
 
-iniloc <- data.frame(matrix(c(3, 3, 2013, 30.3917, -81.3802, 
-                              31, 8, 2013, 30.668, -79.972), nrow = 2, ncol = 5, byrow = T))
+iniloc <- data.frame(matrix(c(21, 10, 2015, 41.59716667, -69.44483333, 
+                              30, 1, 2016, 38.5886, -54.8739), nrow = 2, ncol = 5, byrow = T))
 colnames(iniloc) = list('day','month','year','lat','lon')
 
 pdt <- read.table(paste(ptt,'-PDTs.csv', sep=''), sep=',',header=T,blank.lines.skip=F, skip = 0)
@@ -106,7 +106,7 @@ lat <- g$lat[,1]
 
 L.locs <- calc.locs(locs, iniloc, g, raster = T, dateVec = dateVec)
 # try quick plot to check, if raster = 'stack' or 'brick' above
-plot(L.locs[[4]])
+plot(L.locs[[40]])
 plot(countriesLow, add = T)
 
 #plot WOA and light likelihood together
@@ -143,11 +143,11 @@ depth = as.numeric(return.woa$depth)
 #sd = return.sd$dat
 
 # eliminate Pacific from woa data
-dat$dat = removePacific(dat$dat, dat$lat, dat$lon)
+dat = removePacific(dat, lat, lon)
 
 # check woa data
 graphics.off()
-image.plot(dat$lon,dat$lat,dat$dat[,,1,1])
+image.plot(lon,lat,dat[,,1,1])
 #image.plot(dat$lon,dat$lat,sd[,,1,1])
 
 # perform matching
@@ -156,17 +156,33 @@ image.plot(dat$lon,dat$lat,dat$dat[,,1,1])
 
 ### something going wrong in the integration around day 34.. maybe not enough depths?? 
 ### Also pretty slow... looking into parallelization
-#pdt.sub <- pdt[c(1:max(which(as.Date(pdt$Date) %in% dateVec[49]))),]
-#dateVec.sub <- dateVec[1:49]
+pdt.sub <- pdt[c(261:max(which(as.Date(pdt$Date) %in% dateVec[52]))),]
+dateVec.sub <- dateVec[48:52]
 #dat1 <- dat$dat
 #pdt.sub <- pdt[1:50,]
 #dateVec.sub <- dateVec[1:11]
 L.pdt <- calc.pdt.int(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = 'stack', dateVec = dateVec)
 L.pdt.save <- L.pdt
 # try quick plot to check, if raster = 'stack' or 'brick' above
-plot(L.pdt[[10]])
+plot(L.pdt[[5]])
 plot(countriesLow, add = T)
 
+lon <- g$lon[1,]
+lat <- g$lat[,1]
+
+pdf('blue pdt likelihood.pdf',height=8, width = 11)
+for(i in 1:102){
+  plot(L.pdt[[i]])
+  plot(countriesLow, add=TRUE)
+}
+dev.off()
+
+str(lon)
+
+## with this error:
+#Error in as.vector(data) : 
+#  no method for coercing this S4 class to a vector 
+## i manually load calc.pdt.int function and it works fine. not auto-loading from github properly?
 
 #---------------------------------------------------------------#
 # multiply daily likelihood matrices
@@ -217,7 +233,7 @@ L <- aperm(as.array(flip(L, direction = 'y')), c(3,2,1))
 lon <- g$lon[1,]
 lat <- g$lat[,1]
 #lat <- seq(ex[3], ex[4], length=dim(L)[3])
-image.plot(lon, lat, L[2,,])
+image.plot(lon, lat, L[10,,])
 plot(countriesLow,add=T)
 
 ## ******
@@ -276,16 +292,17 @@ plot(countriesLow, add = T)
 ##      is screwed up. worth having a look at.
 #sr = raster(sres/max(sres),xmn = min(lon), xmx = max(lon), ymn = min(lat), ymx = max(lat))
 spot = read.csv('C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/121325-SPOT.csv')
-#spot = read.csv('~/Documents/WHOI/RData/WhiteSharks/2013/121325/121325-SPOT.csv')
-dts <- as.POSIXct(spot$Date, format=findDateFormat(spot$Date))
+spot = read.csv('~/Documents/WHOI/Data/Blues/2015/141254/141254-SPOT.csv',row.names=NULL)
+spot = spot[,c(1:5)]
+dts <- as.POSIXct(spot$date, format=findDateFormat(spot$date))
 didx <- dts >= tag & dts <= pop
 spot <- spot[didx,]
 
 sres = apply(s,c(3,4), sum, na.rm=T)
-image.plot(lon, lat, sres/max(sres), zlim = c(.01,1),xlim=c(-83,-77),ylim=c(27,34))
+image.plot(lon, lat, sres/max(sres), zlim = c(.01,1),xlim=c(-73,-50),ylim=c(35,44))
 lines(meanlon, meanlat, pch=19, col=2)
 plot(countriesLow, add = T)
-lines(spot.sub$Longitude, spot.sub$Latitude, typ='o', pch=19)
+lines(spot$lon, spot$lat, typ='o', pch=19)
 
 #plot(sr)
 #plot(countriesLow, add = T)

@@ -91,11 +91,14 @@ for(i in 1:T){
      
   for (b in 1:length(depIdx)) {
     #calculate the likelihood for each depth level, b
-    lik.pdt[,,b] = likint2(dat.i[,,depIdx[b]], sd.i[,,depIdx[b]], df[b,1], df[b,2])
+    lik.pdt[,,b] = likint2(dat.i[,,depIdx[b]], sd.i[,,depIdx[b]], df[b,1], df[b,2], intLib='pracma')
     
-    #image.plot(lon,lat,dat.i[,,depIdx[b]])
-    #image.plot(lon,lat,sd.i[,,depIdx[b]])
-    #image.plot(lon,lat,lik.pdt[,,b])
+    #pdf('test6v2.pdf',height=12,width=8)
+    #par(mfrow=c(3,1))
+    #image.plot(dat.i[,,depIdx[b]])
+    #image.plot(sd.i[,,depIdx[b]])
+    #image.plot(lik.pdt[,,b])
+    #dev.off()
     
     print(paste(b,' loop within ',time,' iteration. ', Sys.time()))
   }
