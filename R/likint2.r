@@ -7,13 +7,9 @@ likint2 <- function(woa, woasd, minT, maxT, intLib = 'pracma'){
   if(intLib=='pracma'){
     as.matrix(aaply(wlist, 1:2, .fun = function(x) pracma::integral(dnorm, xmin = minT, xmax = maxT , mean = x[1], sd = x[2])))
   } else if(intLib=='stats'){
-    as.matrix(aaply(wlist, 1:2, .fun = function(x) integrate(dnorm, xmin = minT, xmax = maxT , mean = x[1], sd = x[2])$value))
+    as.matrix(aaply(wlist, 1:2, .fun = function(x) integrate(dnorm, lower = minT, upper = maxT , mean = x[1], sd = x[2])$value))
   } else{
     stop('No integration library specified.')
   }
-                 
-     #.parallel=T, .paropts=list(.packages=c('stats','plyr'))))
-
+                
 }
-
-#aaply(.parallel=T, .paropts=list(.packages=c('stats','plyr'), .verbose=T))

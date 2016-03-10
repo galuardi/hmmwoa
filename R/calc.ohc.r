@@ -86,7 +86,7 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = 'stack'){
     sdx = t(as.matrix(flip(sdx,2)))
     
     # compare hycom to that day's tag-based ohc
-    lik.ohc <- likint2(ohc, sdx, minT.ohc, maxT.ohc)
+    lik.ohc <- likint2(ohc, sdx, minT.ohc, maxT.ohc, intLib = 'pracma')
     
     if(i == 1){
       # result will be array of likelihood surfaces

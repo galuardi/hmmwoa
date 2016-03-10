@@ -159,11 +159,11 @@ depth = as.numeric(return.woa$depth)
 #sd = return.sd$dat
 
 # eliminate Pacific from woa data
-dat$dat = removePacific(dat$dat, dat$lat, dat$lon)
+dat = removePacific(dat, lat, lon)
 
 # check woa data
 graphics.off()
-image.plot(dat$lon,dat$lat,dat$dat[,,1,1])
+image.plot(lon,lat,dat[,,1,1])
 #image.plot(dat$lon,dat$lat,sd[,,1,1])
 
 # perform matching
@@ -233,7 +233,7 @@ L <- aperm(as.array(flip(L, direction = 'y')), c(3,2,1))
 lon <- g$lon[1,]
 lat <- g$lat[,1]
 #lat <- seq(ex[3], ex[4], length=dim(L)[3])
-image.plot(lon, lat, L[2,,])
+image.plot(lon, lat, L[20,,])
 plot(countriesLow,add=T)
 
 ## ******
@@ -298,10 +298,10 @@ didx <- dts >= tag & dts <= pop
 spot <- spot[didx,]
 
 sres = apply(s,c(3,4), sum, na.rm=T)
-image.plot(lon, lat, sres/max(sres), zlim = c(.01,1),xlim=c(-83,-77),ylim=c(27,34))
+image.plot(lon, lat, sres/max(sres), zlim = c(.01,1),xlim=c(-86,-47),ylim=c(20,45))
 lines(meanlon, meanlat, pch=19, col=2)
 plot(countriesLow, add = T)
-lines(spot.sub$Longitude, spot.sub$Latitude, typ='o', pch=19)
+lines(spot$Longitude, spot$Latitude, typ='o', pch=19)
 
 #plot(sr)
 #plot(countriesLow, add = T)
