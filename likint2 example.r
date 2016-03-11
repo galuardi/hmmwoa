@@ -62,7 +62,7 @@ pdt$MidTemp <- (pdt$MaxTemp + pdt$MinTemp) / 2
    b=1 
     #calculate the likelihood for each depth level, b
     #lik.pdt[,,b] = likint(dat.i[,,b], df[b,1], df[b,2], sd.i[,,b])
-    
+   
    likint2 <- function(woa, woasd, minT, maxT){
      wlist = array(1e-6, dim=c(dim(woa)[1], dim(woa)[2], 2))
      wlist[,,1] = woa
@@ -70,6 +70,7 @@ pdt$MidTemp <- (pdt$MaxTemp + pdt$MinTemp) / 2
      wlist[is.na(wlist)] = 1e-6
      as.matrix(aaply(wlist, 1:2, .fun = function(x) integrate(dnorm, lower = minT, upper = maxT , mean = x[1], sd = x[2])$value))
    }
+   
    
    pdf('likint2 output.pdf',height=12,width=8)
    par(mfrow=c(3,1))
@@ -80,4 +81,30 @@ pdt$MidTemp <- (pdt$MaxTemp + pdt$MinTemp) / 2
    image.plot(likint2(dat.i[,,b], sd.i[,,b], df[b,1], df[b,2]))
    title('likint2 output')
    dev.off()
-    
+   
+   
+   #-----------------------------------------------------------------------------#
+   # Try using dplyr... which is supposedly much faster
+   
+   library(dplyr)
+   
+   likint3 <- function(woa, woasd, minT, maxT){
+     # wlist = array(1e-6, dim=c(dim(woa)[1], dim(woa)[2], 2))
+     wdf = data.frame(woa = as.vector(woa), sd = as.vector(woasd))
+     wdf[is.na(wdf)] = 1e-6
+#      wdf = add_rownames(wdf)
+#      wrow = group_by(wdf, rowname)
+     #      wlist[,,1] = woa
+     #      wlist[,,2] = woasd
+     #      wlist[is.na(wlist)] = 1e-6
+     # matrix(do(wdf, .fun = function(x) integrate(dnorm, lower = minT, upper = maxT , mean = x[1], sd = x[2])$value), dim(woa)[1], dim(woa)[2])
+     # res = wdf %>% rowwise() %>% do(integrate(dnorm, lower = minT, upper = maxT, mean = woa, sd = sd)$value)
+     res = wdf %>% rowwise() %>% do(function(x) dnorm(10, mean = woa, sd = sd))
+   }
+   
+   t1 = Sys.time()
+   image.plot(likint3(dat.i[,,b], sd.i[,,b], df[b,1], df[b,2]))
+   t2 = Sys.time() 
+   t2-t1
+   
+   
