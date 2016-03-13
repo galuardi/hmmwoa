@@ -99,11 +99,27 @@ if (ohc){
   }
   
   # calc.ohc
-  L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec, isotherm='', raster = 'stack')
+  pdt.sub <- pdt[c(1:max(which(as.Date(pdt$Date) %in% dateVec[10]))),]
+  dateVec.sub <- dateVec[1:10]
   
+  L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec=dateVec, isotherm='', raster = 'stack', downsample = F)
+  L.ohc.save <- L.ohc
   #plot.ohc(lik = L.ohc, ohc.dir = ohcdir, pdt = pdt.data, 
   #         filename = paste(ptt,'_ohclik.pdf', sep = ''), write.dir = getwd())
 }
+
+
+pdf('lydia ohc.pdf',height=8,width=12)
+#par(mfrow(c(3,1)))
+for(i in 1:181){
+  image.plot(lon-360,lat,L.ohc[,,i])
+  plot(countriesLow,add=T)
+  title(paste(dateVec[i]))
+}
+dev.off()
+
+
+
 
 #---------------------------------------------------------------#
 # Light-based Longitude Likelihood (ellipse error is a work in progress)

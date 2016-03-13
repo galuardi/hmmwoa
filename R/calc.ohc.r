@@ -1,4 +1,4 @@
-calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = 'stack'){
+calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = 'stack', downsample = F){
   # compare tag data to ohc map and calculate likelihoods
   
   #' @param: pdt is variable containing tag-collected PDT data
@@ -81,52 +81,73 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = 'stack'){
     
     # calc sd of OHC
     # focal calc on mean temp and write to sd var
+    t = Sys.time()
     r = flip(raster(t(ohc)),2)
-    sdx = focal(r, w=matrix(1/9,nrow=3,ncol=3), fun=function(x) sd(x, na.rm = T))
+    sdx = focal(r, w=matrix(1,nrow=9,ncol=9), fun=function(x) sd(x, na.rm = T))
     sdx = t(as.matrix(flip(sdx,2)))
+    print(paste('finishing sd for ', time,'. Section took ', Sys.time() - t))
     
     # compare hycom to that day's tag-based ohc
+    t = Sys.time()
     lik.ohc <- likint2(ohc, sdx, minT.ohc, maxT.ohc, intLib = 'pracma')
+    print(paste('finishing lik.ohc for ', time,'. Section took ', Sys.time() - t))
+    #image.plot(lon-360,lat,lik.ohc)
+    #plot(countriesLow,add=T)
     
     if(i == 1){
       # result will be array of likelihood surfaces
       L.ohc <- array(0, dim = c(dim(lik.ohc), length(dateVec)))
+      #sdx.arr <- array(NA, dim=c(dim(lik.ohc),length(dateVec)))
+      
     }
     
     idx <- which(dateVec == as.Date(time))
     L.ohc[,,idx] = lik.ohc
+    #sdx.arr[,,idx] = sdx
     
     print(paste(time, ' finished.', sep=''))
     
   }
-  
-  
-  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-  list.ohc <- list(x = lon-360, y = lat, z = L.ohc)
-  ex <- extent(list.ohc)
-  L.ohc <- brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
-  L.ohc <- flip(L.ohc, direction = 'y')
-  s <- stack(L.ohc)
-  return(s)
+  return(L.ohc)
 }
-  # make L.pdt match resolution/extent of g
-  #row <- dim(g$lon)[1]
-  #col <- dim(g$lon)[2]
-  #ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
-  #crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-  #rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
-  #L.ohc <- spatial_sync_raster(L.ohc, rasMatch)
+
+
+
+for (ii in round(seq(1,150,by=25))){
+
+  pdf('')  
   
-  #if(raster == 'brick'){
-   # s <- L.ohc
-  #} else if(raster == 'stack'){
-  #  s <- stack(L.ohc)
-  #} else if(raster == 'array'){
-  #  s <- raster::as.array(L.ohc, transpose = T)
-  #}
+  
+}
+
+
+### STOP HERE FOR NOW #####
+#  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+#  list.ohc <- list(x = lon-360, y = lat, z = L.ohc)
+#  ex <- extent(list.ohc)
+#  L.ohc <- brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+#  L.ohc <- flip(L.ohc, direction = 'y')
+#  s <- stack(L.ohc)
+
+  # make L.pdt match resolution/extent of g
+#  row <- dim(g$lon)[1]
+#  col <- dim(g$lon)[2]
+#  ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
+#  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+#  rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
+#  L.ohc <- spatial_sync_raster(L.ohc, rasMatch)
+  
+#  if(raster == 'brick'){
+#    s <- L.ohc
+#  } else if(raster == 'stack'){
+#    s <- stack(L.ohc)
+#  } else if(raster == 'array'){
+#    s <- raster::as.array(L.ohc, transpose = T)
+#  }
   
 #  print(class(L.ohc))
   # return ohc likelihood surfaces
- # return(L.ohc)
+#  return(L.ohc)
   
 #}
+
