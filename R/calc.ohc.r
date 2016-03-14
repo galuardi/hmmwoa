@@ -27,6 +27,7 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = 'stack', 
     
     time <- udates[i]
     pdt.i <- pdt[which(pdt$Date == time),]
+    print(pdt.i)
     
     # open day's hycom data
     nc <- open.ncdf(paste(ohc.dir, 'Lyd_', as.Date(time), '.nc', sep=''))
@@ -62,6 +63,7 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = 'stack', 
     df = data.frame(low=pred.low$fit-pred.low$se.fit*sqrt(n)
                     , high=pred.high$fit+pred.high$se.fit*sqrt(n)
                     , depth = hycomDep)
+    print(df)
     
     # isotherm is minimum temperature recorded for that time point
     if(iso.def == FALSE) isotherm <- min(df$low, na.rm = T)
@@ -69,6 +71,8 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = 'stack', 
     # perform tag data integration at limits of model fits
     minT.ohc <- cp * rho * sum(df$low - isotherm, na.rm = T) / 10000
     maxT.ohc <- cp * rho * sum(df$high - isotherm, na.rm = T) / 10000
+    print(minT.ohc)
+    print(maxT.ohc)
     #midT.ohc <- cp * rho * sum(pdt.i$MidTemp - isotherm, na.rm = T) / 10000
     #datProf <- dat[lonIdx,latIdx,]
     #dat.ohc <- cp * rho * sum(datProf[depIdx] - isotherm, na.rm = T) / 10000
@@ -102,13 +106,13 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = 'stack', 
     }
     
     idx <- which(dateVec == as.Date(time))
-    L.ohc[,,idx] = lik.ohc
+    #L.ohc[,,idx] = lik.ohc
     #sdx.arr[,,idx] = sdx
     
     print(paste(time, ' finished.', sep=''))
     
   }
-  return(L.ohc)
+  return(list(time, ohc, sdx, lik.ohc))
 }
 
 
