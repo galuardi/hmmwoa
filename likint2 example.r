@@ -103,8 +103,25 @@ likint3 <- function(w, wsd, minT, maxT){
 w = dat.i[,,b]
 wsd = sd.i[,,b]
 
+
+t1 = Sys.time()
+lik2 = likint2(dat.i[,,b], sd.i[,,b], df[b,1], df[b,2])
+t2 = Sys.time()
+l2time = t2-t1
+
 t1 = Sys.time()
 lik3 = likint3(dat.i[,,b], sd.i[,,b], df[b,1], df[b,2])
 t2 = Sys.time()
-t2-t1
+l3time = t2-t1
+
+
+par(mfrow=c(2,2))
+image.plot(dat.i[,,b])
+title('Mean Temp')
+image.plot(sd.i[,,b])
+title('SD from Focal')
+image.plot(lik2)
+title(paste0('likint2 output ', round(l2time),3), ' seconds')
 image.plot(lik3)
+title(paste0('likint3 output ', round(l3time,3), ' seconds'))
+
