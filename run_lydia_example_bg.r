@@ -99,11 +99,32 @@ if (ohc){
   }
   
   # calc.ohc
-  L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec, isotherm='', raster = 'stack')
+  pdt.sub <- pdt[c(1:max(which(as.Date(pdt$Date) %in% dateVec[10]))),]
+  dateVec.sub <- dateVec[1:10]
   
+  L.ohc.v3 <- calc.ohc(pdt.sub, ohc.dir = ohc.dir, dateVec=dateVec.sub, isotherm='', raster = 'stack', downsample = F)
+  image.plot(L.ohc.v2)
+  title('v2')
+  image.plot(L.ohc[,,15])
+  title('v1')
+  
+  L.ohc.save <- L.ohc
   #plot.ohc(lik = L.ohc, ohc.dir = ohcdir, pdt = pdt.data, 
   #         filename = paste(ptt,'_ohclik.pdf', sep = ''), write.dir = getwd())
 }
+
+
+pdf('lydia ohc_13Mar.pdf',height=8,width=12)
+#par(mfrow(c(3,1)))
+for(i in 1:181){
+  image.plot(lon-360,lat,L.ohc[,,i])
+  plot(countriesLow,add=T)
+  title(paste(dateVec[i]))
+}
+dev.off()
+
+
+
 
 #---------------------------------------------------------------#
 # Light-based Longitude Likelihood (ellipse error is a work in progress)
@@ -364,3 +385,17 @@ tr <- tr[didx,]
 plot.results(save.plot = F)
 
 
+sdx = focal(r, w=matrix(1,nrow=9,ncol=9), fun=function(x) sd(x, na.rm = T))
+sdx = t(as.matrix(flip(sdx,2)))
+t = Sys.time()
+lik.ohc <- likint2(ohc, sdx, minT.ohc, maxT.ohc, intLib = 'pracma')
+print(paste('finishing lik.ohc for ', time,'. Section took ', Sys.time() - t))
+pdf('ohc_9x9.pdf',height=12,width=8)
+par(mfrow=c(2,1))
+image.plot(lon-360,lat,sdx)
+plot(countriesLow,add=T)
+title('9x9')
+image.plot(lon-360,lat,lik.ohc)
+plot(countriesLow,add=T)
+#title('3x3')
+dev.off()

@@ -23,6 +23,7 @@ for(i in 1:3){#length(udates)){
   }
   
   # open day's hycom data
+  setwd(ohc.dir)
   nc <- open.ncdf(fname)
   dat <- get.var.ncdf(nc, 'water_temp')
   
@@ -42,6 +43,15 @@ for(i in 1:3){#length(udates)){
 japp <- apply(jan,1:2,mean)
 image.plot(japp)
 jvar <- apply(jan,1:2,function(x) var.hycom(x,mu=japp))
+
+jan.err <- apply(jan, 1:2, function(x) (sd(x)^2)*3)
+jan.sd <- apply(jan, 1:2, sd)
+
+jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+
+brks <- c(seq(0,1.2,by=.05),max(jan.sd,na.rm=T))
+image.plot(lon.vec-360,lat.vec,jan.sd,xlab='Lon',ylab='Lat',breaks=brks,col=jet.colors(length(brks)-1))
+world(add=T,col='grey',fill=T)
 
 
 http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_91.1?var=water_temp&north=50&west=-90&east=-40&south=10&disableProjSubset=on&horizStride=1&time_start=2016-01-13T00%3A00%3A00Z&time_end=2016-01-13T00%3A00%3A00Z&timeStride=1&vertCoord=&addLatLon=true&accept=netcdf
