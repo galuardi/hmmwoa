@@ -193,12 +193,12 @@ image.plot(lon,lat,dat[,,1,1])
 
 ### something going wrong in the integration around day 34.. maybe not enough depths?? 
 ### Also pretty slow... looking into parallelization
-#pdt.sub <- pdt[c(1:max(which(as.Date(pdt$Date) %in% dateVec[49]))),]
-#dateVec.sub <- dateVec[1:49]
+pdt.sub <- pdt[c(1:max(which(as.Date(pdt$Date) %in% dateVec[49]))),]
+dateVec.sub <- dateVec[1:49]
 #dat1 <- dat$dat
 #pdt.sub <- pdt[1:50,]
 #dateVec.sub <- dateVec[1:11]
-L.pdt <- calc.pdt.int(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = 'stack', dateVec = dateVec)
+L.pdt <- calc.pdt.int(pdt.sub, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = 'stack', dateVec = dateVec.sub)
 L.pdt.save <- L.pdt
 # try quick plot to check, if raster = 'stack' or 'brick' above
 plot(L.pdt[[10]])

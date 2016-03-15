@@ -1,5 +1,6 @@
 # calculate sd on a grid
 load('C:/Users/benjamin.galuardi/Google Drive/Camrin-WOA/hmmwoa_files/HMM_WORK_LYDIA.Rdata')
+load('~/Documents/WHOI/RData/WhiteSharks/2013/121325/lydia_hmm.RData')
 ## hopefully this has pdt,dat, and the other variables defined in the run script?
 
 # code below taken from within calc.pdt.int()
@@ -87,18 +88,18 @@ pdt$MidTemp <- (pdt$MaxTemp + pdt$MinTemp) / 2
 # fuckin A.. this is correct after all. It's the likelihood of the cell given the temperature observed, not the other way round.. limits of integration are set according to the possible values of the cell, i.e., the obsevred value and calculated sd. The dnorm meanand sd are set from the tag measured mean (midTemp) and sd (adhoc sd)    
 #--------------------------------------------------------#   
 likint3 <- function(w, wsd, minT, maxT){
-    midT = (maxT+minT)/2
-    Tsd = (maxT-minT)/4
-     widx = w>=minT&w<=maxT&!is.na(w)
-     widxv = as.vector(widx)
-     wdf = data.frame(w = as.vector(w[widx]), wsd = as.vector(wsd[widx]))
-     wdf$wsd[is.na(wdf$wsd)] = 0
-     # wint = apply(wdf, 1, function(x) pracma::integral(dnorm, minT, maxT, mean = x[1], sd = x[2]))
-     wint = apply(wdf, 1, function(x)integrate(dnorm, x[1]-x[2], x[1]+x[2], mean = midT, sd = Tsd)$value) 
-      w = w*0  
-      w[widx] = wint
-      w
-   } 
+  midT = (maxT+minT)/2
+  Tsd = (maxT-minT)/4
+  widx = w>=minT&w<=maxT&!is.na(w)
+  widxv = as.vector(widx)
+  wdf = data.frame(w = as.vector(w[widx]), wsd = as.vector(wsd[widx]))
+  wdf$wsd[is.na(wdf$wsd)] = 0
+  # wint = apply(wdf, 1, function(x) pracma::integral(dnorm, minT, maxT, mean = x[1], sd = x[2]))
+  wint = apply(wdf, 1, function(x)integrate(dnorm, x[1]-x[2], x[1]+x[2], mean = midT, sd = Tsd*2)$value) 
+  w = w*0  
+  w[widx] = wint
+  w
+} 
     
 w = dat.i[,,b]
 wsd = sd.i[,,b]
@@ -114,7 +115,7 @@ lik3 = likint3(dat.i[,,b], sd.i[,,b], df[b,1], df[b,2])
 t2 = Sys.time()
 l3time = t2-t1
 
-
+pdf('likint update.pdf',height=12,width=12)
 par(mfrow=c(2,2))
 image.plot(dat.i[,,b])
 title('Mean Temp')
@@ -122,6 +123,31 @@ image.plot(sd.i[,,b])
 title('SD from Focal')
 image.plot(lik2)
 title(paste0('likint2 output ', round(l2time),3), ' seconds')
-image.plot(lik3)
+image.plot(lon,lat,lik3[[1]])
+points(-80,30)
 title(paste0('likint3 output ', round(l3time,3), ' seconds'))
+dev.off()
+
+pdf('compare likint.pdf',height=12,width=8)
+par(mfrow=c(2,1))
+for(b in 1:8){
+  image.plot(lon,lat,lik2.pdt[,,b])
+  plot(countriesLow,add=T)
+  title(paste('lik2 - depth ',woaDep[b]))
+  image.plot(lon,lat,lik3.pdt[,,b])
+  plot(countriesLow,add=T)
+  title('lik3')
+}
+lik2.pdt.prod <- apply(lik2.pdt, 1:2, prod, na.rm=F)
+lik3.pdt.prod <- apply(lik3.pdt, 1:2, prod, na.rm=F)
+image.plot(lon,lat,lik2.pdt.prod)
+plot(countriesLow,add=T)
+title('product of lik2 layers')
+image.plot(lon,lat,lik3.pdt.prod)
+plot(countriesLow,add=T)
+title('product of lik3 layers')
+dev.off()
+
+
+
 

@@ -1,4 +1,3 @@
-
 calc.pdt.int <- function(pdt, dat = dat$dat, lat = dat$lat, lon = dat$lon, g, depth = dat$depth, raster = 'stack', dateVec){
   
   ##  This program matches depth temperature profiles collected by a WC PSAT
@@ -87,11 +86,11 @@ for(i in 1:T){
   }
   
   # setup the likelihood array for each day. Will have length (dim[3]) = n depths
-  lik.pdt = array(NA, dim=c(dim(dat)[1], dim(dat)[2], length(depIdx)))
+  lik3.pdt = array(NA, dim=c(dim(dat)[1], dim(dat)[2], length(depIdx)))
      
   for (b in 1:length(depIdx)) {
     #calculate the likelihood for each depth level, b
-    lik.pdt[,,b] = likint2(dat.i[,,depIdx[b]], sd.i[,,depIdx[b]], df[b,1], df[b,2], intLib='pracma')
+    lik3.pdt[,,b] = likint3(dat.i[,,depIdx[b]], sd.i[,,depIdx[b]], df[b,1], df[b,2])
     
     #pdf('test6v2.pdf',height=12,width=8)
     #par(mfrow=c(3,1))
@@ -105,7 +104,7 @@ for(i in 1:T){
   
   # multiply likelihood across depth levels for each day
   #lik.pdt.naomit <- apply(lik.pdt, 1:2, function(x) prod(na.omit(x)))
-  lik.pdt <- apply(lik.pdt, 1:2, prod, na.rm=T)
+  lik2.pdt <- apply(lik2.pdt, 1:2, prod, na.rm=F)
   
   # identify date index and add completed likelihood to L.pdt array    
   idx <- which(dateVec == as.Date(time))
@@ -115,6 +114,9 @@ for(i in 1:T){
   
   }
   
+}
+
+
   crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
   list.pdt <- list(x = lon, y = lat, z = L.pdt)
   ex <- extent(list.pdt)
