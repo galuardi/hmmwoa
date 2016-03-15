@@ -38,27 +38,27 @@ calc.sst <- function(tagdata, sst.dir, g, dateVec, raster = 'stack'){
     L.sst[,,idx] = lik
   }
     
-    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-    list.sst <- list(x = lon, y = lat, z = L.sst)
-    ex <- extent(list.sst)
-    L.sst <- brick(list.sst$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
-    L.sst <- flip(L.sst, direction = 'y')
+#    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+#    list.sst <- list(x = lon, y = lat, z = L.sst)
+#    ex <- extent(list.sst)
+#    L.sst <- brick(list.sst$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+#    L.sst <- flip(L.sst, direction = 'y')
     
-    # make L.sst match resolution/extent of g
-    row <- dim(g$lon)[1]
-    col <- dim(g$lon)[2]
-    ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
-    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-    rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
-    L.sst <- spatial_sync_raster(L.sst, rasMatch)
+#    # make L.sst match resolution/extent of g
+#    row <- dim(g$lon)[1]
+#    col <- dim(g$lon)[2]
+#    ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
+#    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+#    rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
+#    L.sst <- spatial_sync_raster(L.sst, rasMatch)
     
-    if(raster == 'brick'){
-      s <- L.sst
-    } else if(raster == 'stack'){
-      s <- stack(L.sst)
-    } else if(raster == 'array'){
-      s <- raster::as.array(L.sst, transpose = T)
-    }
+#    if(raster == 'brick'){
+#      s <- L.sst
+#    } else if(raster == 'stack'){
+#      s <- stack(L.sst)
+#    } else if(raster == 'array'){
+#      s <- raster::as.array(L.sst, transpose = T)
+#    }
     
     print(class(L.sst))
     # return sst likelihood surfaces

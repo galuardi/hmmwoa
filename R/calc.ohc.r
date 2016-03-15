@@ -93,37 +93,23 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = 'stack', 
     
     # compare hycom to that day's tag-based ohc
     t = Sys.time()
-    lik.ohc <- likint2(ohc, sdx, minT.ohc, maxT.ohc, intLib = 'pracma')
+    lik.ohc <- likint3(ohc, sdx, minT.ohc, maxT.ohc)
     print(paste('finishing lik.ohc for ', time,'. Section took ', Sys.time() - t))
-    #image.plot(lon-360,lat,lik.ohc)
-    #plot(countriesLow,add=T)
     
     if(i == 1){
       # result will be array of likelihood surfaces
       L.ohc <- array(0, dim = c(dim(lik.ohc), length(dateVec)))
-      #sdx.arr <- array(NA, dim=c(dim(lik.ohc),length(dateVec)))
-      
+
     }
     
     idx <- which(dateVec == as.Date(time))
-    #L.ohc[,,idx] = lik.ohc
-    #sdx.arr[,,idx] = sdx
-    
+    L.ohc[,,idx] = lik.ohc
+
     print(paste(time, ' finished.', sep=''))
     
   }
-  return(list(time, ohc, sdx, lik.ohc))
+  return(L.ohc)
 }
-
-
-
-for (ii in round(seq(1,150,by=25))){
-
-  pdf('')  
-  
-  
-}
-
 
 ### STOP HERE FOR NOW #####
 #  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"

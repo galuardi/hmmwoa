@@ -28,9 +28,7 @@ calc.pdt.int <- function(pdt, dat = dat$dat, lat = dat$lat, lon = dat$lon, g, de
   L.pdt <- array(0, dim = c(dim(dat)[1:2], length(dateVec)))
   
 for(i in 1:T){
-  # should be 2:(T-1) 
-  # CDB: no because we've already trimmed to tag+1, pop-1
-  
+
   # define time based on tag data
   time <- udates[i]
   pdt.i <- pdt[which(pdt$Date == time),]
@@ -86,25 +84,17 @@ for(i in 1:T){
   }
   
   # setup the likelihood array for each day. Will have length (dim[3]) = n depths
-  lik3.pdt = array(NA, dim=c(dim(dat)[1], dim(dat)[2], length(depIdx)))
+  lik.pdt = array(NA, dim=c(dim(dat)[1], dim(dat)[2], length(depIdx)))
      
   for (b in 1:length(depIdx)) {
     #calculate the likelihood for each depth level, b
-    lik3.pdt[,,b] = likint3(dat.i[,,depIdx[b]], sd.i[,,depIdx[b]], df[b,1], df[b,2])
-    
-    #pdf('test6v2.pdf',height=12,width=8)
-    #par(mfrow=c(3,1))
-    #image.plot(dat.i[,,depIdx[b]])
-    #image.plot(sd.i[,,depIdx[b]])
-    #image.plot(lik.pdt[,,b])
-    #dev.off()
-    
+    lik.pdt[,,b] = likint3(dat.i[,,depIdx[b]], sd.i[,,depIdx[b]], df[b,1], df[b,2])
+
     print(paste(b,' loop within ',time,' iteration. ', Sys.time()))
   }
   
   # multiply likelihood across depth levels for each day
-  #lik.pdt.naomit <- apply(lik.pdt, 1:2, function(x) prod(na.omit(x)))
-  lik2.pdt <- apply(lik2.pdt, 1:2, prod, na.rm=F)
+  lik.pdt <- apply(lik.pdt, 1:2, prod, na.rm=F)
   
   # identify date index and add completed likelihood to L.pdt array    
   idx <- which(dateVec == as.Date(time))
@@ -117,31 +107,31 @@ for(i in 1:T){
 }
 
 
-  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-  list.pdt <- list(x = lon, y = lat, z = L.pdt)
-  ex <- extent(list.pdt)
-  L.pdt <- brick(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
-  L.pdt <- flip(L.pdt, direction = 'y')
+#  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+#  list.pdt <- list(x = lon, y = lat, z = L.pdt)
+#  ex <- extent(list.pdt)
+#  L.pdt <- brick(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+#  L.pdt <- flip(L.pdt, direction = 'y')
   
   # make L.pdt match resolution/extent of g
-  row <- dim(g$lon)[1]
-  col <- dim(g$lon)[2]
-  ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
-  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-  rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
-  L.pdt <- spatial_sync_raster(L.pdt, rasMatch)
+#  row <- dim(g$lon)[1]
+#  col <- dim(g$lon)[2]
+#  ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
+#  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+#  rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
+#  L.pdt <- spatial_sync_raster(L.pdt, rasMatch)
   
-  if(raster == 'brick'){
-    s <- L.pdt
-  } else if(raster == 'stack'){
-    s <- stack(L.pdt)
-  } else if(raster == 'array'){
-    s <- raster::as.array(L.pdt, transpose = T)
-  }
-  
-  print(class(s))
-  return(s)
-  
-}
+#  if(raster == 'brick'){
+#    s <- L.pdt
+#  } else if(raster == 'stack'){
+#    s <- stack(L.pdt)
+#  } else if(raster == 'array'){
+#    s <- raster::as.array(L.pdt, transpose = T)
+#  }
+#  
+#  print(class(s))
+#  return(s)
+#  
+#}
 
 
