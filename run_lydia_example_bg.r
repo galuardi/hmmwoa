@@ -12,7 +12,7 @@ library(fields)
 library(raster)
 library(imager)
 library(ncdf)
-library(plyr)
+library(plyr) # check this and maybe add dplyr
 library(rworldmap)
 library(spatial.tools)
 library(magic)

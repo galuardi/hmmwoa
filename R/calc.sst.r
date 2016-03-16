@@ -9,8 +9,8 @@ calc.sst <- function(tagdata, sst.dir, g, dateVec, raster = 'stack'){
   
   dts <- as.POSIXct(tagdata$Date, format = findDateFormat(tagdata$Date))
   
-  tagdata[,c(ncol(tagdata)+1)] <- as.Date(dts)
-  by_dte <- group_by(tag.sst, V12)  # group by unique DAILY time points
+  tagdata[,12] <- as.Date(dts)
+  by_dte <- group_by(tagdata, V12)  # group by unique DAILY time points
   tagdata <- data.frame(summarise(by_dte, min(Temperature), max(Temperature)))
   colnames(tagdata) <- list('date','minT','maxT')
   
