@@ -66,11 +66,43 @@ d1 <- as.POSIXct('1900-01-02') - as.POSIXct('1900-01-01')
 didx <- dts >= (tag + d1) & dts <= (pop - d1)
 pdt <- pdt[didx,]
 
+tag.sst <- read.table(paste(ptt, '-SST.csv', sep=''), sep=',',header=T, blank.lines.skip=F)
+dts <- as.POSIXct(tag.sst$Date, format = findDateFormat(tag.sst$Date))
+didx <- dts >= (tag + d1) & dts <= (pop - d1)
+tag.sst <- tag.sst[didx,]
+
 lon = c(-90, -40)
 lat = c(10, 55)
 
 udates <- unique(as.Date(pdt$Date))
 dateVec <- as.Date(seq(tag, pop, by = 'day'))
+
+#---------------------------------------------------------------#
+# SST
+#---------------------------------------------------------------#
+
+sst = FALSE
+if (sst){
+  sst.dir <- '~/Documents/WHOI/RCode/sharkSiteMap/data/'
+  
+#  for(i in 1:length(udates)){
+#    time <- as.Date(udates[i])
+#    repeat{
+  rge <- c(min(lon),max(lon),min(lat),max(lat))
+      get.oi.sst(rge[1:2],rge[3:4],time,filename=paste('_-',time,'.nc',sep=''),download.file=TRUE,dir=sst.dir) # filenames based on dates from above
+#      #err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
+#      tryCatch({
+#        err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
+#      }, error=function(e){print(paste('ERROR: Download of data at ',time,' failed. Trying call to server again.',sep=''))})
+#      if(class(err) != 'try-error') break
+#    }
+#  }
+
+  L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec=dateVec)
+  
+  }
+
+
 
 #---------------------------------------------------------------#
 # OHC / HYCOM

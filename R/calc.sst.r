@@ -7,35 +7,46 @@ calc.sst <- function(tagdata, sst.dir, g, dateVec, raster = 'stack'){
   #' @return: likelihood is array of likelihood surfaces representing
   #' matches between tag-based sst and oi sst maps
   
-  dts <- as.POSIXct(sst$Date, format = findDateFormat(sst$Date))
+  dts <- as.POSIXct(tagdata$Date, format = findDateFormat(tagdata$Date))
   
-  # get unique time points
-  udates <- unique(dts)
+  tagdata[,c(ncol(tagdata)+1)] <- as.Date(dts)
+  by_dte <- group_by(tag.sst, V12)  # group by unique DAILY time points
+  tagdata <- data.frame(summarise(by_dte, min(Temperature), max(Temperature)))
+  colnames(tagdata) <- list('date','minT','maxT')
   
-  for(i in 1:length(udates)){
+  T <- length(tagdata[,1])
+  
+  for(i in 1:T){
     
-    time <- udates[i]
-    sst.i <- sst[i,]$Temperature
+    time <- tagdata$date[i]
+    sst.i <- c(tagdata$minT[i] * .99, tagdata$maxT[i] * 1.01) # sensor error
     
-    # open day's hycom data
+    # open day's sst data
     nc <- open.ncdf(paste(sst.dir, ptt, '_', as.Date(time), '.nc', sep='')) #add lat lon in filename '.nc', sep=''))
-    dat <- get.var.ncdf(nc, 'analysed_sst')
+    dat <- get.var.ncdf(nc, 'analysed_sst') # for OI SST
     
-    # calculate sdx
-    sdx = 1
+    # calc sd of SST
+    # focal calc on mean temp and write to sd var
+    t = Sys.time()
+    r = flip(raster(t(dat)),2)
+    sdx = focal(r, w=matrix(1,nrow=3,ncol=3), fun=function(x) sd(x, na.rm = T))
+    sdx = t(as.matrix(flip(sdx,2)))
+    print(paste('finishing sd for ', time,'. Section took ', Sys.time() - t))
     
-    # compare hycom to that day's tag-based ohc
-    lik <- dnorm(dat, sst.i, sdx) 
+    # compare sst to that day's tag-based ohc
+    t = Sys.time()
+    lik.sst <- likint3(dat, sdx, sst.i[1], sst.i[2])
+    print(paste('finishing lik.sst for ', time,'. Section took ', Sys.time() - t))
     
     if(i == 1){
       lon <- get.var.ncdf(nc, 'longitude')
       lat <- get.var.ncdf(nc, 'latitude')
       # result will be array of likelihood surfaces
-      L.sst <- array(0, dim = c(dim(lik), length(dateVec)))
+      L.sst <- array(0, dim = c(dim(lik.sst), length(dateVec)))
     }
     
     idx <- which(dateVec == as.Date(time))
-    L.sst[,,idx] = lik
+    L.sst[,,idx] = lik.sst
   }
     
 #    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
@@ -66,5 +77,17 @@ calc.sst <- function(tagdata, sst.dir, g, dateVec, raster = 'stack'){
     
 }
   
-  
+#pdf('try sst.pdf',height=12,width=8)
+#par(mfrow=c(3,1))
+#image.plot(lon,lat,dat)
+#contour(lon,lat,dat,levels=c(10,21,28),add=T)
+#plot(countriesLow,add=T)
+#image.plot(lon,lat,sdx)
+#contour(lon,lat,dat,levels=c(10,21,28),add=T,col='white')
+#plot(countriesLow,add=T)
+#image.plot(lon,lat,lik.sst)
+#contour(lon,lat,dat,levels=c(10,21,28),add=T,col='white')
+#plot(countriesLow,add=T)
+#dev.off()
+
   
