@@ -72,15 +72,15 @@ tag.sst <- tag.sst[didx,]
 
 if (sst){
 
-  dts <- as.POSIXct(tagdata$Date, format = findDateFormat(tagdata$Date))
+  dts <- as.POSIXct(tag.sst$Date, format = findDateFormat(tag.sst$Date))
   udates <- unique(as.Date(dts))
   
   sst.dir <- paste('~/Documents/WHOI/RData/SST/OI/', ptt, '/',sep = '')
+  lims <- c(min(lon),max(lon),min(lat),max(lat))
   
-  for(i in 1:length(udates)){
+  for(i in 2:length(udates)){
     time <- as.Date(udates[i])
     repeat{
-      lims <- c(min(lon),max(lon),min(lat),max(lat))
       get.oi.sst(lims[1:2],lims[3:4],time,filename=paste(ptt,'_',time,'.nc',sep=''),download.file=TRUE,dir=sst.dir) # filenames based on dates from above
       #err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
       tryCatch({
