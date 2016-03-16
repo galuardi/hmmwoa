@@ -1,15 +1,7 @@
 
 # RUN LYDIA EXAMPLE
 
-# 1) simplify all likelihood calculations such that they are outputting L
-#    according to extent and resolution of g and as an array. drop all this
-#    raster manipulation post hoc
-# 2) introducing variance when interpolating tag temps/depths to match the
-#    woa depth levels. need to account for this. how?
-# 3) how to paramaterize sd in woa/pdt L calculation? currently set to an 
-#    arbitrary value for running purposes. woa does have a well-defined sd
-#    based on climatology.
-# 4) why does the end of the track go to 8 N, -41 E? don't see anything in the
+# 1) why does the end of the track go to 8 N, -41 E? don't see anything in the
 #    likelihood (or in distr near end) that would cause that. L indicates
 #    a known pop-up position at T=181 but that isn't reflected after the filter/
 #    smooth stages either. The distr array as a likelihood at T=181 that puts
@@ -21,12 +13,9 @@ library(raster)
 library(imager)
 library(ncdf)
 library(plyr)
-#library(abind) # don't need this with modified funciton
-#library(reshape2) #need this?
 library(rworldmap)
 library(spatial.tools)
 library(magic)
-#library(Matrix) # no longer used
 
 # calculate light-based likelihood
 setwd('C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/')
@@ -66,11 +55,6 @@ d1 <- as.POSIXct('1900-01-02') - as.POSIXct('1900-01-01')
 didx <- dts >= (tag + d1) & dts <= (pop - d1)
 pdt <- pdt[didx,]
 
-tag.sst <- read.table(paste(ptt, '-SST.csv', sep=''), sep=',',header=T, blank.lines.skip=F)
-dts <- as.POSIXct(tag.sst$Date, format = findDateFormat(tag.sst$Date))
-didx <- dts >= (tag + d1) & dts <= (pop - d1)
-tag.sst <- tag.sst[didx,]
-
 lon = c(-90, -40)
 lat = c(10, 55)
 
@@ -81,38 +65,38 @@ dateVec <- as.Date(seq(tag, pop, by = 'day'))
 # SST
 #---------------------------------------------------------------#
 
-sst = FALSE
-if (sst){
-  sst.dir <- '~/Documents/WHOI/RCode/sharkSiteMap/data/'
-  
-#  for(i in 1:length(udates)){
-#    time <- as.Date(udates[i])
-#    repeat{
-  rge <- c(min(lon),max(lon),min(lat),max(lat))
-      get.oi.sst(rge[1:2],rge[3:4],time,filename=paste('_-',time,'.nc',sep=''),download.file=TRUE,dir=sst.dir) # filenames based on dates from above
-#      #err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
-#      tryCatch({
-#        err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
-#      }, error=function(e){print(paste('ERROR: Download of data at ',time,' failed. Trying call to server again.',sep=''))})
-#      if(class(err) != 'try-error') break
-#    }
-#  }
+tag.sst <- read.table(paste(ptt, '-SST.csv', sep=''), sep=',',header=T, blank.lines.skip=F)
+dts <- as.POSIXct(tag.sst$Date, format = findDateFormat(tag.sst$Date))
+didx <- dts >= (tag + d1) & dts <= (pop - d1)
+tag.sst <- tag.sst[didx,]
 
-  L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec=dateVec)
+if (sst){
+
+  dts <- as.POSIXct(tagdata$Date, format = findDateFormat(tagdata$Date))
+  udates <- unique(as.Date(dts))
   
+  sst.dir <- paste('~/Documents/WHOI/RData/SST/OI/', ptt, '/',sep = '')
+  
+  for(i in 1:length(udates)){
+    time <- as.Date(udates[i])
+    repeat{
+      lims <- c(min(lon),max(lon),min(lat),max(lat))
+      get.oi.sst(lims[1:2],lims[3:4],time,filename=paste(ptt,'_',time,'.nc',sep=''),download.file=TRUE,dir=sst.dir) # filenames based on dates from above
+      #err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
+      tryCatch({
+        err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
+      }, error=function(e){print(paste('ERROR: Download of data at ',time,' failed. Trying call to server again.',sep=''))})
+      if(class(err) != 'try-error') break
+    }
   }
 
-
+  L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec = dateVec)
+  
+  }
 
 #---------------------------------------------------------------#
 # OHC / HYCOM
 #---------------------------------------------------------------#
-
-## LET'S IGNORE HYCOM / OHC FOR NOW. CURRENTLY LYDIA'S TIMESPAN ISN'T
-## AVAILABLE IN THE UNIFORM SPATIAL PROJECTION. THIS ISN'T A HUGE
-## ISSUE AS I'VE MANAGED TO DEAL WITH THAT BUT I'D RATHER GET
-## THIS TO YOU NOW AND JUST USE WOA. ONCE THE REST OF THE ROUTINE
-## IS WORKING, OHC IS PIECE OF CAKE TO DROP IN.
 
 ohc = FALSE
 if (ohc){
@@ -131,37 +115,17 @@ if (ohc){
   }
   
   # calc.ohc
-  pdt.sub <- pdt[c(1:max(which(as.Date(pdt$Date) %in% dateVec[10]))),]
-  dateVec.sub <- dateVec[1:10]
+  L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec=dateVec, isotherm='', raster = 'stack', downsample = F)
   
-  L.ohc.v3 <- calc.ohc(pdt.sub, ohc.dir = ohc.dir, dateVec=dateVec.sub, isotherm='', raster = 'stack', downsample = F)
-  image.plot(L.ohc.v2)
-  title('v2')
-  image.plot(L.ohc[,,15])
-  title('v1')
-  
-  L.ohc.save <- L.ohc
-  #plot.ohc(lik = L.ohc, ohc.dir = ohcdir, pdt = pdt.data, 
-  #         filename = paste(ptt,'_ohclik.pdf', sep = ''), write.dir = getwd())
 }
-
-
-pdf('lydia ohc_13Mar.pdf',height=8,width=12)
-#par(mfrow(c(3,1)))
-for(i in 1:181){
-  image.plot(lon-360,lat,L.ohc[,,i])
-  plot(countriesLow,add=T)
-  title(paste(dateVec[i]))
-}
-dev.off()
-
-
 
 
 #---------------------------------------------------------------#
+# LIGHT
+#---------------------------------------------------------------#
+
 # Light-based Longitude Likelihood (ellipse error is a work in progress)
 # do light first so that g is setup for both
-#---------------------------------------------------------------#
 
 locs <- read.table(paste(ptt, '-Locations.csv', sep=''), sep=',', header = T, blank.lines.skip = F)
 dts <- format(as.POSIXct(locs$Date, format = findDateFormat(locs$Date)), '%Y-%m-%d')
@@ -185,7 +149,6 @@ plot(countriesLow, add = T)
 # sync resolutions of pdt to locs to match grid, g
 #L.pdt <- spatial_sync_raster(L.pdt, L.locs)
 
-
 #---------------------------------------------------------------#
 # PDT / WOA
 #---------------------------------------------------------------#
@@ -196,20 +159,13 @@ limits = c(min(lon)-3, max(lon)+3, min(lat)-3, max(lat)+3)
 
 # woa.dir = '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/woa13_25deg_global_meantemp.nc'
 woa.dir = "C:/Users/ben/Documents/WOA/woa13_25deg_global.nc"
-#sd.dir = '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/woa13_25deg_global_sd.nc'
 
 return.woa = extract.woa(woa.dir, limits, resolution = 'quarter')
-#return.sd = extract.woa(sd.dir, limits, resolution = 'quarter')
-#dat = return.woa$dat; 
-#lon = as.numeric(return.woa$lon); 
-#lat = as.numeric(return.woa$lat); 
-#depth = as.numeric(return.woa$depth)
 
 dat = return.woa$dat 
 lon = as.numeric(return.woa$lon); 
 lat = as.numeric(return.woa$lat); 
 depth = as.numeric(return.woa$depth)
-#sd = return.sd$dat
 
 # eliminate Pacific from woa data
 dat = removePacific(dat, lat, lon)
@@ -223,15 +179,8 @@ image.plot(lon,lat,dat[,,1,1])
 # 'stack' makes the end of this routine much slower than 'brick' or 'array'
 # but is only 10 extra seconds or so
 
-### something going wrong in the integration around day 34.. maybe not enough depths?? 
-### Also pretty slow... looking into parallelization
-pdt.sub <- pdt[c(1:max(which(as.Date(pdt$Date) %in% dateVec[49]))),]
-dateVec.sub <- dateVec[1:49]
-#dat1 <- dat$dat
-#pdt.sub <- pdt[1:50,]
-#dateVec.sub <- dateVec[1:11]
-L.pdt <- calc.pdt.int(pdt.sub, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = 'stack', dateVec = dateVec.sub)
-L.pdt.save <- L.pdt
+L.pdt <- calc.pdt.int(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = 'stack', dateVec = dateVec)
+
 # try quick plot to check, if raster = 'stack' or 'brick' above
 plot(L.pdt[[10]])
 plot(countriesLow, add = T)
@@ -341,8 +290,6 @@ graphics.off()
 plot(meanlon, meanlat)
 plot(countriesLow, add = T)
 
-## CDB: not sure what this raster is here but something about its orientation
-##      is screwed up. worth having a look at.
 #sr = raster(sres/max(sres),xmn = min(lon), xmx = max(lon), ymn = min(lat), ymx = max(lat))
 spot = read.csv('C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/121325-SPOT.csv')
 #spot = read.csv('~/Documents/WHOI/RData/WhiteSharks/2013/121325/121325-SPOT.csv')
@@ -355,14 +302,6 @@ image.plot(lon, lat, sres/max(sres), zlim = c(.01,1),xlim=c(-86,-47),ylim=c(20,4
 lines(meanlon, meanlat, pch=19, col=2)
 plot(countriesLow, add = T)
 lines(spot$Longitude, spot$Latitude, typ='o', pch=19)
-
-#plot(sr)
-#plot(countriesLow, add = T)
-#lines(meanlon, meanlat, pch=19, col=2)
-
-
-
-
 
 
 ##########
