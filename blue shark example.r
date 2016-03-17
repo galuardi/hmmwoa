@@ -14,7 +14,7 @@ library(magic)
 
 # calculate light-based likelihood
 setwd('C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/')
-setwd('~/Documents/WHOI/Data/Blues/2015/141254/')
+#setwd('~/Documents/WHOI/Data/Blues/2015/141254/')
 
 source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\findDateFormat.r')
 source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\extract.pdt.r')
@@ -60,13 +60,7 @@ dateVec <- as.Date(seq(tag, pop, by = 'day'))
 # OHC / HYCOM
 #---------------------------------------------------------------#
 
-## LET'S IGNORE HYCOM / OHC FOR NOW. CURRENTLY LYDIA'S TIMESPAN ISN'T
-## AVAILABLE IN THE UNIFORM SPATIAL PROJECTION. THIS ISN'T A HUGE
-## ISSUE AS I'VE MANAGED TO DEAL WITH THAT BUT I'D RATHER GET
-## THIS TO YOU NOW AND JUST USE WOA. ONCE THE REST OF THE ROUTINE
-## IS WORKING, OHC IS PIECE OF CAKE TO DROP IN.
-
-ohc = FALSE
+ohc = TRUE
 if (ohc){
   ohc.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
   
@@ -125,22 +119,15 @@ plot(countriesLow, add = T)
 # limits = c(lon, lat) # (min lon, max lon, min lat, max lat)
 limits = c(min(lon)-3, max(lon)+3, min(lat)-3, max(lat)+3)
 
-# woa.dir = '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/woa13_25deg_global_meantemp.nc'
+#woa.dir = '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/woa13_25deg_global_meantemp.nc'
 woa.dir = "C:/Users/ben/Documents/WOA/woa13_25deg_global.nc"
-#sd.dir = '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/woa13_25deg_global_sd.nc'
 
 return.woa = extract.woa(woa.dir, limits, resolution = 'quarter')
-#return.sd = extract.woa(sd.dir, limits, resolution = 'quarter')
-#dat = return.woa$dat; 
-#lon = as.numeric(return.woa$lon); 
-#lat = as.numeric(return.woa$lat); 
-#depth = as.numeric(return.woa$depth)
 
 dat = return.woa$dat 
 lon = as.numeric(return.woa$lon); 
 lat = as.numeric(return.woa$lat); 
 depth = as.numeric(return.woa$depth)
-#sd = return.sd$dat
 
 # eliminate Pacific from woa data
 dat = removePacific(dat, lat, lon)
@@ -154,15 +141,13 @@ image.plot(lon,lat,dat[,,1,1])
 # 'stack' makes the end of this routine much slower than 'brick' or 'array'
 # but is only 10 extra seconds or so
 
-### something going wrong in the integration around day 34.. maybe not enough depths?? 
-### Also pretty slow... looking into parallelization
-pdt.sub <- pdt[c(261:max(which(as.Date(pdt$Date) %in% dateVec[52]))),]
-dateVec.sub <- dateVec[48:52]
+#pdt.sub <- pdt[c(261:max(which(as.Date(pdt$Date) %in% dateVec[52]))),]
+#dateVec.sub <- dateVec[48:52]
 #dat1 <- dat$dat
 #pdt.sub <- pdt[1:50,]
 #dateVec.sub <- dateVec[1:11]
 L.pdt <- calc.pdt.int(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = 'stack', dateVec = dateVec)
-L.pdt.save <- L.pdt
+#L.pdt.save <- L.pdt
 # try quick plot to check, if raster = 'stack' or 'brick' above
 plot(L.pdt[[5]])
 plot(countriesLow, add = T)

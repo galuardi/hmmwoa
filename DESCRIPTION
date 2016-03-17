@@ -5,9 +5,9 @@ Version: 1.0
 Date: 2015-04-14
 Authors@R: c(
               person("Benjamin", "Galuardi", email = "drdrumfish@gmail.com", role = c("aut", "cre")),
-              person("Camrin", "Braun", email = "camrin.braun@gmail.com", role = c("aut"))
+              person("Camrin", "Braun", email = "camrin.braun@gmail.com", role = c("aut","cre"))
               )
 Description: this will be the HMM using WOA data. The guts follow Pedersen et al. 2008
 License: MIT
 Depends: reshape2, fields, ncdf, raster, imager, locfit
-Suggests: pracma, oce, spatial.tools
+Suggests: pracma, oce, spatial.tools, rworldmap
