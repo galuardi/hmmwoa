@@ -1,7 +1,7 @@
 
 get.oi.sst <- function(lon, lat, time, filename='', download.file=TRUE, dir = getwd()) {
 
-  #' Downloads data from the HYCOM + NCODA Global 1/12 Degree Analysis.
+  #' Downloads data from the ...
   #'
   #' The method may return before the download is completed. It will continue
   #' to display progress  until the download completes. 
@@ -45,7 +45,7 @@ get.oi.sst <- function(lon, lat, time, filename='', download.file=TRUE, dir = ge
     expts = data.frame(
       start=c(as.Date('1981-09-01')),
       end=c(Sys.Date() + 1),
-      url=c('http://coastwatch.pfeg.noaa.gov/erddap/griddap/jplL4AvhrrOIv1fv2.nc?analysed_sst'))
+      url=c('http://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst2Agg_LonPM180.nc?sst'))
   
   if(time[1] < expts$start[1])
     stop('Data begins at %s and is not available at %s.',
@@ -72,7 +72,7 @@ get.oi.sst <- function(lon, lat, time, filename='', download.file=TRUE, dir = ge
     }
     
   ## Add the spatial domain.
-  url = sprintf('%s[(%s):1:(%s)][(%s):1:(%s)]',
+  url = sprintf('%s[(0):1:(0)][(%s):1:(%s)][(%s):1:(%s)]',
                 url, lat[1], lat[2], lon[1], lon[2])
 
   ## Download the data if a filename was provided.
@@ -85,5 +85,6 @@ get.oi.sst <- function(lon, lat, time, filename='', download.file=TRUE, dir = ge
   }
   return(url)
 }
+#http://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst2Agg_LonPM180.nc?sst[(2015-10-22T00:00:00Z):1:(2015-10-22T00:00:00Z)][(0.0):1:(0.0)][(17):1:(71)][(-92.25):1:(-46.75)]
 
 

@@ -1,4 +1,4 @@
-calc.sst <- function(tagdata, sst.dir, g, dateVec, raster = 'stack'){
+calc.sst <- function(tagdata, sst.dir, g = g, dateVec, raster = 'stack'){
   # compare tag sst data to oi sst map and calculate likelihoods
   
   #' @param: tagdata is variable containing tag-collected SST data
@@ -6,6 +6,7 @@ calc.sst <- function(tagdata, sst.dir, g, dateVec, raster = 'stack'){
   #' stored.
   #' @return: likelihood is array of likelihood surfaces representing
   #' matches between tag-based sst and oi sst maps
+  require('dplyr')
   
   dts <- as.POSIXct(tagdata$Date, format = findDateFormat(tagdata$Date))
   
@@ -23,7 +24,7 @@ calc.sst <- function(tagdata, sst.dir, g, dateVec, raster = 'stack'){
     
     # open day's sst data
     nc <- open.ncdf(paste(sst.dir, ptt, '_', as.Date(time), '.nc', sep='')) #add lat lon in filename '.nc', sep=''))
-    dat <- get.var.ncdf(nc, 'analysed_sst') # for OI SST
+    dat <- get.var.ncdf(nc, 'sst') # for OI SST
     
     # calc sd of SST
     # focal calc on mean temp and write to sd var
@@ -49,45 +50,31 @@ calc.sst <- function(tagdata, sst.dir, g, dateVec, raster = 'stack'){
     L.sst[,,idx] = lik.sst
   }
     
-#    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-#    list.sst <- list(x = lon, y = lat, z = L.sst)
-#    ex <- extent(list.sst)
-#    L.sst <- brick(list.sst$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
-#    L.sst <- flip(L.sst, direction = 'y')
+    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+    list.sst <- list(x = lon, y = lat, z = L.sst)
+    ex <- extent(list.sst)
+    L.sst <- brick(list.sst$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+    L.sst <- flip(L.sst, direction = 'y')
     
-#    # make L.sst match resolution/extent of g
-#    row <- dim(g$lon)[1]
-#    col <- dim(g$lon)[2]
-#    ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
-#    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-#    rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
-#    L.sst <- spatial_sync_raster(L.sst, rasMatch)
+    # make L.sst match resolution/extent of g
+    row <- dim(g$lon)[1]
+    col <- dim(g$lon)[2]
+    ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
+    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+    rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
+    L.sst <- spatial_sync_raster(L.sst, rasMatch)
     
-#    if(raster == 'brick'){
-#      s <- L.sst
-#    } else if(raster == 'stack'){
-#      s <- stack(L.sst)
-#    } else if(raster == 'array'){
-#      s <- raster::as.array(L.sst, transpose = T)
-#    }
+    if(raster == 'brick'){
+      s <- L.sst
+    } else if(raster == 'stack'){
+      s <- stack(L.sst)
+    } else if(raster == 'array'){
+      s <- raster::as.array(L.sst, transpose = T)
+    }
     
     print(class(L.sst))
     # return sst likelihood surfaces
     return(L.sst)
     
 }
-  
-#pdf('try sst.pdf',height=12,width=8)
-#par(mfrow=c(3,1))
-#image.plot(lon,lat,dat)
-#contour(lon,lat,dat,levels=c(10,21,28),add=T)
-#plot(countriesLow,add=T)
-#image.plot(lon,lat,sdx)
-#contour(lon,lat,dat,levels=c(10,21,28),add=T,col='white')
-#plot(countriesLow,add=T)
-#image.plot(lon,lat,lik.sst)
-#contour(lon,lat,dat,levels=c(10,21,28),add=T,col='white')
-#plot(countriesLow,add=T)
-#dev.off()
-
   
