@@ -62,65 +62,6 @@ udates <- unique(as.Date(pdt$Date))
 dateVec <- as.Date(seq(tag, pop, by = 'day'))
 
 #---------------------------------------------------------------#
-# SST
-#---------------------------------------------------------------#
-
-tag.sst <- read.table(paste(ptt, '-SST.csv', sep=''), sep=',',header=T, blank.lines.skip=F)
-dts <- as.POSIXct(tag.sst$Date, format = findDateFormat(tag.sst$Date))
-didx <- dts >= (tag + d1) & dts <= (pop - d1)
-tag.sst <- tag.sst[didx,]
-
-if (sst){
-
-  dts <- as.POSIXct(tag.sst$Date, format = findDateFormat(tag.sst$Date))
-  udates <- unique(as.Date(dts))
-  
-  sst.dir <- paste('~/Documents/WHOI/RData/SST/OI/', ptt, '/',sep = '')
-  lims <- c(min(lon),max(lon),min(lat),max(lat))
-  
-  for(i in 2:length(udates)){
-    time <- as.Date(udates[i])
-    repeat{
-      get.oi.sst(lims[1:2],lims[3:4],time,filename=paste(ptt,'_',time,'.nc',sep=''),download.file=TRUE,dir=sst.dir) # filenames based on dates from above
-      #err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
-      tryCatch({
-        err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
-      }, error=function(e){print(paste('ERROR: Download of data at ',time,' failed. Trying call to server again.',sep=''))})
-      if(class(err) != 'try-error') break
-    }
-  }
-
-  L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec = dateVec)
-  
-  }
-
-#---------------------------------------------------------------#
-# OHC / HYCOM
-#---------------------------------------------------------------#
-
-ohc = FALSE
-if (ohc){
-  ohc.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
-  
-  for(i in 1:length(udates)){
-    time <- as.Date(udates[i])
-    repeat{
-      get.hycom(lon,lat,time,type='a',filename=paste('_-',time,'.nc',sep=''),download.file=TRUE,dir=ohc.dir, vars = 'water_temp') # filenames based on dates from above
-      #err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
-      tryCatch({
-        err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
-      }, error=function(e){print(paste('ERROR: Download of data at ',time,' failed. Trying call to server again.',sep=''))})
-      if(class(err) != 'try-error') break
-    }
-  }
-  
-  # calc.ohc
-  L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec=dateVec, isotherm='', raster = 'stack', downsample = F)
-  
-}
-
-
-#---------------------------------------------------------------#
 # LIGHT
 #---------------------------------------------------------------#
 
@@ -148,6 +89,65 @@ plot(countriesLow, add = T)
 
 # sync resolutions of pdt to locs to match grid, g
 #L.pdt <- spatial_sync_raster(L.pdt, L.locs)
+
+#---------------------------------------------------------------#
+# SST
+#---------------------------------------------------------------#
+
+tag.sst <- read.table(paste(ptt, '-SST.csv', sep=''), sep=',',header=T, blank.lines.skip=F)
+dts <- as.POSIXct(tag.sst$Date, format = findDateFormat(tag.sst$Date))
+didx <- dts >= (tag + d1) & dts <= (pop - d1)
+tag.sst <- tag.sst[didx,]
+
+if (sst){
+  
+  dts <- as.POSIXct(tag.sst$Date, format = findDateFormat(tag.sst$Date))
+  udates <- unique(as.Date(dts))
+  
+  sst.dir <- paste('~/Documents/WHOI/RData/SST/OI/', ptt, '/',sep = '')
+  lims <- c(min(lon),max(lon),min(lat),max(lat))
+  
+  for(i in 1:length(udates)){
+    time <- as.Date(udates[i])
+    repeat{
+      get.oi.sst(lims[1:2],lims[3:4],time,filename=paste(ptt,'_',time,'.nc',sep=''),download.file=TRUE,dir=sst.dir) # filenames based on dates from above
+      #err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
+      tryCatch({
+        err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
+      }, error=function(e){print(paste('ERROR: Download of data at ',time,' failed. Trying call to server again.',sep=''))})
+      if(class(err) != 'try-error') break
+    }
+  }
+  
+  L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec = dateVec, g=g)
+  
+}
+
+#---------------------------------------------------------------#
+# OHC / HYCOM
+#---------------------------------------------------------------#
+
+ohc = FALSE
+if (ohc){
+  ohc.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
+  
+  for(i in 1:length(udates)){
+    time <- as.Date(udates[i])
+    repeat{
+      get.hycom(lon,lat,time,type='a',filename=paste('_-',time,'.nc',sep=''),download.file=TRUE,dir=ohc.dir, vars = 'water_temp') # filenames based on dates from above
+      #err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
+      tryCatch({
+        err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
+      }, error=function(e){print(paste('ERROR: Download of data at ',time,' failed. Trying call to server again.',sep=''))})
+      if(class(err) != 'try-error') break
+    }
+  }
+  
+  # calc.ohc
+  L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec=dateVec, isotherm='', raster = 'stack', downsample = F)
+  
+}
+
 
 #---------------------------------------------------------------#
 # PDT / WOA
@@ -256,8 +256,8 @@ P <- matrix(c(p[1],1-p[1],1-p[2],p[2]),2,2,byrow=TRUE)
 
 # make all NA's very tiny for the convolution
 # the previous steps may have taken care of this...
- L[L==0] = 1e-15
- L[is.na(L)] = 1e-15
+L[L==0] = 1e-15
+L[is.na(L)] = 1e-15
 
 # add a 'skip' index for missing days in the L.. 
 
