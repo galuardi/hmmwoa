@@ -1,4 +1,4 @@
-calc.sst <- function(tagdata, sst.dir, g = g, dateVec, raster = 'stack'){
+calc.sst <- function(tagdata, sst.dir, g, dateVec, raster = 'stack'){
   # compare tag sst data to oi sst map and calculate likelihoods
   
   #' @param: tagdata is variable containing tag-collected SST data
@@ -24,7 +24,7 @@ calc.sst <- function(tagdata, sst.dir, g = g, dateVec, raster = 'stack'){
     
     # open day's sst data
     nc <- open.ncdf(paste(sst.dir, ptt, '_', as.Date(time), '.nc', sep='')) #add lat lon in filename '.nc', sep=''))
-    dat <- get.var.ncdf(nc, 'sst') # for OI SST
+    dat <- get.var.ncdf(nc, 'analysed_sst') # for OI SST
     
     # calc sd of SST
     # focal calc on mean temp and write to sd var
