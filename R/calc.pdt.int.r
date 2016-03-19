@@ -94,7 +94,7 @@ for(i in 1:T){
   }
   
   # multiply likelihood across depth levels for each day
-  lik.pdt <- apply(lik.pdt, 1:2, prod, na.rm=T)
+  lik.pdt <- apply(lik.pdt, 1:2, prod, na.rm=F)
   
   # identify date index and add completed likelihood to L.pdt array    
   idx <- which(dateVec == as.Date(time))

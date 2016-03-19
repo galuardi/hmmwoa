@@ -108,36 +108,33 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = 'stack', 
     print(paste(time, ' finished.', sep=''))
     
   }
-  return(L.ohc)
-}
 
-### STOP HERE FOR NOW #####
-#  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-#  list.ohc <- list(x = lon-360, y = lat, z = L.ohc)
-#  ex <- extent(list.ohc)
-#  L.ohc <- brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
-#  L.ohc <- flip(L.ohc, direction = 'y')
-#  s <- stack(L.ohc)
+  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+  list.ohc <- list(x = lon-360, y = lat, z = L.ohc)
+  ex <- extent(list.ohc)
+  L.ohc <- brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+  L.ohc <- flip(L.ohc, direction = 'y')
+  s <- stack(L.ohc)
 
   # make L.pdt match resolution/extent of g
-#  row <- dim(g$lon)[1]
-#  col <- dim(g$lon)[2]
-#  ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
-#  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-#  rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
-#  L.ohc <- spatial_sync_raster(L.ohc, rasMatch)
+  row <- dim(g$lon)[1]
+  col <- dim(g$lon)[2]
+  ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
+  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+  rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
+  L.ohc <- spatial_sync_raster(L.ohc, rasMatch)
   
-#  if(raster == 'brick'){
-#    s <- L.ohc
-#  } else if(raster == 'stack'){
-#    s <- stack(L.ohc)
-#  } else if(raster == 'array'){
-#    s <- raster::as.array(L.ohc, transpose = T)
-#  }
+  if(raster == 'brick'){
+    s <- L.ohc
+  } else if(raster == 'stack'){
+    s <- stack(L.ohc)
+  } else if(raster == 'array'){
+    s <- raster::as.array(L.ohc, transpose = T)
+  }
   
-#  print(class(L.ohc))
+  print(class(L.ohc))
   # return ohc likelihood surfaces
-#  return(L.ohc)
+  return(L.ohc)
   
-#}
+}
 

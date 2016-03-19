@@ -79,6 +79,8 @@ lon <- g$lon[1,]
 lat <- g$lat[,1]
 
 L.locs <- calc.locs(locs, iniloc, g, raster = T, dateVec = dateVec)
+L.locs.save <- L.locs
+
 # try quick plot to check, if raster = 'stack' or 'brick' above
 plot(L.locs[[4]])
 plot(countriesLow, add = T)
@@ -120,7 +122,7 @@ if (sst){
   }
   
   L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec = dateVec, g=g)
-  
+  L.sst.save <- L.sst
 }
 
 #---------------------------------------------------------------#
@@ -145,7 +147,7 @@ if (ohc){
   
   # calc.ohc
   L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec=dateVec, isotherm='', raster = 'stack', downsample = F)
-  
+  L.ohc.save <- L.ohc
 }
 
 
@@ -180,6 +182,7 @@ image.plot(lon,lat,dat[,,1,1])
 # but is only 10 extra seconds or so
 
 L.pdt <- calc.pdt.int(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = 'stack', dateVec = dateVec)
+L.pdt.save <- L.pdt
 
 # try quick plot to check, if raster = 'stack' or 'brick' above
 plot(L.pdt[[10]])
@@ -195,15 +198,23 @@ plot(countriesLow, add = T)
 
 L.locs = as.array(L.locs)
 L.pdt = as.array(L.pdt)
+L.sst = as.array(L.sst)
+L.ohc = as.array(L.ohc)
+
 L.locs[is.na(L.locs)] = 0 # turn NA to 0
 L.pdt[is.na(L.pdt)] = 0
+L.sst[is.na(L.sst)] = 0
+L.ohc[is.na(L.ohc)] = 0
 
 # are all cells in a given likelihood surface == 0?
 nalocidx = apply(L.locs,3, sum, na.rm=T)!=0 # does sum of likelihood surface
 napdtidx = apply(L.pdt,3, sum, na.rm=T)!=0
+nasstidx = apply(L.sst,3, sum, na.rm=T)!=0
+naohcidx = apply(L.ohc,3, sum, na.rm=T)!=0
 
 # indicates which L layers, if any, are all zeros for each day
-naLidx = nalocidx+napdtidx # where both are zeros. These will be interpolted in the filter
+#naLidx = nalocidx+nasstidx # where both are zeros. These will be interpolted in the filter
+naLidx = nalocidx+nasstidx+napdtidx
 #dateIdx = naLidx==0 # may not need this but here for now..
 
 Lmat = L.pdt*0
@@ -212,9 +223,21 @@ Lmat = L.pdt*0
 #       naLidx==2, both have data
 idx1 = naLidx==1
 idx2 = naLidx==2
+idx3 = naLidx==3
 
-Lmat[,,idx1] = L.pdt[,,idx1]+L.locs[,,idx1] # when only 1 has data
-Lmat[,,idx2] = L.pdt[,,idx2]*L.locs[,,idx2] # when both have data
+Lmat[,,idx1] = L.locs[,,idx1] + L.sst[,,idx1] + L.pdt[,,idx1] # when only 1 has data
+#Lmat[,,idx2] = L.sst[,,idx2]*L.locs[,,idx2] # when both have data
+Lmat[,,idx3] = L.locs[,,idx3] * L.sst[,,idx3] * L.pdt[,,idx3] # when all have data
+
+for(b in which(idx2)){
+  if(nasstidx[b] & nalocidx[b]){
+    Lmat[,,b] = L.sst[,,b] * L.locs[,,b]
+  } else if(nasstidx[b] & napdtidx[b]){
+    Lmat[,,b] = L.sst[,,b] * L.pdt[,,b]
+  } else if(nalocidx[b] & napdtidx[b]){
+    Lmat[,,b] = L.locs[,,b] * L.pdt[,,b]
+  }
+}
 
 crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
 list.pdt <- list(x = lon, y = lat, z = L.pdt)
@@ -235,14 +258,16 @@ L <- aperm(as.array(flip(L, direction = 'y')), c(3,2,1))
 lon <- g$lon[1,]
 lat <- g$lat[,1]
 #lat <- seq(ex[3], ex[4], length=dim(L)[3])
-image.plot(lon, lat, L[20,,])
+image.plot(lon, lat, L[2,,])
 plot(countriesLow,add=T)
 
 ## ******
 ## now insert portions of imager script
 library(imager)
 
-par0=c(8.908,10.27,3,1,0.707,0.866) # what units are these?
+#par0=c(8.908,10.27,3,1,0.707,0.866) # what units are these?
+par0 = c(40, 10, 10, 5, .707, .866)
+
 D1 <- par0[1:2] # parameters for kernel 1. this is behavior mode transit
 D2 <- par0[3:4] # parameters for kernel 2. resident behavior mode
 p <- par0[5:6] # not sure what these parameters are.. look like the diagonal of a 2x2 transition matrix.  
@@ -286,6 +311,8 @@ distr = s
 meanlat <- apply(apply(distr,c(2,4),sum)*repmat(t(as.matrix(g$lat[,1])),T,1),1,sum)
 meanlon <- apply(apply(distr,c(2,3),sum)*repmat(t(as.matrix(g$lon[1,])),T,1),1,sum)
 
+locs_sst_pdt_par2 <- cbind(dates = dateVec, lon = meanlon, lat = meanlat)
+
 graphics.off()
 plot(meanlon, meanlat)
 plot(countriesLow, add = T)
@@ -299,9 +326,9 @@ spot <- spot[didx,]
 
 sres = apply(s,c(3,4), sum, na.rm=T)
 image.plot(lon, lat, sres/max(sres), zlim = c(.01,1),xlim=c(-86,-47),ylim=c(20,45))
-lines(meanlon, meanlat, pch=19, col=2)
+plot(locs_sst_ohc_par1[,2], locs_sst_ohc_par1[,3], col=2,type='l')
 plot(countriesLow, add = T)
-lines(spot$Longitude, spot$Latitude, typ='o', pch=19)
+lines(spot$Longitude, spot$Latitude)
 
 
 ##########
