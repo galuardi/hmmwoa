@@ -78,11 +78,19 @@ ngrid <- rev(dim(g$lon))
 lon <- g$lon[1,]
 lat <- g$lat[,1]
 
-L.locs <- calc.locs(locs, iniloc, g, raster = T, dateVec = dateVec)
+L.locs <- calc.locs2(locs, iniloc, g, raster = T, dateVec = dateVec, errEll=T)
 L.locs.save <- L.locs
 
+pdf('light ellipses_Lydia.pdf',width=10,height=8)
+idx <- which(dateVec %in% as.Date(locs$Date))
+for(i in idx){
+  plot(L.locs[[i]], main=paste(dateVec[i]))
+  points(spot)
+}
+dev.off()
+
 # try quick plot to check, if raster = 'stack' or 'brick' above
-plot(L.locs[[4]])
+plot(L.locs[[48]])
 plot(countriesLow, add = T)
 
 #plot WOA and light likelihood together
@@ -146,7 +154,7 @@ if (ohc){
   }
   
   # calc.ohc
-  L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec=dateVec, isotherm='', raster = 'stack', downsample = F)
+  L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, g=g, dateVec=dateVec, isotherm='', raster = 'stack', downsample = F)
   L.ohc.save <- L.ohc
 }
 
@@ -265,13 +273,23 @@ plot(countriesLow,add=T)
 ## now insert portions of imager script
 library(imager)
 
+# from Jonsen et al 2013 - Supplement:
+# The input parameter par0 contains the six parameters of the spatial HMM. 
+# par0[1:2] are log-transformed movement parameters (diffusivities) pertaining
+# to the first behavioural state. par0[3:4] are log-transformed movement 
+# parameters (diffusivities) pertaining to the second behavioural state. 
+# par0[5:6] are logit-transformed transition probabilities for switching 
+# between the two behavioural states. It is not recommended to manually 
+# input different parameter values via the par0 input since these values
+# are transformed. Instead when analysing new data one should find optimal
+# parameters by setting do.fit=TRUE.
+
 #par0=c(8.908,10.27,3,1,0.707,0.866) # what units are these?
 par0 = c(40, 10, 10, 5, .707, .866)
 
 D1 <- par0[1:2] # parameters for kernel 1. this is behavior mode transit
 D2 <- par0[3:4] # parameters for kernel 2. resident behavior mode
-p <- par0[5:6] # not sure what these parameters are.. look like the diagonal of a 2x2 transition matrix.  
-
+p <- par0[5:6] # logit-transformed transition probabilities for switching between the two behavioural states
 
 # Probably need to express kernel movement in terms of pixels per time step. The sparse matrix work likely renders this unnecessary, but going back to gausskern, it is. For example, if we have .25 degree and daily time step, what would the speed of the fish be when moving fast? 4 pixels/day?
 
@@ -284,9 +302,6 @@ P <- matrix(c(p[1],1-p[1],1-p[2],p[2]),2,2,byrow=TRUE)
 L[L==0] = 1e-15
 L[is.na(L)] = 1e-15
 
-# add a 'skip' index for missing days in the L.. 
-
-# filter - moved function to sphmmfuns_hmm
 f = hmm.filter2(g,L,K1,K2,P)
 res = apply(f$phi[1,,,],2:3,sum, na.rm=T)
 image.plot(lon, lat, res/max(res), zlim = c(.05,1))
@@ -301,12 +316,6 @@ image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
 sres = apply(s[2,,,],2:3,sum, na.rm=T)
 image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
 
-# calculate track
-# don't use this
-#calc.track(s, g)  # dimensions flipped...
-
-# switch the dimensions in the calc.track.r... gives a weird output.. ON FIN LAND!
-# this is either 1) right and we have to deal with the L and K elements or 2) the dimensions need adjusting..
 distr = s
 meanlat <- apply(apply(distr,c(2,4),sum)*repmat(t(as.matrix(g$lat[,1])),T,1),1,sum)
 meanlon <- apply(apply(distr,c(2,3),sum)*repmat(t(as.matrix(g$lon[1,])),T,1),1,sum)
@@ -330,70 +339,12 @@ plot(locs_sst_ohc_par1[,2], locs_sst_ohc_par1[,3], col=2,type='l')
 plot(countriesLow, add = T)
 lines(spot$Longitude, spot$Latitude)
 
+dist <- as.numeric(unlist(geodetic.distance(cbind(spot[(2:length(spot[,1])),c(8,7)]),cbind(spot[(1:length(spot[,1])-1),c(8,7)]))))
+times <- as.numeric(dts[2:length(dts)] - dts[1:(length(dts)-1)])
+spd <- dist * 1000 / times # m/s
+
 
 ##########
 ## END
 ##########
 
-
-# try sphmm
-## Number of time steps
-T <- dim(L)[1]
-
-## Fixed parameter values
-par0=c(8.908,10.27,1.152,0.0472,0.707,0.866)
-D1 <- par0[1:2]
-D2 <- par0[3:4]
-p <- par0[5:6]
-
-if(do.fit){
-  guess <- c(log(10),log(10),log(0.5),log(0.5),log(0.95/0.05),log(0.95/0.05))
-  fit <- nlm(neg.log.lik.fun,guess,g,L,dt)
-  D1 <- exp(fit$estimate[1:2])
-  D2 <- exp(fit$estimate[3:4])
-  p <- 1/(1+exp(-fit$estimate[5:6]))
-}
-
-## Setup transition matrices
-dt <- 1
-G1 <- make.kern(D1,g)
-K1 <- uniformization(G1,dt)
-#CDB: [1] Error in diag(A) : no method for coercing this S4 class to a vector
-
-G2 <- make.kern(D2,g)
-K2 <- uniformization(G2,dt)
-P <- matrix(c(p[1],1-p[1],1-p[2],p[2]),2,2,byrow=TRUE)
-
-## Run smoother and filter
-f <- hmm.filter(g,L,K1,K2,P)
-s <- hmm.smoother(f,K1,K2,P)
-sphmm <- calc.track(s,g)
-sphmm$date <- lsst$date
-sphmm$p.resid <- apply(s,c(1,2),sum)[2,]
-
-# can see known positions from her SPOT tag
-tr <- read.table(paste(ptt,'-SPOT.csv', sep=''), sep=',',header=T,blank.lines.skip=F, skip = 0)
-tr <- tr[,c(4, 7, 8)]
-tr$b <- 1 # set an arbitrary state at this point
-colnames(tr) <- list('date','lat','lon','b')
-dts <- as.POSIXct(tr$date, format = findDateFormat(tr$date))
-didx <- dts >= tag & dts <= pop
-tr <- tr[didx,]
-
-plot.results(save.plot = F)
-
-
-sdx = focal(r, w=matrix(1,nrow=9,ncol=9), fun=function(x) sd(x, na.rm = T))
-sdx = t(as.matrix(flip(sdx,2)))
-t = Sys.time()
-lik.ohc <- likint2(ohc, sdx, minT.ohc, maxT.ohc, intLib = 'pracma')
-print(paste('finishing lik.ohc for ', time,'. Section took ', Sys.time() - t))
-pdf('ohc_9x9.pdf',height=12,width=8)
-par(mfrow=c(2,1))
-image.plot(lon-360,lat,sdx)
-plot(countriesLow,add=T)
-title('9x9')
-image.plot(lon-360,lat,lik.ohc)
-plot(countriesLow,add=T)
-#title('3x3')
-dev.off()
