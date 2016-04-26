@@ -129,8 +129,8 @@ calc.locs2 <- function(locs, iniloc, g, raster = TRUE, dateVec, errEll = F){
     } else{
       stop('No data type for this days location.')
       }
-    print(t)
-    image.plot(lon,lat,L.locs[,,which(dateVec == locDates[t])], main=paste(dateVec[which(dateVec==locDates[t])]))
+    #print(t)
+    #image.plot(lon,lat,L.locs[,,which(dateVec == locDates[t])], main=paste(dateVec[which(dateVec==locDates[t])]))
   }
   
   # End location is known

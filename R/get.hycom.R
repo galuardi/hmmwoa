@@ -34,8 +34,6 @@ get.hycom <- function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
   ## Function originally written for R by Ben Jones (WHOI) and modified by Camrin
   ## Braun and Ben Galuardi.
   
-  require(ncdf)
-  
   dir.create(file.path(dir), recursive = TRUE)
   setwd(dir)
   

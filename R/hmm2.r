@@ -4,8 +4,7 @@
 #### Function based on Pedersen 2011, originally using sparse matrix multiplication.. editing for gaussian kernel convolution
 # watch out for matrix dimensionality. even though dimensions lined up, data did not.. 
 hmm.filter2 <- function(g,L,K1,K2,P){
-  require(imager) # convolution function
-  require(magic) # has a rotate function.. and isn't matlab
+  
   ## Filter data to estimate locations and behaviour
   
   T <- dim(L)[1] # dimension of time 
@@ -101,7 +100,7 @@ hmm.smoother2 <- function(f,K1,K2,P,plot=TRUE){
       image.plot(Rp1)
       #plot(countriesLow,add=T)
       image.plot(Rp2)
-      #plot(countriesLow,adadd)
+      #plot(countriesLow,add=T)
     }
     
     post1 <- matrix(P[1,1]*Rp1 + P[1,2]*Rp2,row,col)

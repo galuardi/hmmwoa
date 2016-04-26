@@ -9,5 +9,5 @@ Authors@R: c(
               )
 Description: this will be the HMM using WOA data. The guts follow Pedersen et al. 2008
 License: MIT
-Depends: reshape2, fields, ncdf, raster, imager, locfit, spatial.tools, rworldmap
-Suggests: pracma, oce
+Depends: dplyr, fields, imager, locfit, ncdf, raster, rworldmap, spatial.tools
+Suggests:

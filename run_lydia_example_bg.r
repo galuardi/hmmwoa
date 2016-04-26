@@ -7,15 +7,14 @@
 #    smooth stages either. The distr array as a likelihood at T=181 that puts
 #    the tag in the Caribbean.
 
-library(locfit)
-library(fields)
-library(raster)
-library(imager)
-library(ncdf)
-library(plyr) # check this and maybe add dplyr
-library(rworldmap)
-library(spatial.tools)
-library(magic)
+library(locfit) # reqd for some stats
+library(fields) # plotting only
+library(raster) # REQD
+library(imager) # reqd
+library(ncdf) # reqd
+library(dplyr) # reqd
+library(rworldmap) # suggested for basemap of plots
+library(spatial.tools) # reqd for syncing rasters, better way to do this?
 
 # calculate light-based likelihood
 setwd('C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/')
@@ -26,7 +25,7 @@ source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\extract.pdt.r')
 source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\extract.woa.r')
 source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\removePacific.r')
 source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\calc.pdt.r')
-source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\plot.woa.r')
+#source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\plot.woa.r')
 source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\calc.locs.r')
 source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\misc_funs.r')
 source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\hmm2.r')
@@ -271,7 +270,6 @@ plot(countriesLow,add=T)
 
 ## ******
 ## now insert portions of imager script
-library(imager)
 
 # from Jonsen et al 2013 - Supplement:
 # The input parameter par0 contains the six parameters of the spatial HMM. 

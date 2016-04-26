@@ -6,8 +6,7 @@ calc.sst <- function(tagdata, sst.dir, g, dateVec, raster = 'stack'){
   #' stored.
   #' @return: likelihood is array of likelihood surfaces representing
   #' matches between tag-based sst and oi sst maps
-  require('dplyr')
-  
+
   dts <- as.POSIXct(tagdata$Date, format = findDateFormat(tagdata$Date))
   
   tagdata[,12] <- as.Date(dts)
