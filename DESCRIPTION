@@ -19,5 +19,10 @@ Depends:
     raster,
     rworldmap,
     spatial.tools
+<<<<<<< HEAD
 Suggests:
+=======
+Suggests: 
+     bsam
+>>>>>>> f129e453234dd07c5877a7047bf9d4f3a1e22cc5
 RoxygenNote: 5.0.1

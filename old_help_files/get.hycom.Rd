@@ -60,7 +60,7 @@ get.hycom(lon, lat, time, type='a', filename = '', vars = 'water_temp')
 
 }
 \author{
-Function originally written for R by Ben Jones (WHOI) and modified by Camrin Braun and Ben Galuardi.
+Camrin Braun and Ben Galuardi
 }
 \references{
 <reference to HYCOM website and papers> \url{https://hycom.org/}
