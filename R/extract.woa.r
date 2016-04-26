@@ -1,20 +1,16 @@
+#' Extract temperatures from World Ocean Atlas
+#'Extract the desired temperature data from a global dataset derived from monthly gridded climatology data contained in the 2013 World Ocean Atlas
+#'
+#' @param nc.dir directory to load the global nc file from; make sure it's he only .nc file in the given directory
+#' @param bbox bounding box of form (long min, long max, lat min, lat max) 
+#' @param resolution indicates whether oceanographic data is gridded at 'quarter' or 'one' degree resolution
+#'
+#' @return a list containing: DAT is an array of temperature data with dimensions (long, lat, depth, time) depth contains 57 standard depth levels by default and levels are defined in variable 'depth' contained here. time dimension covers the months of tag deployment as gathered from querying month data in variable 'pdt' LON/LAT are vectors of lon/lat bounds
+#' @export
+#'
+#' @examples
+#' none
 extract.woa <- function(nc.dir, bbox, resolution){
-  # Extract the desired temperature data from a global
-  # dataset derived from monthly gridded climatology data 
-  # contained in the 2013 World Ocean Atlas
-  
-  #' @param nc.dir is the directory to load the global nc file from; make sure it's
-  #'        the only .nc file in the given directory
-  #' @param bbox is a bounding box of form (long min, long max, lat min, lat max)
-  #' @param resolution indicates whether oceanographic data is gridded at 'quarter'
-  #'        or 'one' degree resolution
-  #' @return returnwoa is a list containing:
-  #'   DAT is an array of temperature data with dimensions (long, lat, depth, time)
-  #'   depth contains 57 standard depth levels by default and levels are defined
-  #'   in variable 'depth' contained here. time dimension covers the months of
-  #'   tag deployment as gathered from querying month data in variable 'pdt'
-  #'   LON/LAT are vectors of lon/lat bounds
-
   # load global nc
   # ncfiles = dir(nc.dir, pattern = '.nc')
   nc = open.ncdf(nc.dir)

@@ -2,14 +2,22 @@
 % Please edit documentation in R/setup.grid.r
 \name{setup.grid}
 \alias{setup.grid}
+\title{Setup the discrete spatial grid for the HMM}
 \usage{
 setup.grid(locations, res)
 }
 \arguments{
-\item{locations}{is dataframe of -Locations from WC psat tag}
+\item{locations}{dataframe of -Locations from WC psat tag}
 
-\item{res}{is character indicating resolution of grid. 'hycom' is
-.08 to match hycom reanalysis res. 'quarter' and 'one' are
-.25 and 1 deg, respectively.}
+\item{res}{character indicating resolution of grid. 'hycom' is .08 to match hycom reanalysis res. 'quarter' and 'one' are .25 and 1 deg, respectively.}
+}
+\value{
+a list
+}
+\description{
+Setup the discrete spatial grid for the HMM
+}
+\examples{
+none
 }
 

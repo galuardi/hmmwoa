@@ -2,17 +2,33 @@
 % Please edit documentation in R/calc.sst.r
 \name{calc.sst}
 \alias{calc.sst}
+\title{Get SST likelihood
+Compare tag sst data to remotely sensed SST and calculate likelihoods}
 \usage{
 calc.sst(tagdata, sst.dir, g, dateVec, raster = "stack")
 }
 \arguments{
-\item{:}{tagdata is variable containing tag-collected SST data}
+\item{tagdata}{variable containing tag-collected SST data}
 
-\item{:}{sst.dir is local directory where get.hycom downloads are
-stored.}
+\item{sst.dir}{local directory where get.hycom downloads are stored}
+
+\item{g}{grid used in....}
+
+\item{dateVec}{vector of dates}
+
+\item{raster}{logical. should a raster be returned?}
 }
 \value{
-: likelihood is array of likelihood surfaces representing
-matches between tag-based sst and oi sst maps
+likelihood is array of likelihood surfaces representing matches between tag-based sst and oi sst maps
+}
+\description{
+Get SST likelihood
+Compare tag sst data to remotely sensed SST and calculate likelihoods
+}
+\examples{
+none
+}
+\seealso{
+\code{\link{calc.pdt.int}} \code{\link{calc.ohc.int}}
 }
 

@@ -1,12 +1,13 @@
+#' Extract PDT from Wildlife Computers tag data
+#'
+#' @param data data frame read from .csv output of Wildlife Computers DAP processor. File ends in "-PDTs.csv"
+#'
+#' @return data frame formatted for pdt data
+#' @export
+#'
+#' @examples
+#' none
 extract.pdt = function(data){
-  
-  # extract PDT data from WC tag output
-  # need to convert to long format for use in R
-  
-  #' @param: data is data frame read from .csv output of Wildlife Computers
-  #' DAP processor. File ends in "-PDTs.csv"
-  #' 
-  #' @return: pdt is formatted data frame of pdt data
 
   # eliminate any oxygen data
   if(any(grep('X.Ox', colnames(data)))){

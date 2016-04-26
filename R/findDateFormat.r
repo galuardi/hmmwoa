@@ -1,10 +1,13 @@
+#' Detemine date format of vector
+#' Function to determine the date format of a given vector of date
+#' @param dateVec a vector of dates as in those from -Histos or  -PDTs from WC tags
+#' @return dateformat is character string used as input to strptime(format = dateformat)
+#' @export 
+#'
+#' @examples
+#' none
 findDateFormat <- function(dateVec){
-  # Function to determine the date format of a given vector of dates
-  
-  #' @param datevec is a vector of dates as in those from -Histos or
-  #'        -PDTs from WC tags
-  #' @return dateformat is character string used as input to strptime(format = dateformat)
-  
+
   dateformat = '%Y-%m-%d %H:%M:%S'
   ddates = as.POSIXct(strptime(as.character(dateVec), format = dateformat)) #reads dates as dates
 

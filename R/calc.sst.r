@@ -1,12 +1,17 @@
+#' Get SST likelihood
+#' Compare tag sst data to remotely sensed SST and calculate likelihoods
+#' @param tagdata variable containing tag-collected SST data
+#' @param sst.dir local directory where get.hycom downloads are stored
+#' @param g grid used in....
+#' @param dateVec vector of dates
+#' @param raster logical. should a raster be returned?
+#'
+#' @return likelihood is array of likelihood surfaces representing matches between tag-based sst and oi sst maps
+#' @export
+#' @seealso \code{\link{calc.pdt.int}} \code{\link{calc.ohc.int}}
+#' @examples
+#' none
 calc.sst <- function(tagdata, sst.dir, g, dateVec, raster = 'stack'){
-  # compare tag sst data to oi sst map and calculate likelihoods
-  
-  #' @param: tagdata is variable containing tag-collected SST data
-  #' @param: sst.dir is local directory where get.hycom downloads are
-  #' stored.
-  #' @return: likelihood is array of likelihood surfaces representing
-  #' matches between tag-based sst and oi sst maps
-
   dts <- as.POSIXct(tagdata$Date, format = findDateFormat(tagdata$Date))
   
   tagdata[,12] <- as.Date(dts)

@@ -1,10 +1,15 @@
+#' Setup the discrete spatial grid for the HMM
+#'
+#' @param locations dataframe of -Locations from WC psat tag
+#' @param res character indicating resolution of grid. 'hycom' is .08 to match hycom reanalysis res. 'quarter' and 'one' are .25 and 1 deg, respectively.
+#'
+#' @return a list
+#' @export
+#'
+#' @examples
+#' none
 setup.grid <- function(locations, res){
-  ## Setup the discrete spatial grid for the HMM
-  #' @param locations is dataframe of -Locations from WC psat tag
-  #' @param res is character indicating resolution of grid. 'hycom' is
-  #'        .08 to match hycom reanalysis res. 'quarter' and 'one' are
-  #'        .25 and 1 deg, respectively.
-  
+
   T <- length(locations$Longitude)
   
   # Find longitude extents

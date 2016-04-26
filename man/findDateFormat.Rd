@@ -2,14 +2,22 @@
 % Please edit documentation in R/findDateFormat.r
 \name{findDateFormat}
 \alias{findDateFormat}
+\title{Detemine date format of vector
+Function to determine the date format of a given vector of date}
 \usage{
 findDateFormat(dateVec)
 }
 \arguments{
-\item{datevec}{is a vector of dates as in those from -Histos or
--PDTs from WC tags}
+\item{dateVec}{a vector of dates as in those from -Histos or  -PDTs from WC tags}
 }
 \value{
 dateformat is character string used as input to strptime(format = dateformat)
+}
+\description{
+Detemine date format of vector
+Function to determine the date format of a given vector of date
+}
+\examples{
+none
 }
 

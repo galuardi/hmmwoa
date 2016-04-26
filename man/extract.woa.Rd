@@ -2,24 +2,26 @@
 % Please edit documentation in R/extract.woa.r
 \name{extract.woa}
 \alias{extract.woa}
+\title{Extract temperatures from World Ocean Atlas
+Extract the desired temperature data from a global dataset derived from monthly gridded climatology data contained in the 2013 World Ocean Atlas}
 \usage{
 extract.woa(nc.dir, bbox, resolution)
 }
 \arguments{
-\item{nc.dir}{is the directory to load the global nc file from; make sure it's
-the only .nc file in the given directory}
+\item{nc.dir}{directory to load the global nc file from; make sure it's he only .nc file in the given directory}
 
-\item{bbox}{is a bounding box of form (long min, long max, lat min, lat max)}
+\item{bbox}{bounding box of form (long min, long max, lat min, lat max)}
 
-\item{resolution}{indicates whether oceanographic data is gridded at 'quarter'
-or 'one' degree resolution}
+\item{resolution}{indicates whether oceanographic data is gridded at 'quarter' or 'one' degree resolution}
 }
 \value{
-returnwoa is a list containing:
-  DAT is an array of temperature data with dimensions (long, lat, depth, time)
-  depth contains 57 standard depth levels by default and levels are defined
-  in variable 'depth' contained here. time dimension covers the months of
-  tag deployment as gathered from querying month data in variable 'pdt'
-  LON/LAT are vectors of lon/lat bounds
+a list containing: DAT is an array of temperature data with dimensions (long, lat, depth, time) depth contains 57 standard depth levels by default and levels are defined in variable 'depth' contained here. time dimension covers the months of tag deployment as gathered from querying month data in variable 'pdt' LON/LAT are vectors of lon/lat bounds
+}
+\description{
+Extract temperatures from World Ocean Atlas
+Extract the desired temperature data from a global dataset derived from monthly gridded climatology data contained in the 2013 World Ocean Atlas
+}
+\examples{
+none
 }
 

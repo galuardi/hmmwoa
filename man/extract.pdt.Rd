@@ -2,14 +2,20 @@
 % Please edit documentation in R/extract.pdt.r
 \name{extract.pdt}
 \alias{extract.pdt}
+\title{Extract PDT from Wildlife Computers tag data}
 \usage{
 extract.pdt(data)
 }
 \arguments{
-\item{:}{data is data frame read from .csv output of Wildlife Computers
-DAP processor. File ends in "-PDTs.csv"}
+\item{data}{data frame read from .csv output of Wildlife Computers DAP processor. File ends in "-PDTs.csv"}
 }
 \value{
-: pdt is formatted data frame of pdt data
+data frame formatted for pdt data
+}
+\description{
+Extract PDT from Wildlife Computers tag data
+}
+\examples{
+none
 }
 
