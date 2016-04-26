@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #' Calculate Depth-temperature based Likelihood
 #' 
 #' \code{calc.pdt.int} calculates likelihood of animal position based on 
@@ -6,22 +5,16 @@
 #' 
 #' Tag-based depth-temperature profile summaries are compared to climatological 
 #' profiles from the World Ocean Atlas (WOA) and "matched" to generate position 
-#' likelihoods. This essentially attempts to estimate animal position based on
-#' the water mass it is in, particularly if extensive diving performs thorough
-#' sampling of the environment. However, remember the in situ data is being
+#' likelihoods. This essentially attempts to estimate animal position based on 
+#' the water mass it is in, particularly if extensive diving performs thorough 
+#' sampling of the environment. However, remember the in situ data is being 
 #' compared to climatological means.
 #' 
-=======
-#' Match tag profile to World Ocean Atlas
-#' 
-#' This program matches depth temperature profiles collected by a WC PSAT tag to climatological profiles from the World Ocean Atlas.
->>>>>>> f129e453234dd07c5877a7047bf9d4f3a1e22cc5
-#' @param pdt is -PDT data from WC psat tag summarizing depth/temperature
-#'        data over a programmed time interval
+#' @param pdt is -PDT data from WC psat tag summarizing depth/temperature data
+#'   over a programmed time interval
 #' @param dat is monthly global 1/4deg climatology data from WOA13
 #' @param lat is vector of latitudes from dat
 #' @param lon is vector of longitudes from dat
-<<<<<<< HEAD
 #' @param depth is vector of depths from dat
 #' @param g is output from setup.grid and indicates extent and resolution of 
 #'   grid used to calculate likelihoods
@@ -33,24 +26,8 @@
 #'        matching between tag data and WOA
 #'   
 
-
 calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = 'stack', dateVec){
   
-=======
-#' @param g grid
-#' @param depth some depth stuff...
-#' @param raster is character indicating whether likelihood 'array',
-#'        'stack' or 'brick' should be output
-#' @param dateVec vector of dates
-#' 
-#' @return lik is array of likelihoods for depth-temp profile
-#'        matching between tag data and WOA
-#'
-#'
-calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = 'stack', dateVec){
-  
-  print(str(dat))
->>>>>>> f129e453234dd07c5877a7047bf9d4f3a1e22cc5
   udates <- unique(pdt$Date)
   T <- length(udates)
   
