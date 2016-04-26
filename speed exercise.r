@@ -113,15 +113,19 @@ for (i in whPtt){
 
 whites.bsam.filter <- spot[,c(1:5)]
 
-fit.corr.all.wh = fitSSM(whites.bsam.filter, model="hDCRWS", tstep=.5, adapt=3000, samples=1000, thin=10, chains=2)
+fit.corr.all.wh = fitSSM(trim.whites, model="hDCRWS", tstep=.5, adapt=3000, samples=1000, thin=10, chains=2)
 fit.121418.dcrws <- fitSSM(whites.bsam.filter[which(whites.bsam.filter$id==121418),], model='DCRWS', tstep=.5, adapt=3000, samples=1000, thin=10, chains=2)
 fit.121425.dcrws <- fitSSM(whites.bsam.filter[which(whites.bsam.filter$id==121425),], model='DCRWS', tstep=.5, adapt=3000, samples=1000, thin=10, chains=2)
 fit.121420.dcrws <- fitSSM(whites.bsam.filter[which(whites.bsam.filter$id==121420),], model='DCRWS', tstep=.5, adapt=3000, samples=1000, thin=10, chains=2)
 fit.132360.dcrws <- fitSSM(whites.bsam.filter[which(whites.bsam.filter$id==132360),], model='DCRWS', tstep=.5, adapt=3000, samples=1000, thin=10, chains=2)
 fit.132352.dcrws <- fitSSM(whites.bsam.filter[which(whites.bsam.filter$id==132352),], model='DCRWS', tstep=.5, adapt=3000, samples=1000, thin=10, chains=2)
 
+trim.whites <- whites.bsam.filter[which(whites.bsam.filter$id != 121418 & 
+                                          whites.bsam.filter$id != 132352),]
 
-
+try1 <- whites.bsam.filter[which(whites.bsam.filter$id==132352),]
+plot(try1$lon,try1$lat)
+plot(countriesLow,add=T)
 
 
 # essentially all one behav state when run this together
