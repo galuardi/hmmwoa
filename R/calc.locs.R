@@ -38,16 +38,13 @@ calc.locs <- function(locs, iniloc, g, raster = TRUE, dateVec, errEll = F){
   ila <- which.min(abs(g$lat[,1] - iniloc$lat[1]))
   L.locs[ilo, ila, 1] <- 1
   
-  # Calculate data likelihood
-  
   locDates <- as.Date(locs$Date, format = findDateFormat(locs$Date))
   
-  #g <- setup.grid(locs, res = 'quarter') # make sure loading function from misc_funs.r
+  # set up a larger grid to base ellipse on and to shift that error, if necessary (GPE only)
   ngrid <- rev(dim(g$lon))
   lon1 <- seq(min(g$lon[1,]) - 10, max(g$lon[1,]) + 10, by = g$dlo)
   lat1 <- seq(min(g$lat[,1]) - 10, max(g$lat[,1]) + 10, by = g$dla)
   g1 <- meshgrid(lon1, lat1)
-  
   locs$Offset[which(is.na(locs$Offset))] <- 0
   
   for(t in 1:T){
@@ -66,17 +63,17 @@ calc.locs <- function(locs, iniloc, g, raster = TRUE, dateVec, errEll = F){
     } else if(locs$Type[t] == 'GPE'){
       if(errEll == FALSE){
         # create longitude likelihood based on GPE data
-        # for now, latitude is ignored
         # SD for light-based longitude from Musyl et al. (2001)
         slon.sd <- 35 / 111 # Converting from kms to degrees
         
+        # use normally distributed error from position using fixed std dev
         L.light <- dnorm(t(g$lon), locs$Longitude[t], slon.sd)
         
         L.locs[,,which(dateVec == locDates[t])] <- L.light
         
       } else if(errEll == TRUE){
-        #stop('Error: Error ellipse functionality is not yet available.')
-        # arithmetic converts from meters to degrees (transformation due to projection?)
+        # arithmetic converts from meters to degrees
+        # add transformation due to projection?
         slon.sd <- locs$Error.Semi.minor.axis[t] / 1000 / 111 #semi minor axis
         L.light.lon <- dnorm(t(g1$X), locs$Longitude[t], slon.sd) # Longitude data
         slat.sd <- locs$Error.Semi.major.axis[t] / 1000 / 111 #semi major axis
@@ -84,33 +81,21 @@ calc.locs <- function(locs, iniloc, g, raster = TRUE, dateVec, errEll = F){
         
         #image.plot(g$lon[1,],g$lat[,1],L.light.lat*L.light.lon)
         
-        #draw.ellipse(-80,35,a=10,b=8)
-        #L.lat <- flip(raster(t(L.light.lat), xmn=min(lon), 
-        #            xmx=max(lon),ymn=min(lat),ymx=max(lat)), direction='y')
-        #plot(L.lat)
-        #L.lon <- flip(raster(t(L.light.lon), xmn=min(lon), 
-        #                xmx=max(lon),ymn=min(lat),ymx=max(lat)), direction = 'y')
-        #plot(L.lon)
-        
         L <- flip(raster(t(L.light.lat * L.light.lon), xmn = min(lon1), 
                     xmx = max(lon1), ymn = min(lat1), ymx = max(lat1)), direction = 'y')
-        # offset
-       # Lext <- extent(xmin(L)-, xmax(L)+10, ymin(L)-10, ymax(L)+10)
-        #L1 <- raster(NA, extent=Lext)
+        
+        # offset, assuming shift should be to the south
         shiftDist <- (-1 * (locs$Offset[t] / 1000 / 111))
         
         if(shiftDist >= -10){
           Ls <- shift(L, y = shiftDist)
-          #plot(L.new * Ls)
-          #L.new <- L
-          #L.new[L.new>=0] = 1
-          
           L.ext <- flip(raster(g$lon, xmn = min(lon), 
                                xmx = max(lon), ymn = min(lat), ymx = max(lat)), direction = 'y')
+          # create blank raster
           L.ext[L.ext <= 0] = 1
           
+          # then crop our shifted raster
           Lsx <- crop(Ls, L.ext)
-
           rr <- resample(Lsx, L.ext)
           #image.plot(lon,lat,t(as.matrix(flip(rr,direction='y'))))
           L.locs[,,which(dateVec == locDates[t])] <- t(as.matrix(flip(rr, direction = 'y')))
@@ -139,6 +124,7 @@ calc.locs <- function(locs, iniloc, g, raster = TRUE, dateVec, errEll = F){
   L.locs[elo, ela, length(dateVec)] <- 1
   
   if(raster){
+    # this performs some transformations to the likelihood array to convert to useable raster
     crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
     list.locs <- list(x = g$lon[1,], y = g$lat[,1], z = L.locs)
     ex <- extent(list.locs)

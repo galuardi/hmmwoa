@@ -2,6 +2,7 @@
 % Please edit documentation in R/calc.pdt.int.r
 \name{calc.pdt.int}
 \alias{calc.pdt.int}
+\title{Calculate Depth-temperature based Likelihood}
 \usage{
 calc.pdt.int(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth,
   raster = "stack", dateVec)
@@ -16,13 +17,30 @@ data over a programmed time interval}
 
 \item{lon}{is vector of longitudes from dat}
 
+\item{g}{is output from setup.grid and indicates extent and resolution of 
+grid used to calculate likelihoods}
+
+\item{depth}{is vector of depths from dat}
+
 \item{raster}{is character indicating whether likelihood 'array',
 'stack' or 'brick' should be output}
 
-\item{dateVec}{}
+\item{dateVec}{is vector of dates from tag to pop-up in 1 day increments.}
 }
 \value{
-lik is array of likelihoods for depth-temp profile
+array or raster of likelihoods for depth-temp profile
        matching between tag data and WOA
+}
+\description{
+\code{calc.pdt.int} calculates likelihood of animal position based on 
+summarized depth-temperature profiles
+}
+\details{
+Tag-based depth-temperature profile summaries are compared to climatological 
+profiles from the World Ocean Atlas (WOA) and "matched" to generate position 
+likelihoods. This essentially attempts to estimate animal position based on
+the water mass it is in, particularly if extensive diving performs thorough
+sampling of the environment. However, remember the in situ data is being
+compared to climatological means.
 }
 

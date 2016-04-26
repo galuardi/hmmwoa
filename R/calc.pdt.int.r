@@ -1,23 +1,34 @@
+#' Calculate Depth-temperature based Likelihood
+#' 
+#' \code{calc.pdt.int} calculates likelihood of animal position based on 
+#' summarized depth-temperature profiles
+#' 
+#' Tag-based depth-temperature profile summaries are compared to climatological 
+#' profiles from the World Ocean Atlas (WOA) and "matched" to generate position 
+#' likelihoods. This essentially attempts to estimate animal position based on
+#' the water mass it is in, particularly if extensive diving performs thorough
+#' sampling of the environment. However, remember the in situ data is being
+#' compared to climatological means.
+#' 
+#' @param pdt is -PDT data from WC psat tag summarizing depth/temperature
+#'        data over a programmed time interval
+#' @param dat is monthly global 1/4deg climatology data from WOA13
+#' @param lat is vector of latitudes from dat
+#' @param lon is vector of longitudes from dat
+#' @param depth is vector of depths from dat
+#' @param g is output from setup.grid and indicates extent and resolution of 
+#'   grid used to calculate likelihoods
+#' @param raster is character indicating whether likelihood 'array',
+#'        'stack' or 'brick' should be output
+#' @param dateVec is vector of dates from tag to pop-up in 1 day increments.
+#' 
+#' @return array or raster of likelihoods for depth-temp profile
+#'        matching between tag data and WOA
+#'   
+
+
 calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = 'stack', dateVec){
   
-  ##  This program matches depth temperature profiles collected by a WC PSAT
-  ##  tag to climatological profiles from the World Ocean Atlas.
-  
-  #' @param pdt is -PDT data from WC psat tag summarizing depth/temperature
-  #'        data over a programmed time interval
-  #' @param dat is monthly global 1/4deg climatology data from WOA13
-  #' @param lat is vector of latitudes from dat
-  #' @param lon is vector of longitudes from dat
-  #' @param g
-  #' @param depth
-  #' @param raster is character indicating whether likelihood 'array',
-  #'        'stack' or 'brick' should be output
-  #' @param dateVec
-  #' 
-  #' @return lik is array of likelihoods for depth-temp profile
-  #'        matching between tag data and WOA
-  
-  print(str(dat))
   udates <- unique(pdt$Date)
   T <- length(udates)
   
@@ -26,7 +37,6 @@ calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth,
   L.pdt <- array(0, dim = c(dim(dat)[1:2], length(dateVec)))
   
   for(i in 1:T){
-    
     # define time based on tag data
     time <- udates[i]
     pdt.i <- pdt[which(pdt$Date == time),]
@@ -51,48 +61,48 @@ calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth,
     pred.high = predict(fit.high, newdata = depth[depIdx], se = T, get.data = T)
     
     # data frame for next step
-    df = data.frame(low=pred.low$fit-pred.low$se.fit*sqrt(n)
-                    , high=pred.high$fit+pred.high$se.fit*sqrt(n)
-                    , depth = depth[depIdx])
+    df = data.frame(low = pred.low$fit - pred.low$se.fit * sqrt(n),
+                    high = pred.high$fit + pred.high$se.fit * sqrt(n),
+                    depth = depth[depIdx])
     
-    if(i == 1) pdtMonth <- as.numeric(format(as.Date(pdt.i$Date), format='%m'))[1]
+    if(i == 1) pdtMonth <- as.numeric(format(as.Date(pdt.i$Date), format = '%m'))[1]
     
-    newMonth <- as.numeric(format(as.Date(pdt.i$Date), format='%m'))[1]
+    newMonth <- as.numeric(format(as.Date(pdt.i$Date), format = '%m'))[1]
     
-    if(i==1 | newMonth != pdtMonth) {
+    if(i == 1 | newMonth != pdtMonth) {
       # calculates sd but "if" statement ensures it is only calculated at
       # the beginning and when the date switches into a new month
+      # because it's relatively computationally intensive
       
-      pdtMonth <- as.numeric(format(as.Date(pdt.i$Date), format='%m'))[1]
+      pdtMonth <- as.numeric(format(as.Date(pdt.i$Date), format = '%m'))[1]
       dat.i = dat[,,,pdtMonth] #extract months climatology
-      #dat.i[is.na(dat.i)] = -9999
-      
+
       # calculate sd using Le Bris neighbor method and focal()
-      sd.i = array(NA,dim = dim(dat.i))
+      sd.i = array(NA, dim = dim(dat.i))
       
       for(ii in 1:57){
-        r = flip(raster(t(dat.i[,,ii])),2)
+        r = flip(raster(t(dat.i[,,ii])), 2)
         #plot(r, col = tim.colors(100))
-        f1 = focal(r, w=matrix(1,nrow=3,ncol=3), fun=function(x) sd(x, na.rm = T))
-        #print stuff
-        f1 = t(as.matrix(flip(f1,2)))
+        f1 = focal(r, w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
+        f1 = t(as.matrix(flip(f1, 2)))
         #plot(f1, add=T)
         sd.i[,,ii] = f1
       } 
     }
     
     # setup the likelihood array for each day. Will have length (dim[3]) = n depths
-    lik.pdt = array(NA, dim=c(dim(dat)[1], dim(dat)[2], length(depIdx)))
+    lik.pdt = array(NA, dim = c(dim(dat)[1], dim(dat)[2], length(depIdx)))
     
     for (b in 1:length(depIdx)) {
       #calculate the likelihood for each depth level, b
       lik.pdt[,,b] = likint3(dat.i[,,depIdx[b]], sd.i[,,depIdx[b]], df[b,1], df[b,2])
       
       print(paste(b,' loop within ',time,' iteration. ', Sys.time()))
+      
     }
     
     # multiply likelihood across depth levels for each day
-    lik.pdt <- apply(lik.pdt, 1:2, prod, na.rm=F)
+    lik.pdt <- apply(lik.pdt, 1:2, prod, na.rm = F)
     
     # identify date index and add completed likelihood to L.pdt array    
     idx <- which(dateVec == as.Date(time))
@@ -105,7 +115,7 @@ calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth,
   crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
   list.pdt <- list(x = lon, y = lat, z = L.pdt)
   ex <- extent(list.pdt)
-  L.pdt <- brick(list.pdt$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+  L.pdt <- brick(list.pdt$z, xmn = ex[1], xmx = ex[2], ymn = ex[3], ymx = ex[4], transpose = T, crs)
   L.pdt <- flip(L.pdt, direction = 'y')
   
   # make L.pdt match resolution/extent of g
@@ -113,7 +123,7 @@ calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth,
   col <- dim(g$lon)[2]
   ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
   crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-  rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
+  rasMatch <- raster(ex, nrows = row, ncols = col, crs = crs)
   L.pdt <- spatial_sync_raster(L.pdt, rasMatch)
   
   if(raster == 'brick'){
