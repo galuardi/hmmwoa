@@ -128,6 +128,20 @@ plot(try1$lon,try1$lat)
 plot(countriesLow,add=T)
 
 
+b.5 <- fit.121425.dcrws[[1]]$summary$b.5
+dts.b <- as.POSIXct(fit.121425.dcrws[[1]]$summary$date)
+lon.b <- fit.121425.dcrws[[1]]$summary$lon
+lat.b <- fit.121425.dcrws[[1]]$summary$lat
+idx <- seq(2,length(lat.b),by=1)
+spd <- rep(NA,length=length(idx)-1)
+for (i in idx){
+  spd[i-1] <- geodetic.distance(c(lon.b[i], lat.b[i]),c(lon.b[i-1],lat.b[i-1])) /
+    as.numeric(difftime(dts.b[i],dts.b[i-1],units='hours'))
+}
+
+## ABANDONING THIS DUE TO SPEEDS BEING MODIFIED BY THE UNDERLYING MOVEMENT MODEL USED BY BSAM.
+## A SPEED CALCULATION FROM THESE 'INTERPOLATED' MOVEMENTS WON'T BE PARTICULARLY USEFUL.
+
 # essentially all one behav state when run this together
 fit.corr.bl = fitSSM(blues.bsam, model="DCRW", tstep=.5, adapt=3000, samples=1000, thin=10, chains=2)
 
