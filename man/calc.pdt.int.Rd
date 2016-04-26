@@ -2,18 +2,14 @@
 % Please edit documentation in R/calc.pdt.int.r
 \name{calc.pdt.int}
 \alias{calc.pdt.int}
-<<<<<<< HEAD
 \title{Calculate Depth-temperature based Likelihood}
-=======
-\title{Match tag profile to World Ocean Atlas}
->>>>>>> f129e453234dd07c5877a7047bf9d4f3a1e22cc5
 \usage{
 calc.pdt.int(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth,
   raster = "stack", dateVec)
 }
 \arguments{
-\item{pdt}{is -PDT data from WC psat tag summarizing depth/temperature
-data over a programmed time interval}
+\item{pdt}{is -PDT data from WC psat tag summarizing depth/temperature data
+over a programmed time interval}
 
 \item{dat}{is monthly global 1/4deg climatology data from WOA13}
 
@@ -21,44 +17,30 @@ data over a programmed time interval}
 
 \item{lon}{is vector of longitudes from dat}
 
-<<<<<<< HEAD
 \item{g}{is output from setup.grid and indicates extent and resolution of 
 grid used to calculate likelihoods}
 
 \item{depth}{is vector of depths from dat}
-=======
-\item{g}{grid}
-
-\item{depth}{some depth stuff...}
->>>>>>> f129e453234dd07c5877a7047bf9d4f3a1e22cc5
 
 \item{raster}{is character indicating whether likelihood 'array',
 'stack' or 'brick' should be output}
 
-<<<<<<< HEAD
 \item{dateVec}{is vector of dates from tag to pop-up in 1 day increments.}
-=======
-\item{dateVec}{vector of dates}
->>>>>>> f129e453234dd07c5877a7047bf9d4f3a1e22cc5
 }
 \value{
 array or raster of likelihoods for depth-temp profile
        matching between tag data and WOA
 }
 \description{
-<<<<<<< HEAD
 \code{calc.pdt.int} calculates likelihood of animal position based on 
 summarized depth-temperature profiles
 }
 \details{
 Tag-based depth-temperature profile summaries are compared to climatological 
 profiles from the World Ocean Atlas (WOA) and "matched" to generate position 
-likelihoods. This essentially attempts to estimate animal position based on
-the water mass it is in, particularly if extensive diving performs thorough
-sampling of the environment. However, remember the in situ data is being
+likelihoods. This essentially attempts to estimate animal position based on 
+the water mass it is in, particularly if extensive diving performs thorough 
+sampling of the environment. However, remember the in situ data is being 
 compared to climatological means.
-=======
-This program matches depth temperature profiles collected by a WC PSAT tag to climatological profiles from the World Ocean Atlas.
->>>>>>> f129e453234dd07c5877a7047bf9d4f3a1e22cc5
 }
 
