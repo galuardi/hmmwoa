@@ -36,6 +36,10 @@
 #' time <- as.Date('2013-03-01')
 #' get.hycom(lon, lat, time, type='a', filename = '', vars = 'water_temp')
 #' # only returns url because filename is unspecified
+#' 
+#' @author   Function originally written for R by Ben Jones (WHOI) and modified by Camrin Braun and Ben Galuardi.
+#' @references <reference to HYCOM website and papers> \url{https://hycom.org/}
+#' @seealso <links to similar functions>
 #'
 #' \dontrun{
 #' get.hycom(lon, lat, time, type='a', filename = 'my_data', vars = 'water_temp')
@@ -47,8 +51,7 @@
 get.hycom <- function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
                           filename='', type = 'r', download.file=TRUE, dir = getwd()) {
 
-  ## Function originally written for R by Ben Jones (WHOI) and modified by Camrin
-  ## Braun and Ben Galuardi.
+
   
   dir.create(file.path(dir), recursive = TRUE)
   setwd(dir)

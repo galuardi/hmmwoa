@@ -2,22 +2,30 @@
 % Please edit documentation in R/calc.ohc.r
 \name{calc.ohc}
 \alias{calc.ohc}
+\title{Calculate Ocean heat Content probability surface}
 \usage{
 calc.ohc(pdt, isotherm = "", ohc.dir, g, dateVec, raster = "stack",
   downsample = F)
 }
 \arguments{
-\item{:}{pdt is variable containing tag-collected PDT data}
+\item{pdt}{is variable containing tag-collected PDT data}
 
-\item{:}{isotherm is default '' in which isotherm is calculated
-on the fly based on daily tag data. Otherwise, numeric isotherm
-constraint can be specified (e.g. 20).}
+\item{isotherm}{default '' in which isotherm is calculatedon the fly based on daily tag data. Otherwise, numeric isotherm constraint can be specified (e.g. 20).}
 
-\item{:}{ohc.dir is local directory where get.hycom downloads are
-stored.}
+\item{ohc.dir}{local directory where get.hycom downloads are stored.}
+
+\item{g}{grid}
+
+\item{dateVec}{vector of dates}
+
+\item{raster}{logical. should a raster be returned?}
+
+\item{downsample}{logical}
 }
 \value{
-: likelihood is array of likelihood surfaces representing
-matches between tag-based ohc and hycom ohc maps
+likelihood is array of likelihood surfaces representing
+}
+\description{
+Compare tag data to ohc map and calculate likelihoods
 }
 

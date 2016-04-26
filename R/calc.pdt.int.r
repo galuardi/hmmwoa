@@ -1,21 +1,22 @@
+#' Match tag profile to World Ocean Atlas
+#' 
+#' This program matches depth temperature profiles collected by a WC PSAT tag to climatological profiles from the World Ocean Atlas.
+#' @param pdt is -PDT data from WC psat tag summarizing depth/temperature
+#'        data over a programmed time interval
+#' @param dat is monthly global 1/4deg climatology data from WOA13
+#' @param lat is vector of latitudes from dat
+#' @param lon is vector of longitudes from dat
+#' @param g grid
+#' @param depth some depth stuff...
+#' @param raster is character indicating whether likelihood 'array',
+#'        'stack' or 'brick' should be output
+#' @param dateVec vector of dates
+#' 
+#' @return lik is array of likelihoods for depth-temp profile
+#'        matching between tag data and WOA
+#'
+#'
 calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = 'stack', dateVec){
-  
-  ##  This program matches depth temperature profiles collected by a WC PSAT
-  ##  tag to climatological profiles from the World Ocean Atlas.
-  
-  #' @param pdt is -PDT data from WC psat tag summarizing depth/temperature
-  #'        data over a programmed time interval
-  #' @param dat is monthly global 1/4deg climatology data from WOA13
-  #' @param lat is vector of latitudes from dat
-  #' @param lon is vector of longitudes from dat
-  #' @param g
-  #' @param depth
-  #' @param raster is character indicating whether likelihood 'array',
-  #'        'stack' or 'brick' should be output
-  #' @param dateVec
-  #' 
-  #' @return lik is array of likelihoods for depth-temp profile
-  #'        matching between tag data and WOA
   
   print(str(dat))
   udates <- unique(pdt$Date)

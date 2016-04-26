@@ -1,19 +1,21 @@
+#' Calculate the data likelihood
+#' 
+#' @param errEll is logical indicating whether error ellipses should be 
+#'        generated for light-based likelihoods as given from output
+#' @param locs is -Locations file output from DAP for WC tags and contains
+#'        GPS, Argos, and GPE locations as applicable
+#' @param iniloc is 2 x 5 dataframe containing day, month, year,
+#'          lat, lon for both tag and pop locations
+#' @param g output from setup.grid and indicates extent and resolution
+#'        of grid used to calculate likelihoods
+#' @param raster lgical. should the output be a raster
+#' @param dateVec of WC-GPE. False if only longitude should be used.
+#'        
+#' @return: L is array of lon x lat likelihood surfaces (matrices)
+#'          for each time point (3rd dimension)
+#' @details The likelihood field for each location observation
+
 calc.locs2 <- function(locs, iniloc, g, raster = TRUE, dateVec, errEll = F){
-  ## Calculate the "data" likelihood, i.e. the likelihood field for each
-  ## location observation
-  
-  #' @param: locs is -Locations file output from DAP for WC tags and contains
-  #'        GPS, Argos, and GPE locations as applicable
-  #' @param: iniloc is 2 x 5 dataframe containing day, month, year,
-  #'          lat, lon for both tag and pop locations
-  #' @param: g is output from setup.grid and indicates extent and resolution
-  #'        of grid used to calculate likelihoods
-  #' @param errEll is logical indicating whether error ellipses should be 
-  #'        generated for light-based likelihoods as given from output
-  #'        of WC-GPE. False if only longitude should be used.
-  #' @return: L is array of lon x lat likelihood surfaces (matrices)
-  #'          for each time point (3rd dimension)
-  
   T <- length(locs$Longitude)
   row <- dim(g$lon)[1]
   col <- dim(g$lon)[2]

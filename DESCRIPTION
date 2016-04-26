@@ -19,6 +19,6 @@ Depends:
     raster,
     rworldmap,
     spatial.tools
-Suggests:
-    
+Suggests: 
+     bsam
 RoxygenNote: 5.0.1

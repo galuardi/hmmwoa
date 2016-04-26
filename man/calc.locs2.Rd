@@ -2,25 +2,35 @@
 % Please edit documentation in R/calc.locs2.R
 \name{calc.locs2}
 \alias{calc.locs2}
+\title{Calculate the data likelihood}
 \usage{
 calc.locs2(locs, iniloc, g, raster = TRUE, dateVec, errEll = F)
 }
 \arguments{
-\item{errEll}{is logical indicating whether error ellipses should be 
-generated for light-based likelihoods as given from output
-of WC-GPE. False if only longitude should be used.}
-
-\item{:}{locs is -Locations file output from DAP for WC tags and contains
+\item{locs}{is -Locations file output from DAP for WC tags and contains
 GPS, Argos, and GPE locations as applicable}
 
-\item{:}{iniloc is 2 x 5 dataframe containing day, month, year,
+\item{iniloc}{is 2 x 5 dataframe containing day, month, year,
 lat, lon for both tag and pop locations}
 
-\item{:}{g is output from setup.grid and indicates extent and resolution
+\item{g}{output from setup.grid and indicates extent and resolution
 of grid used to calculate likelihoods}
+
+\item{raster}{lgical. should the output be a raster}
+
+\item{dateVec}{of WC-GPE. False if only longitude should be used.}
+
+\item{errEll}{is logical indicating whether error ellipses should be 
+generated for light-based likelihoods as given from output}
 }
 \value{
 : L is array of lon x lat likelihood surfaces (matrices)
          for each time point (3rd dimension)
+}
+\description{
+Calculate the data likelihood
+}
+\details{
+The likelihood field for each location observation
 }
 

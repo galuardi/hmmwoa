@@ -2,7 +2,6 @@
 % Please edit documentation in R/calc.pdt.int.r
 \name{calc.pdt.int}
 \alias{calc.pdt.int}
-\title{Match tag profile to World Ocean Atlas}
 \usage{
 calc.pdt.int(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth,
   raster = "stack", dateVec)
@@ -17,20 +16,13 @@ data over a programmed time interval}
 
 \item{lon}{is vector of longitudes from dat}
 
-\item{g}{grid}
-
-\item{depth}{some depth stuff...}
-
 \item{raster}{is character indicating whether likelihood 'array',
 'stack' or 'brick' should be output}
 
-\item{dateVec}{vector of dates}
+\item{dateVec}{}
 }
 \value{
 lik is array of likelihoods for depth-temp profile
        matching between tag data and WOA
-}
-\description{
-This program matches depth temperature profiles collected by a WC PSAT tag to climatological profiles from the World Ocean Atlas.
 }
 

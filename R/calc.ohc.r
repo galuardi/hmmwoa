@@ -1,14 +1,19 @@
+#' Calculate Ocean heat Content probability surface
+#' 
+#' Compare tag data to ohc map and calculate likelihoods
+#'
+#' @param pdt is variable containing tag-collected PDT data
+#' @param isotherm default '' in which isotherm is calculatedon the fly based on daily tag data. Otherwise, numeric isotherm constraint can be specified (e.g. 20).
+#' @param ohc.dir local directory where get.hycom downloads are stored.
+#' @param g grid
+#' @param dateVec vector of dates 
+#' @param raster logical. should a raster be returned?
+#' @param downsample logical
+#'
+#' @return likelihood is array of likelihood surfaces representing
+
 calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = 'stack', downsample = F){
-  # compare tag data to ohc map and calculate likelihoods
-  
-  #' @param: pdt is variable containing tag-collected PDT data
-  #' @param: isotherm is default '' in which isotherm is calculated
-  #' on the fly based on daily tag data. Otherwise, numeric isotherm
-  #' constraint can be specified (e.g. 20).
-  #' @param: ohc.dir is local directory where get.hycom downloads are
-  #' stored.
-  #' @return: likelihood is array of likelihood surfaces representing
-  #' matches between tag-based ohc and hycom ohc maps
+
   
   # constants for OHC calc
   cp <- 3.993 # kJ/kg*C <- heat capacity of seawater
