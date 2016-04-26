@@ -7,7 +7,18 @@ Authors@R: c(
               person("Benjamin", "Galuardi", email = "drdrumfish@gmail.com", role = c("aut")),
               person("Camrin", "Braun", email = "camrin.braun@gmail.com", role = c("aut","cre"))
               )
-Description: this will be the HMM using WOA data. The guts follow Pedersen et al. 2008
+Description: this will be the HMM using WOA data. The guts follow Pedersen et
+    al. 2008
 License: MIT
-Depends: dplyr, fields, imager, locfit, ncdf, raster, rworldmap, spatial.tools
+Depends:
+    dplyr,
+    fields,
+    imager,
+    locfit,
+    ncdf,
+    raster,
+    rworldmap,
+    spatial.tools
 Suggests:
+    
+RoxygenNote: 5.0.1

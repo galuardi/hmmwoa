@@ -1,36 +1,52 @@
+#' Download HYCOM data
+#' 
+#' \code{get.hycom} downloads HYbrid Coordinate Ocean Model (HYCOM) data for 
+#' given temporal and spatial constraints of your data.
+#' 
+#' The method may return before the download is completed. It will continue to 
+#' display progress  until the download completes. Change the default
+#' \code{download.file} if the download is failing on your platform.
+#' 
+#' @param lon A vector of length 2 with the minimum and maximum longitude (-180,
+#'   180).
+#' @param lat A vector of length 2 with the minimum and maximum latitude.
+#' @param time A vector of length 2 with the minimum and maximum times in form 
+#'   \code{as.Date(date)}.
+#' @param vars A list of variables to download. This should only contain 
+#'   'surf_el', 'salinity', 'water_u', water_v','water_temp' but is not checked 
+#'   for errors. We currently only use 'water_temp'.
+#' @param include_latlon Should the array of latitude and longitude values be 
+#'   included?
+#' @param filename An optional filename. If provided, then the data is 
+#'   downloaded to that file. Otherwise the data is not downloaded and the url 
+#'   is returned.
+#' @param download.file Logical. Should use the default \code{download.file} to
+#'   query the server and download or use the optional \code{curl}. Some users
+#'   may need to use \code{curl} in order to get this to work.
+#' @param dir is local directory where ncdf files should be downloaded to. 
+#'   default is current working directory. if enter a directory that doesn't 
+#'   exist, it will be created.
+#' @param type indicates type of HYCOM product to download. 'r' is reanalysis 
+#'   and 'a' is analysis. see \url{https://hycom.org/dataserver/} for details.
+#' @return The url used to extract the requested data from the NetCDF subset 
+#'   service.
+#' @examples 
+#' lon <- c(-90, -60)
+#' lat <- c(0, 30)
+#' time <- as.Date('2013-03-01')
+#' get.hycom(lon, lat, time, type='a', filename = '', vars = 'water_temp')
+#' # only returns url because filename is unspecified
+#'
+#' \dontrun{
+#' get.hycom(lon, lat, time, type='a', filename = 'my_data', vars = 'water_temp')
+#' nc <- open.ncdf('my_data.nc')
+#' hycom <- get.var.ncdf(nc, 'water_temp')
+#' image.plot(hycom[,,1])
+#' }
 
 get.hycom <- function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
                           filename='', type = 'r', download.file=TRUE, dir = getwd()) {
 
-  #' Downloads data from the HYCOM + NCODA Global 1/12 Degree Analysis.
-  #'
-  #' The method may return before the download is completed. It will continue
-  #' to display progress  until the download completes. 
-  #' 
-  #' Ideally download.file (default method) would be used instead of curl (optional), but this does not 
-  #' seem to work on some platforms.
-  #'
-  #' @param lon An vector of length 2 with the minimum and maximum longitude. 
-  #' @param lat An vector of length 2 with the minimum and maximum latitude.
-  #' @param time An vector of length 2 with the minimum and maximum times.
-  #' @param vars A list of variables to download. This should only contain
-  #' 'surf_el', 'salinity', 'water_u', water_v','water_temp' but is
-  #' not checked for errors
-  #' @param include_latlon Should the array of latitude and longitude values be
-  #' included?
-  #' @param filename An optional filename. If provided, then the data is
-  #' downloaded to that file. Otherwise the data is not downloaded.
-  #' @param download.file Should use the default download.file function to query 
-  #' the server and download or use the optional curl function. Some users may
-  #' need to use curl in order to get this to work.
-  #' @param: dir is directory where nc files should be downloaded to. default is
-  #' current working directory. if enter a directory that doesn't exist, it will
-  #' be created.
-  #' @param type indicates type of HYCOM product to download. 'r' is reanalysis
-  #'        and 'a' is analysis. see https://hycom.org/dataserver for details.
-  #' @return The url used to extract the requested data from the NetCDF subset
-  #' service.
-    
   ## Function originally written for R by Ben Jones (WHOI) and modified by Camrin
   ## Braun and Ben Galuardi.
   
@@ -89,11 +105,11 @@ get.hycom <- function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
   url = sprintf('%snorth=%f&west=%f&east=%f&south=%f&horizStride=1&',
                 url, lat[2], lon[1], lon[2], lat[1])
   ## Add the time domain.
-  if(length(time)==2){
+  if(length(time) == 2){
     url = sprintf('%stime_start=%s%%3A00%%3A00Z&time_end=%s%%3A00%%3A00Z&timeStride=1&',
                   url, strftime(time[1], '%Y-%m-%dT00', start_time),
                   strftime(time[2], '%Y-%m-%dT00', end_time))
-  } else if(length(time)==1){
+  } else if(length(time) == 1){
     url = sprintf('%stime_start=%s%%3A00%%3A00Z&time_end=%s%%3A00%%3A00Z&timeStride=1&',
                   url, strftime(time[1], '%Y-%m-%dT00'),
                   strftime(time[1], '%Y-%m-%dT00'))
