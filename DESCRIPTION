@@ -10,7 +10,7 @@ Authors@R: c(
 Description: this will be the HMM using WOA data. The guts follow Pedersen et
     al. 2008
 License: MIT
-Depends:
+Imports: 
     dplyr,
     fields,
     imager,
@@ -20,3 +20,6 @@ Depends:
     rworldmap,
     spatial.tools
 RoxygenNote: 5.0.1
+BugReports: https://github.com/galuardi/hmmwoa/issues
+LazyData: true
+Suggests: testthat
