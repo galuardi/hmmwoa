@@ -1,13 +1,17 @@
 #' Extract PDT from Wildlife Computers tag data
-#'
-#' @param data data frame read from .csv output of Wildlife Computers DAP processor. File ends in "-PDTs.csv"
-#'
+#' 
+#' \code{extract.pdt} is a simple formatting function for using PDT data later
+#' 
+#' @param pdt data frame read from -PDTs.csv output of Wildlife Computers DAP 
+#'   processor or Tag Portal.
+#'   
 #' @return data frame formatted for pdt data
 #' @export
-#'
+#' 
 #' @examples
 #' none
-extract.pdt = function(data){
+
+extract.pdt <- function(pdt){
 
   # eliminate any oxygen data
   if(any(grep('X.Ox', colnames(data)))){
@@ -32,12 +36,6 @@ extract.pdt = function(data){
   udates <- unique(format(pdt$Date, '%Y-%m-%d'))
   dates.tr <- format(pdt$Date, '%Y-%m-%d')
   dateidx <- match(dates.tr, udates)
-  
-  ## THIS SECTION NEEDS WORK. CURRENTLY USING MULTIPLE POINTS PER DAY
-  ## TO CONSTRUCT A SINGLE PDT PROFILE. MOSTLY WORKS WELL BUT IN SOME
-  ## CASES THE ANIMAL USES VERY DISTINCT WATER MASSES CAUSING THIS
-  ## AVERAGING TECHNIQUE TO DO WEIRD THINGS AND CONSTRUCT UNREALISTIC
-  ## PROFILES
   
   for(i in 1:max(dateidx)){
     pdt.i <- pdt[which(dateidx == i),]

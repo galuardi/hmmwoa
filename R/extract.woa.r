@@ -1,19 +1,27 @@
 #' Extract temperatures from World Ocean Atlas
 #' 
-#' Extract the desired temperature data from a global dataset derived from monthly gridded climatology data contained in the 2013 World Ocean Atlas
-#'
-#' @param nc.dir directory to load the global nc file from; make sure it's he only .nc file in the given directory
-#' @param bbox bounding box of form (long min, long max, lat min, lat max) 
-#' @param resolution indicates whether oceanographic data is gridded at 'quarter' or 'one' degree resolution
-#'
-#' @return a list containing: DAT is an array of temperature data with dimensions (long, lat, depth, time) depth contains 57 standard depth levels by default and levels are defined in variable 'depth' contained here. time dimension covers the months of tag deployment as gathered from querying month data in variable 'pdt' LON/LAT are vectors of lon/lat bounds
+#' \code{extract.woa} extracts the desired temperature data from a global 
+#' dataset derived from monthly gridded climatology data contained in the 2013 
+#' World Ocean Atlas
+#' 
+#' @param nc.dir directory to load the global nc file from; specify the complete
+#'   path to the nc file unless it is in your current working directory
+#' @param bbox bounding box of form (long min, long max, lat min, lat max)
+#' @param resolution indicates whether oceanographic data is gridded at 
+#'   'quarter' or 'one' degree resolution
+#'   
+#' @return a list containing: DAT is an array of temperature data with 
+#'   dimensions (long, lat, depth, time) depth contains 57 standard depth levels
+#'   by default and levels are defined in variable 'depth' contained here. time 
+#'   is monthly and spans the entire year. LON/LAT are vectors of lon/lat bounds
 #' @export
-#'
+#' 
 #' @examples
 #' none
+
 extract.woa <- function(nc.dir, bbox, resolution){
+  
   # load global nc
-  # ncfiles = dir(nc.dir, pattern = '.nc')
   nc = open.ncdf(nc.dir)
   
   # retrieve var bounds from global nc
@@ -28,22 +36,14 @@ extract.woa <- function(nc.dir, bbox, resolution){
   ymax = which.min((bbox[4] - lat) ^ 2)
   
   if(resolution == 'quarter'){
-    xlen = floor(4*(bbox[2] - bbox[1])) # for quarter degree
-    ylen = floor(4*(bbox[4] - bbox[3])) 
+    xlen = floor(4 * (bbox[2] - bbox[1])) # for quarter degree
+    ylen = floor(4 * (bbox[4] - bbox[3])) 
   } else if(resolution == 'one'){
     xlen = bbox[2] - bbox[1] # for one degree
     ylen = bbox[4] - bbox[3]
   } else{
     stop('Resolution of input oceanographic data not defined.')
   }  
-  
-  # define time bounds using tag data
-  #month <- as.numeric(format(pdt$Date, format='%m'))
-  #tmin = min(month); tmax = max(month); tlen = tmax - tmin + 1
-  
-  #if (tlen <= 1){
-  #  tlen = 2
-  #}
   
   dat = get.var.ncdf(nc, start = c(xmin, ymin, 1, 1), count = c(xlen + 1, ylen + 1, 57, 12))
   

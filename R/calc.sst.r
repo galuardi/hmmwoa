@@ -1,30 +1,36 @@
-#' Get SST likelihood
-#' Compare tag sst data to remotely sensed SST and calculate likelihoods
-#' @param tagdata variable containing tag-collected SST data
-#' @param sst.dir local directory where get.hycom downloads are stored
-#' @param g grid used in....
-#' @param dateVec vector of dates
+#' Calculate SST-based likelihood
+#' 
+#' \code{calc.sst} compares tag SST to remotely sensed SST and calculates
+#' likelihoods
+#' 
+#' @param tag.sst variable containing tag-collected SST data
+#' @param sst.dir local directory where remote sensing SST downloads are stored
+#' @param g is output from setup.grid and indicates extent and resolution of 
+#'   grid used to calculate likelihoods
+#' @param dateVec is vector of dates from tag to pop-up in 1 day increments.
 #' @param raster logical. should a raster be returned?
-#'
-#' @return likelihood is array of likelihood surfaces representing matches between tag-based sst and oi sst maps
+#'   
+#' @return likelihood is array of likelihood surfaces representing matches
+#'   between tag-based sst and remotely sensed sst maps
 #' @export
 #' @seealso \code{\link{calc.pdt.int}} \code{\link{calc.ohc.int}}
 #' @examples
 #' none
-calc.sst <- function(tagdata, sst.dir, g, dateVec, raster = 'stack'){
-  dts <- as.POSIXct(tagdata$Date, format = findDateFormat(tagdata$Date))
+
+calc.sst <- function(tag.sst, sst.dir, g, dateVec, raster = 'stack'){
   
-  tagdata[,12] <- as.Date(dts)
-  by_dte <- group_by(tagdata, V12)  # group by unique DAILY time points
-  tagdata <- data.frame(summarise(by_dte, min(Temperature), max(Temperature)))
-  colnames(tagdata) <- list('date','minT','maxT')
+  dts <- as.POSIXct(tag.sst$Date, format = findDateFormat(tag.sst$Date))
+  tag.sst[,12] <- as.Date(dts)
+  by_dte <- group_by(tag.sst, V12)  # group by unique DAILY time points
+  tag.sst <- data.frame(summarise(by_dte, min(Temperature), max(Temperature)))
+  colnames(tag.sst) <- list('date', 'minT', 'maxT')
   
-  T <- length(tagdata[,1])
+  T <- length(tag.sst[,1])
   
   for(i in 1:T){
     
-    time <- tagdata$date[i]
-    sst.i <- c(tagdata$minT[i] * .99, tagdata$maxT[i] * 1.01) # sensor error
+    time <- tag.sst$date[i]
+    sst.i <- c(tag.sst$minT[i] * .99, tag.sst$maxT[i] * 1.01) # sensor error
     
     # open day's sst data
     nc <- open.ncdf(paste(sst.dir, ptt, '_', as.Date(time), '.nc', sep='')) #add lat lon in filename '.nc', sep=''))
@@ -33,9 +39,9 @@ calc.sst <- function(tagdata, sst.dir, g, dateVec, raster = 'stack'){
     # calc sd of SST
     # focal calc on mean temp and write to sd var
     t = Sys.time()
-    r = flip(raster(t(dat)),2)
-    sdx = focal(r, w=matrix(1,nrow=3,ncol=3), fun=function(x) sd(x, na.rm = T))
-    sdx = t(as.matrix(flip(sdx,2)))
+    r = flip(raster(t(dat)), 2)
+    sdx = focal(r, w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
+    sdx = t(as.matrix(flip(sdx, 2)))
     print(paste('finishing sd for ', time,'. Section took ', Sys.time() - t))
     
     # compare sst to that day's tag-based ohc
@@ -68,15 +74,11 @@ calc.sst <- function(tagdata, sst.dir, g, dateVec, raster = 'stack'){
     rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
     L.sst <- spatial_sync_raster(L.sst, rasMatch)
     
-    if(raster == 'brick'){
-      s <- L.sst
-    } else if(raster == 'stack'){
-      s <- stack(L.sst)
-    } else if(raster == 'array'){
-      s <- raster::as.array(L.sst, transpose = T)
+    if (raster){
+    } else {
+      L.sst <- raster::as.array(L.sst, transpose = T)
     }
     
-    print(class(L.sst))
     # return sst likelihood surfaces
     return(L.sst)
     

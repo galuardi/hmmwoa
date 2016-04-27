@@ -1,20 +1,24 @@
-#' Calculate Ocean heat Content probability surface
+#' Calculate Ocean Heat Content (OHC) probability surface
 #' 
-#' Compare tag data to ohc map and calculate likelihoods
-#'
+#' Compare tag data to OHC map and calculate likelihoods
+#' 
 #' @param pdt is variable containing tag-collected PDT data
-#' @param isotherm default '' in which isotherm is calculatedon the fly based on daily tag data. Otherwise, numeric isotherm constraint can be specified (e.g. 20).
+#' @param isotherm default '' in which isotherm is calculated on the fly based 
+#'   on daily tag data. Otherwise, numeric isotherm constraint can be specified 
+#'   (e.g. 20 deg C).
 #' @param ohc.dir local directory where get.hycom downloads are stored.
-#' @param g grid
-#' @param dateVec vector of dates 
-#' @param raster logical. should a raster be returned?
-#' @param downsample logical
-#'
-#' @return likelihood is array of likelihood surfaces representing
+#' @param g is output from setup.grid and indicates extent and resolution of 
+#'   grid used to calculate likelihoods
+#' @param dateVec is vector of dates from tag to pop-up in 1 day increments.
+#' @param raster logical. should a raster be returned? If false, an array will
+#'   be returned.
+#'   
+#' @return likelihood is array or raster of likelihood surfaces representing 
+#'   estimated position based on tag-based OHC compared to calculated OHC using 
+#'   HYCOM
 
-calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = 'stack', downsample = F){
+calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = TRUE){
 
-  
   # constants for OHC calc
   cp <- 3.993 # kJ/kg*C <- heat capacity of seawater
   rho <- 1025 # kg/m3 <- assumed density of seawater
@@ -121,7 +125,7 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = 'stack', 
   L.ohc <- flip(L.ohc, direction = 'y')
   s <- stack(L.ohc)
 
-  # make L.pdt match resolution/extent of g
+  # make L.ohc match resolution/extent of g
   row <- dim(g$lon)[1]
   col <- dim(g$lon)[2]
   ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
@@ -129,15 +133,11 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = 'stack', 
   rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
   L.ohc <- spatial_sync_raster(L.ohc, rasMatch)
   
-  if(raster == 'brick'){
-    s <- L.ohc
-  } else if(raster == 'stack'){
-    s <- stack(L.ohc)
-  } else if(raster == 'array'){
-    s <- raster::as.array(L.ohc, transpose = T)
+  if(raster){
+  } else{
+    L.ohc <- raster::as.array(L.ohc, transpose = T)
   }
   
-  print(class(L.ohc))
   # return ohc likelihood surfaces
   return(L.ohc)
   

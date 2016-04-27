@@ -4,7 +4,7 @@
 #' given temporal and spatial constraints of your data.
 #' 
 #' The method may return before the download is completed. It will continue to 
-#' display progress  until the download completes. Change the default
+#' display progress  until the download completes. Change the default 
 #' \code{download.file} if the download is failing on your platform.
 #' 
 #' @param lon A vector of length 2 with the minimum and maximum longitude (-180,
@@ -20,8 +20,8 @@
 #' @param filename An optional filename. If provided, then the data is 
 #'   downloaded to that file. Otherwise the data is not downloaded and the url 
 #'   is returned.
-#' @param download.file Logical. Should use the default \code{download.file} to
-#'   query the server and download or use the optional \code{curl}. Some users
+#' @param download.file Logical. Should use the default \code{download.file} to 
+#'   query the server and download or use the optional \code{curl}. Some users 
 #'   may need to use \code{curl} in order to get this to work.
 #' @param dir is local directory where ncdf files should be downloaded to. 
 #'   default is current working directory. if enter a directory that doesn't 
@@ -36,17 +36,19 @@
 #' time <- as.Date('2013-03-01')
 #' get.hycom(lon, lat, time, type='a', filename = '', vars = 'water_temp')
 #' # only returns url because filename is unspecified
-#' 
-#' @author   Function originally written for R by Ben Jones (WHOI) and modified by Camrin Braun and Ben Galuardi.
-#' @references <reference to HYCOM website and papers> \url{https://hycom.org/}
-#' @seealso <links to similar functions>
-#'
-#' \dontrun{
-#' get.hycom(lon, lat, time, type='a', filename = 'my_data', vars = 'water_temp')
+#' \dontrun{ 
+#' get.hycom(lon, lat, time, type='a', filename = 'my_data', vars = water_temp')
 #' nc <- open.ncdf('my_data.nc')
-#' hycom <- get.var.ncdf(nc, 'water_temp')
+#' hycom <- get.var.ncdf(nc,water_temp')
 #' image.plot(hycom[,,1])
 #' }
+#'   
+#' @author   Function originally written for R by Ben Jones (WHOI) and modified
+#'   by Camrin Braun and Ben Galuardi.
+#' @references <reference to HYCOM website and papers> \url{https://hycom.org/}
+#' @seealso <links to similar functions>
+#'   
+
 
 get.hycom <- function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
                           filename='', type = 'r', download.file=TRUE, dir = getwd()) {
