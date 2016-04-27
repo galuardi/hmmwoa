@@ -2,8 +2,7 @@
 % Please edit documentation in R/extract.woa.r
 \name{extract.woa}
 \alias{extract.woa}
-\title{Extract temperatures from World Ocean Atlas
-Extract the desired temperature data from a global dataset derived from monthly gridded climatology data contained in the 2013 World Ocean Atlas}
+\title{Extract temperatures from World Ocean Atlas}
 \usage{
 extract.woa(nc.dir, bbox, resolution)
 }
@@ -18,7 +17,6 @@ extract.woa(nc.dir, bbox, resolution)
 a list containing: DAT is an array of temperature data with dimensions (long, lat, depth, time) depth contains 57 standard depth levels by default and levels are defined in variable 'depth' contained here. time dimension covers the months of tag deployment as gathered from querying month data in variable 'pdt' LON/LAT are vectors of lon/lat bounds
 }
 \description{
-Extract temperatures from World Ocean Atlas
 Extract the desired temperature data from a global dataset derived from monthly gridded climatology data contained in the 2013 World Ocean Atlas
 }
 \examples{

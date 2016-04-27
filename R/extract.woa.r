@@ -1,5 +1,6 @@
 #' Extract temperatures from World Ocean Atlas
-#'Extract the desired temperature data from a global dataset derived from monthly gridded climatology data contained in the 2013 World Ocean Atlas
+#' 
+#' Extract the desired temperature data from a global dataset derived from monthly gridded climatology data contained in the 2013 World Ocean Atlas
 #'
 #' @param nc.dir directory to load the global nc file from; make sure it's he only .nc file in the given directory
 #' @param bbox bounding box of form (long min, long max, lat min, lat max) 
