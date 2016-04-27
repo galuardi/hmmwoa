@@ -2,28 +2,29 @@
 % Please edit documentation in R/calc.sst.r
 \name{calc.sst}
 \alias{calc.sst}
-\title{Get SST likelihood
-Compare tag sst data to remotely sensed SST and calculate likelihoods}
+\title{Calculate SST-based likelihood}
 \usage{
-calc.sst(tagdata, sst.dir, g, dateVec, raster = "stack")
+calc.sst(tag.sst, sst.dir, g, dateVec, raster = "stack")
 }
 \arguments{
-\item{tagdata}{variable containing tag-collected SST data}
+\item{tag.sst}{variable containing tag-collected SST data}
 
-\item{sst.dir}{local directory where get.hycom downloads are stored}
+\item{sst.dir}{local directory where remote sensing SST downloads are stored}
 
-\item{g}{grid used in....}
+\item{g}{is output from setup.grid and indicates extent and resolution of 
+grid used to calculate likelihoods}
 
-\item{dateVec}{vector of dates}
+\item{dateVec}{is vector of dates from tag to pop-up in 1 day increments.}
 
 \item{raster}{logical. should a raster be returned?}
 }
 \value{
-likelihood is array of likelihood surfaces representing matches between tag-based sst and oi sst maps
+likelihood is array of likelihood surfaces representing matches
+  between tag-based sst and remotely sensed sst maps
 }
 \description{
-Get SST likelihood
-Compare tag sst data to remotely sensed SST and calculate likelihoods
+\code{calc.sst} compares tag SST to remotely sensed SST and calculates
+likelihoods
 }
 \examples{
 none

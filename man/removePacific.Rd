@@ -2,7 +2,7 @@
 % Please edit documentation in R/removePacific.r
 \name{removePacific}
 \alias{removePacific}
-\title{script to remove pacific from wod data to prevent matching there}
+\title{Remove Pacific Ocean data from N. Atlantic analyses}
 \usage{
 removePacific(dat, lat, lon)
 }
@@ -14,10 +14,19 @@ removePacific(dat, lat, lon)
 \item{lon}{is output from extract.woa}
 }
 \value{
-dat is WOA data grid with Pacific removed
-only tested when area of interest in N Atlantic
+dat is WOA data grid with Pacific removed only tested when area of
+  interest is N Atlantic
 }
 \description{
-script to remove pacific from wod data to prevent matching there
+\code{removePacific} removes Pacific Ocean from WOA and other forms of
+array-based data. This is a specialized function to address the issue when
+the Pacific side of Panama enters into the model bounding box of a North
+Atlantic analysis.
+}
+\examples{
+woa.dir <- getwd()
+woa <- extract.woa(woa.dir, bbox = c(-90, -30, -10, 30), 'quarter')
+woa <- removePacific(woa, lat, lon)
+image.plot(woa[,,1,1])
 }
 

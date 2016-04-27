@@ -2,48 +2,68 @@
 % Please edit documentation in R/get.oi.sst.r
 \name{get.oi.sst}
 \alias{get.oi.sst}
-\title{Downloads data from the ...}
+\title{Download OI Sea Surface Temperature (SST) data}
 \usage{
 get.oi.sst(lon, lat, time, filename = "", download.file = TRUE,
   dir = getwd())
 }
 \arguments{
-\item{lon}{An vector of length 2 with the minimum and maximum longitude.}
+\item{lon}{A vector of length 2 with the minimum and maximum longitude (-180,
+180).}
 
-\item{lat}{An vector of length 2 with the minimum and maximum latitude.}
+\item{lat}{A vector of length 2 with the minimum and maximum latitude.}
 
-\item{time}{An vector of length 2 with the minimum and maximum times.}
+\item{time}{A vector of length 2 with the minimum and maximum times in form 
+\code{as.Date(date)}.}
 
-\item{filename}{An optional filename. If provided, then the data is
-downloaded to that file. Otherwise the data is not downloaded.}
+\item{filename}{An optional filename. If provided, then the data is 
+downloaded to that file. Otherwise the data is not downloaded and the url 
+is returned.}
 
-\item{download.file}{Should use the default download.file function to query 
-the server and download or use the optional curl function. Some users may
-need to use curl in order to get this to work.}
+\item{download.file}{Logical. Should use the default \code{download.file} to 
+query the server and download or use the optional \code{curl}. Some users 
+may need to use \code{curl} in order to get this to work.}
 
-\item{vars}{A list of variables to download. This should only contain
-'sst' 'anom' 'err' but is not checked for errors}
-
-\item{include_latlon}{Should the array of latitude and longitude values be
-included?}
-
-\item{:}{dir is directory where nc files should be downloaded to. default is
-current working directory. if enter a directory that doesn't exist, it will
-be created.}
-
-\item{type}{indicates type of HYCOM product to download. 'r' is reanalysis
-and 'a' is analysis. see https://hycom.org/dataserver for details.}
+\item{dir}{is local directory where ncdf files should be downloaded to. 
+default is current working directory. if enter a directory that doesn't 
+exist, it will be created.}
 }
 \value{
-The url used to extract the requested data from the NetCDF subset
-service.
+The url used to extract the requested data from the NetCDF subset 
+  service.
 }
 \description{
-The method may return before the download is completed. It will continue
-to display progress  until the download completes.
+\code{get.oi.sst} downloads sea surface temperature (SST) data for given
+temporal and spatial constraints of your data.
 }
 \details{
-Ideally download.file (default method) would be used instead of curl (optional), but this does not 
-seem to work on some platforms.
+The method may return before the download is completed. It will continue to 
+display progress  until the download completes. Change the default 
+\code{download.file} if the download is failing on your platform.
+}
+\examples{
+lon <- c(-90, -60)
+lat <- c(0, 30)
+time <- as.Date('2013-03-01')
+get.oi.sst(lon, lat, time, filename = '')
+# only returns url because filename is unspecified
+\dontrun{ 
+get.oi.sst(lon, lat, time, filename = 'my_data.nc')
+nc <- open.ncdf('my_data.nc')
+sst <- get.var.ncdf(nc, 'sst')
+image.plot(sst)
+}
+  
+}
+\author{
+Function originally written for R by Ben Jones (WHOI) and modified 
+  by Camrin Braun and Ben Galuardi.
+}
+\references{
+<reference to OI sst website and papers>
+  \url{https://www.ncdc.noaa.gov/oisst}
+}
+\seealso{
+<links to similar functions>
 }
 

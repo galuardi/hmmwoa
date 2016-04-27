@@ -4,16 +4,17 @@
 \alias{extract.pdt}
 \title{Extract PDT from Wildlife Computers tag data}
 \usage{
-extract.pdt(data)
+extract.pdt(pdt)
 }
 \arguments{
-\item{data}{data frame read from .csv output of Wildlife Computers DAP processor. File ends in "-PDTs.csv"}
+\item{pdt}{data frame read from -PDTs.csv output of Wildlife Computers DAP 
+processor or Tag Portal.}
 }
 \value{
 data frame formatted for pdt data
 }
 \description{
-Extract PDT from Wildlife Computers tag data
+\code{extract.pdt} is a simple formatting function for using PDT data later
 }
 \examples{
 none

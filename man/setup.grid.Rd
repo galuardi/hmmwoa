@@ -19,5 +19,6 @@ Setup the discrete spatial grid for the HMM
 }
 \examples{
 none
+
 }
 

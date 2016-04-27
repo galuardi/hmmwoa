@@ -7,17 +7,24 @@
 extract.woa(nc.dir, bbox, resolution)
 }
 \arguments{
-\item{nc.dir}{directory to load the global nc file from; make sure it's he only .nc file in the given directory}
+\item{nc.dir}{directory to load the global nc file from; specify the complete
+path to the nc file unless it is in your current working directory}
 
 \item{bbox}{bounding box of form (long min, long max, lat min, lat max)}
 
-\item{resolution}{indicates whether oceanographic data is gridded at 'quarter' or 'one' degree resolution}
+\item{resolution}{indicates whether oceanographic data is gridded at 
+'quarter' or 'one' degree resolution}
 }
 \value{
-a list containing: DAT is an array of temperature data with dimensions (long, lat, depth, time) depth contains 57 standard depth levels by default and levels are defined in variable 'depth' contained here. time dimension covers the months of tag deployment as gathered from querying month data in variable 'pdt' LON/LAT are vectors of lon/lat bounds
+a list containing: DAT is an array of temperature data with 
+  dimensions (long, lat, depth, time) depth contains 57 standard depth levels
+  by default and levels are defined in variable 'depth' contained here. time 
+  is monthly and spans the entire year. LON/LAT are vectors of lon/lat bounds
 }
 \description{
-Extract the desired temperature data from a global dataset derived from monthly gridded climatology data contained in the 2013 World Ocean Atlas
+\code{extract.woa} extracts the desired temperature data from a global 
+dataset derived from monthly gridded climatology data contained in the 2013 
+World Ocean Atlas
 }
 \examples{
 none

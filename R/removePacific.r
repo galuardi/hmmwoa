@@ -1,13 +1,22 @@
+#' Remove Pacific Ocean data from N. Atlantic analyses
+#' 
+#' \code{removePacific} removes Pacific Ocean from WOA and other forms of
+#' array-based data. This is a specialized function to address the issue when
+#' the Pacific side of Panama enters into the model bounding box of a North
+#' Atlantic analysis.
+#' @param dat is output from extract.woa
+#' @param lat is output from extract.woa
+#' @param lon is output from extract.woa
+#' @return dat is WOA data grid with Pacific removed only tested when area of
+#'   interest is N Atlantic
+#' @examples 
+#' woa.dir <- getwd()
+#' woa <- extract.woa(woa.dir, bbox = c(-90, -30, -10, 30), 'quarter')
+#' woa <- removePacific(woa, lat, lon)
+#' image.plot(woa[,,1,1])
+
 removePacific <- function(dat, lat, lon){
 
-  #' script to remove pacific from wod data to prevent matching there
-  #' @param dat is output from extract.woa
-  #' @param lat is output from extract.woa
-  #' @param lon is output from extract.woa
-  #' @return dat is WOA data grid with Pacific removed
-  #' only tested when area of interest in N Atlantic
-  
-  
   # run 1
   ylims = c(min(lat), 5)
   xlims = c(min(lon), -60)

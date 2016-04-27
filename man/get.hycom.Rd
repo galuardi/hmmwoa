@@ -30,8 +30,8 @@ is returned.}
 \item{type}{indicates type of HYCOM product to download. 'r' is reanalysis 
 and 'a' is analysis. see \url{https://hycom.org/dataserver/} for details.}
 
-\item{download.file}{Logical. Should use the default \code{download.file} to
-query the server and download or use the optional \code{curl}. Some users
+\item{download.file}{Logical. Should use the default \code{download.file} to 
+query the server and download or use the optional \code{curl}. Some users 
 may need to use \code{curl} in order to get this to work.}
 
 \item{dir}{is local directory where ncdf files should be downloaded to. 
@@ -48,7 +48,7 @@ given temporal and spatial constraints of your data.
 }
 \details{
 The method may return before the download is completed. It will continue to 
-display progress  until the download completes. Change the default
+display progress  until the download completes. Change the default 
 \code{download.file} if the download is failing on your platform.
 }
 \examples{
@@ -57,22 +57,22 @@ lat <- c(0, 30)
 time <- as.Date('2013-03-01')
 get.hycom(lon, lat, time, type='a', filename = '', vars = 'water_temp')
 # only returns url because filename is unspecified
-
+\dontrun{ 
+get.hycom(lon, lat, time, type='a', filename = 'my_data.nc', vars = 'water_temp')
+nc <- open.ncdf('my_data.nc')
+hycom <- get.var.ncdf(nc, 'water_temp')
+image.plot(hycom[,,1])
+}
+  
 }
 \author{
-Function originally written for R by Ben Jones (WHOI) and modified by Camrin Braun and Ben Galuardi.
+Function originally written for R by Ben Jones (WHOI) and modified
+  by Camrin Braun and Ben Galuardi.
 }
 \references{
 <reference to HYCOM website and papers> \url{https://hycom.org/}
 }
 \seealso{
 <links to similar functions>
-
-\dontrun{
-get.hycom(lon, lat, time, type='a', filename = 'my_data', vars = 'water_temp')
-nc <- open.ncdf('my_data.nc')
-hycom <- get.var.ncdf(nc, 'water_temp')
-image.plot(hycom[,,1])
-}
 }
 

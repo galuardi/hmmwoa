@@ -2,8 +2,7 @@
 % Please edit documentation in R/findDateFormat.r
 \name{findDateFormat}
 \alias{findDateFormat}
-\title{Detemine date format of vector
-Function to determine the date format of a given vector of date}
+\title{Determine date format of vector}
 \usage{
 findDateFormat(dateVec)
 }
@@ -14,10 +13,10 @@ findDateFormat(dateVec)
 dateformat is character string used as input to strptime(format = dateformat)
 }
 \description{
-Detemine date format of vector
-Function to determine the date format of a given vector of date
+\code{findDateFormat} determines the date format of a given vector of dates
 }
 \examples{
 none
+
 }
 

@@ -1,38 +1,49 @@
+#' Download OI Sea Surface Temperature (SST) data
+#' 
+#' \code{get.oi.sst} downloads sea surface temperature (SST) data for given
+#' temporal and spatial constraints of your data.
+#' 
+#' The method may return before the download is completed. It will continue to 
+#' display progress  until the download completes. Change the default 
+#' \code{download.file} if the download is failing on your platform.
+#' 
+#' @param lon A vector of length 2 with the minimum and maximum longitude (-180,
+#'   180).
+#' @param lat A vector of length 2 with the minimum and maximum latitude.
+#' @param time A vector of length 2 with the minimum and maximum times in form 
+#'   \code{as.Date(date)}.
+#' @param filename An optional filename. If provided, then the data is 
+#'   downloaded to that file. Otherwise the data is not downloaded and the url 
+#'   is returned.
+#' @param download.file Logical. Should use the default \code{download.file} to 
+#'   query the server and download or use the optional \code{curl}. Some users 
+#'   may need to use \code{curl} in order to get this to work.
+#' @param dir is local directory where ncdf files should be downloaded to. 
+#'   default is current working directory. if enter a directory that doesn't 
+#'   exist, it will be created.
+#' @return The url used to extract the requested data from the NetCDF subset 
+#'   service.
+#' @examples 
+#' lon <- c(-90, -60)
+#' lat <- c(0, 30)
+#' time <- as.Date('2013-03-01')
+#' get.oi.sst(lon, lat, time, filename = '')
+#' # only returns url because filename is unspecified
+#' \dontrun{ 
+#' get.oi.sst(lon, lat, time, filename = 'my_data.nc')
+#' nc <- open.ncdf('my_data.nc')
+#' sst <- get.var.ncdf(nc, 'sst')
+#' image.plot(sst)
+#' }
+#'   
+#' @author   Function originally written for R by Ben Jones (WHOI) and modified 
+#'   by Camrin Braun and Ben Galuardi.
+#' @references <reference to OI sst website and papers>
+#'   \url{https://www.ncdc.noaa.gov/oisst}
+#' @seealso <links to similar functions>
+#'   
 
 get.oi.sst <- function(lon, lat, time, filename='', download.file=TRUE, dir = getwd()) {
-
-  #' Downloads data from the ...
-  #'
-  #' The method may return before the download is completed. It will continue
-  #' to display progress  until the download completes. 
-  #' 
-  #' Ideally download.file (default method) would be used instead of curl (optional), but this does not 
-  #' seem to work on some platforms.
-  #'
-  #' @param lon An vector of length 2 with the minimum and maximum longitude. 
-  #' @param lat An vector of length 2 with the minimum and maximum latitude.
-  #' @param time An vector of length 2 with the minimum and maximum times.
-  #' @param vars A list of variables to download. This should only contain
-  #' 'sst' 'anom' 'err' but is not checked for errors
-  #' @param include_latlon Should the array of latitude and longitude values be
-  #' included?
-  #' @param filename An optional filename. If provided, then the data is
-  #' downloaded to that file. Otherwise the data is not downloaded.
-  #' @param download.file Should use the default download.file function to query 
-  #' the server and download or use the optional curl function. Some users may
-  #' need to use curl in order to get this to work.
-  #' @param: dir is directory where nc files should be downloaded to. default is
-  #' current working directory. if enter a directory that doesn't exist, it will
-  #' be created.
-  #' @param type indicates type of HYCOM product to download. 'r' is reanalysis
-  #'        and 'a' is analysis. see https://hycom.org/dataserver for details.
-  #' @return The url used to extract the requested data from the NetCDF subset
-  #' service.
-    
-  ## Function originally written for R by Ben Jones (WHOI) and modified by Camrin
-  ## Braun and Ben Galuardi.
-  
-  require(ncdf)
   
   dir.create(file.path(dir), recursive = TRUE)
   setwd(dir)
@@ -41,11 +52,11 @@ get.oi.sst <- function(lon, lat, time, filename='', download.file=TRUE, dir = ge
   ## period for this experiment, then print a warning and truncate the output
   ## early.
   
-  
-    expts = data.frame(
-      start=c(as.Date('1981-09-01')),
-      end=c(Sys.Date() + 1),
-      url=c('http://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst2Agg_LonPM180.nc?sst'))
+  expts = data.frame(
+    start=c(as.Date('1981-09-01')),
+    end=c(Sys.Date() + 1),
+    url=c('http://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst2Agg_LonPM180.nc?sst')
+    )
   
   if(time[1] < expts$start[1])
     stop('Data begins at %s and is not available at %s.',
@@ -61,20 +72,20 @@ get.oi.sst <- function(lon, lat, time, filename='', download.file=TRUE, dir = ge
   }
   
   ## Add the time domain.
-    if(length(time) == 2){
-      url = sprintf('%s[(%s:00:00Z):1:(%s:00:00Z)]',
-                    url, strftime(time[1], '%Y-%m-%dT00'),
-                    strftime(time[2], '%Y-%m-%dT00'))
-    } else if(length(time)==1){
-      url = sprintf('%s[(%s:00:00Z):1:(%s:00:00Z)]',
-                    url, strftime(time[1], '%Y-%m-%dT00'),
-                    strftime(time[1], '%Y-%m-%dT00'))
-    }
-    
+  if(length(time) == 2){
+    url = sprintf('%s[(%s:00:00Z):1:(%s:00:00Z)]',
+                  url, strftime(time[1], '%Y-%m-%dT00'),
+                  strftime(time[2], '%Y-%m-%dT00'))
+  } else if(length(time) == 1){
+    url = sprintf('%s[(%s:00:00Z):1:(%s:00:00Z)]',
+                  url, strftime(time[1], '%Y-%m-%dT00'),
+                  strftime(time[1], '%Y-%m-%dT00'))
+  }
+  
   ## Add the spatial domain.
   url = sprintf('%s[(0):1:(0)][(%s):1:(%s)][(%s):1:(%s)]',
                 url, lat[1], lat[2], lon[1], lon[2])
-
+  
   ## Download the data if a filename was provided.
   if(filename != ''){
     if(download.file == TRUE){
@@ -85,6 +96,4 @@ get.oi.sst <- function(lon, lat, time, filename='', download.file=TRUE, dir = ge
   }
   return(url)
 }
-#http://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst2Agg_LonPM180.nc?sst[(2015-10-22T00:00:00Z):1:(2015-10-22T00:00:00Z)][(0.0):1:(0.0)][(17):1:(71)][(-92.25):1:(-46.75)]
-
 

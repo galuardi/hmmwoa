@@ -37,9 +37,9 @@
 #' get.hycom(lon, lat, time, type='a', filename = '', vars = 'water_temp')
 #' # only returns url because filename is unspecified
 #' \dontrun{ 
-#' get.hycom(lon, lat, time, type='a', filename = 'my_data', vars = water_temp')
+#' get.hycom(lon, lat, time, type='a', filename = 'my_data.nc', vars = 'water_temp')
 #' nc <- open.ncdf('my_data.nc')
-#' hycom <- get.var.ncdf(nc,water_temp')
+#' hycom <- get.var.ncdf(nc, 'water_temp')
 #' image.plot(hycom[,,1])
 #' }
 #'   
@@ -51,9 +51,9 @@
 
 
 get.hycom <- function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
-                          filename='', type = 'r', download.file=TRUE, dir = getwd()) {
-
-
+                      filename='', type = 'r', download.file=TRUE, dir = getwd()) {
+  
+  
   
   dir.create(file.path(dir), recursive = TRUE)
   setwd(dir)
@@ -83,7 +83,7 @@ get.hycom <- function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
             as.Date('2012-12-31')),
       url=c('http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_19.0',
             'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_19.1'))
-    }
+  }
   
   if(time[1] < expts$start[1])
     stop('Data begins at %s and is not available at %s.',

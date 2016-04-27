@@ -8,6 +8,7 @@
 #'
 #' @examples
 #' none
+#' 
 setup.grid <- function(locations, res){
 
   T <- length(locations$Longitude)
@@ -41,18 +42,6 @@ setup.grid <- function(locations, res){
   } else if(res == 'one'){
     la.out <- 1 * (latu - latl) # 1 deg
   }
-  
-  #  latvec <- seq(0,90)
-  #  lats <- rep(0,T)
-  #  for(t in 1:T){
-  #    time <- date2time(lsst$date[t])
-  #    #time <- as.numeric(strftime(lsst$date[t],format='%j'))
-  #    ssts <- sstdb(time,lsst$lon[t],latvec)
-  #    lats[t] <- latvec[sum(lsst$sst[t]<ssts)]
-  #  }
-  #  lx <- 0.1*(max(lats)-min(lats))
-  #  latl <- min(lats) - lx
-  #  latu <- max(lats) + lx
   
   # Create grid
   lo <- seq(lonl, lonu, length.out = lo.out)

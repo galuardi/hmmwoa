@@ -2,30 +2,33 @@
 % Please edit documentation in R/calc.ohc.r
 \name{calc.ohc}
 \alias{calc.ohc}
-\title{Calculate Ocean heat Content probability surface}
+\title{Calculate Ocean Heat Content (OHC) probability surface}
 \usage{
-calc.ohc(pdt, isotherm = "", ohc.dir, g, dateVec, raster = "stack",
-  downsample = F)
+calc.ohc(pdt, isotherm = "", ohc.dir, g, dateVec, raster = TRUE)
 }
 \arguments{
 \item{pdt}{is variable containing tag-collected PDT data}
 
-\item{isotherm}{default '' in which isotherm is calculatedon the fly based on daily tag data. Otherwise, numeric isotherm constraint can be specified (e.g. 20).}
+\item{isotherm}{default '' in which isotherm is calculated on the fly based 
+on daily tag data. Otherwise, numeric isotherm constraint can be specified 
+(e.g. 20 deg C).}
 
 \item{ohc.dir}{local directory where get.hycom downloads are stored.}
 
-\item{g}{grid}
+\item{g}{is output from setup.grid and indicates extent and resolution of 
+grid used to calculate likelihoods}
 
-\item{dateVec}{vector of dates}
+\item{dateVec}{is vector of dates from tag to pop-up in 1 day increments.}
 
-\item{raster}{logical. should a raster be returned?}
-
-\item{downsample}{logical}
+\item{raster}{logical. should a raster be returned? If false, an array will
+be returned.}
 }
 \value{
-likelihood is array of likelihood surfaces representing
+likelihood is array or raster of likelihood surfaces representing 
+  estimated position based on tag-based OHC compared to calculated OHC using 
+  HYCOM
 }
 \description{
-Compare tag data to ohc map and calculate likelihoods
+Compare tag data to OHC map and calculate likelihoods
 }
 
