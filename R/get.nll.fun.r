@@ -25,11 +25,6 @@ get.nll.fun <- function(parvec=c(D1, D2, p), g, L, dt){
   K1 = as.cimg(gausskern(parvec[1], parvec[2], muadv = 0))
   K2 = as.cimg(gausskern(parvec[3], parvec[4], muadv = 0))
   P <- matrix(c(parvec[5], 1-parvec[5], 1-parvec[6], parvec[6]), 2, 2, byrow = TRUE)
-
-  # make all NA's very tiny for the convolution
-  # the previous steps may have taken care of this...
-  L[L==0] = 1e-15
-  L[is.na(L)] = 1e-15
   
   # filter - moved function to sphmmfuns_hmm
   f = hmm.filter2(g,L,K1,K2,P)

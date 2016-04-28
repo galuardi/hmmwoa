@@ -282,9 +282,26 @@ plot(countriesLow,add=T)
 # are transformed. Instead when analysing new data one should find optimal
 # parameters by setting do.fit=TRUE.
 
-# try the NLL
+# make all NA's very tiny for the convolution
+# the previous steps may have taken care of this...
+L[L==0] = 1e-15
+L[is.na(L)] = 1e-15
+
+# try the MLE
+
+fit <- nlm(get.nll.fun, par0, g, L)
+D1 <- exp(fit$estimate[1:2])
+D2 <- exp(fit$estimate[3:4])
+p <- 1/(1+exp(-fit$estimate[5:6])) 
+
 nllf <- get.nll.fun(parvec=c(D1, D2, p), g, L)
 
+
+par0 <- c(log(10), log(10), log(0.5), log(0.5), log(0.95/0.05), log(0.95/0.05))
+fit <- nlm(get.nll.fun, par0, g, L, dt)
+D1 <- exp(fit$estimate[1:2])
+D2 <- exp(fit$estimate[3:4])
+p <- 1/(1+exp(-fit$estimate[5:6]))
 #=========
 ## When using fixed parameters...
 par0=c(8.908,10.27,3,1,0.707,0.866) # what units are these?
