@@ -282,8 +282,13 @@ plot(countriesLow,add=T)
 # are transformed. Instead when analysing new data one should find optimal
 # parameters by setting do.fit=TRUE.
 
-#par0=c(8.908,10.27,3,1,0.707,0.866) # what units are these?
-par0 = c(40, 10, 10, 5, .707, .866)
+# try the NLL
+nllf <- get.nll.fun(parvec=c(D1, D2, p), g, L)
+
+#=========
+## When using fixed parameters...
+par0=c(8.908,10.27,3,1,0.707,0.866) # what units are these?
+#par0 = c(40, 10, 10, 5, .707, .866)
 
 D1 <- par0[1:2] # parameters for kernel 1. this is behavior mode transit
 D2 <- par0[3:4] # parameters for kernel 2. resident behavior mode
@@ -307,6 +312,9 @@ image.plot(lon, lat, res/max(res), zlim = c(.05,1))
 # smooth
 # way faster w/o plotting
 s = hmm.smoother2(f, K1, K2, P, plot = F)
+
+#=========
+## resume here after NLL?
 
 sres = apply(s[1,,,],2:3,sum, na.rm=T)
 image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
