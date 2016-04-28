@@ -98,7 +98,7 @@ calc.locs <- function(locs, iniloc, g, raster = TRUE, dateVec, errEll = F){
           Lsx <- raster::crop(Ls, L.ext)
           rr <- raster::resample(Lsx, L.ext)
           #image.plot(lon,lat,t(as.matrix(flip(rr,direction='y'))))
-          L.locs[,,which(dateVec == locDates[t])] <- t(as.matrix(raster::flip(rr, direction = 'y')))
+          L.locs[,,which(dateVec == locDates[t])] <- t(raster::as.matrix(raster::flip(rr, direction = 'y')))
           
         } else{
           # if supposed shift in error ellipse is >10 degrees, we revert to longitude only
