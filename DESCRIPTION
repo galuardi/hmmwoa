@@ -10,13 +10,14 @@ Authors@R: c(
 Description: this will be the HMM using WOA data. The guts follow Pedersen et
     al. 2008
 License: MIT
+Depends:
+    raster
 Imports: 
     dplyr,
     fields,
     imager,
     locfit,
     ncdf,
-    raster,
     rworldmap,
     spatial.tools
 RoxygenNote: 5.0.1

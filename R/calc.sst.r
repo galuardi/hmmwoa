@@ -21,8 +21,8 @@ calc.sst <- function(tag.sst, sst.dir, g, dateVec, raster = 'stack'){
   
   dts <- as.POSIXct(tag.sst$Date, format = findDateFormat(tag.sst$Date))
   tag.sst[,12] <- as.Date(dts)
-  by_dte <- group_by(tag.sst, V12)  # group by unique DAILY time points
-  tag.sst <- data.frame(summarise(by_dte, min(Temperature), max(Temperature)))
+  by_dte <- dplyr::group_by(tag.sst, V12)  # group by unique DAILY time points
+  tag.sst <- data.frame(dplyr::summarise(by_dte, min(Temperature), max(Temperature)))
   colnames(tag.sst) <- list('date', 'minT', 'maxT')
   
   T <- length(tag.sst[,1])
@@ -33,15 +33,15 @@ calc.sst <- function(tag.sst, sst.dir, g, dateVec, raster = 'stack'){
     sst.i <- c(tag.sst$minT[i] * .99, tag.sst$maxT[i] * 1.01) # sensor error
     
     # open day's sst data
-    nc <- open.ncdf(paste(sst.dir, ptt, '_', as.Date(time), '.nc', sep='')) #add lat lon in filename '.nc', sep=''))
-    dat <- get.var.ncdf(nc, 'analysed_sst') # for OI SST
+    nc <- ncdf::open.ncdf(paste(sst.dir, ptt, '_', as.Date(time), '.nc', sep='')) #add lat lon in filename '.nc', sep=''))
+    dat <- ncdf::get.var.ncdf(nc, 'analysed_sst') # for OI SST
     
     # calc sd of SST
     # focal calc on mean temp and write to sd var
     t = Sys.time()
-    r = flip(raster(t(dat)), 2)
-    sdx = focal(r, w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
-    sdx = t(as.matrix(flip(sdx, 2)))
+    r = raster::flip(raster::raster(t(dat)), 2)
+    sdx = raster::focal(r, w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
+    sdx = t(raster::as.matrix(raster::flip(sdx, 2)))
     print(paste('finishing sd for ', time,'. Section took ', Sys.time() - t))
     
     # compare sst to that day's tag-based ohc
@@ -50,8 +50,8 @@ calc.sst <- function(tag.sst, sst.dir, g, dateVec, raster = 'stack'){
     print(paste('finishing lik.sst for ', time,'. Section took ', Sys.time() - t))
     
     if(i == 1){
-      lon <- get.var.ncdf(nc, 'longitude')
-      lat <- get.var.ncdf(nc, 'latitude')
+      lon <- ncdf::get.var.ncdf(nc, 'longitude')
+      lat <- ncdf::get.var.ncdf(nc, 'latitude')
       # result will be array of likelihood surfaces
       L.sst <- array(0, dim = c(dim(lik.sst), length(dateVec)))
     }
@@ -62,17 +62,17 @@ calc.sst <- function(tag.sst, sst.dir, g, dateVec, raster = 'stack'){
     
     crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
     list.sst <- list(x = lon, y = lat, z = L.sst)
-    ex <- extent(list.sst)
-    L.sst <- brick(list.sst$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
-    L.sst <- flip(L.sst, direction = 'y')
+    ex <- raster::extent(list.sst)
+    L.sst <- raster::brick(list.sst$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+    L.sst <- raster::flip(L.sst, direction = 'y')
     
     # make L.sst match resolution/extent of g
     row <- dim(g$lon)[1]
     col <- dim(g$lon)[2]
-    ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
+    ex <- raster::extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
     crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-    rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
-    L.sst <- spatial_sync_raster(L.sst, rasMatch)
+    rasMatch <- raster::raster(ex, nrows=row, ncols=col, crs = crs)
+    L.sst <- spatial.tools::spatial_sync_raster(L.sst, rasMatch)
     
     if (raster){
     } else {
