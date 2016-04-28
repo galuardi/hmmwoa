@@ -14,7 +14,7 @@
 #'
 #' @examples
 #' P <- matrix(c(p[1], 1-p[1], 1-p[2], p[2]), 2, 2, byrow=TRUE)
-hmm.filter2 <- function(g,L,K1,K2,P){
+hmm.filter <- function(g,L,K1,K2,P){
   
   ## Filter data to estimate locations and behaviour
   
@@ -82,71 +82,4 @@ hmm.filter2 <- function(g,L,K1,K2,P){
   list(phi = phi, pred = pred, psi = psi)
 }
 
-# Next up.... 
-hmm.smoother2 <- function(f,K1,K2,P,plot=TRUE){
-  ## Smoothing the filtered estimates
-  ## The equations for smoothing are presented in Pedersen et al. 2011, Oikos, Appendix
-  T <- dim(f$phi)[2]
-  row <- dim(f$phi)[3]
-  col <- dim(f$phi)[4]
-  
-  smooth <- array(0,dim=dim(f$phi))
-  smooth[,T,,] <- f$phi[,T,,]
-  for(t in T:2){
-    RAT <- smooth[,t,,]/(f$pred[,t,,]+1e-15)
-    #     Rp1 <- as.vector(K1 %*% as.vector(RAT[1,,]))
-    #     Rp2 <- as.vector(K2 %*% as.vector(RAT[2,,]))
-    
-    
-    p1 = as.cimg(t(RAT[1,,]))
-    Rp1 <- convolve(p1, K1)
-    p2 = as.cimg(t(RAT[2,,]))
-    Rp2 <- convolve(p2, K2)
-    
-    Rp1 = t(as.matrix(Rp1))
-    Rp2 = t(as.matrix(Rp2))
-    
-    if(plot){
-      par(mfrow=c(1,2))
-      image.plot(Rp1)
-      #plot(countriesLow,add=T)
-      image.plot(Rp2)
-      #plot(countriesLow,add=T)
-    }
-    
-    post1 <- matrix(P[1,1]*Rp1 + P[1,2]*Rp2,row,col)
-    post2 <- matrix(P[2,1]*Rp1 + P[2,2]*Rp2,row,col)
-    post1 <- post1 * f$phi[1,t-1,,]
-    post2 <- post2 * f$phi[2,t-1,,]
-    fac <- sum(as.vector(post1)) + sum(as.vector(post2))
-    smooth[1,t-1,,] <- post1/fac
-    smooth[2,t-1,,] <- post2/fac
-  }
-  smooth
-}
 
-# unmodified from sphmm
-calc.track <- function(distr,g){
-  ## Calculate track from probability distribution of location
-  
-  T <- dim(distr)[2]
-  # Track calculated from mean
-  meanlat <- apply(apply(distr,c(2,3),sum)*repmat(t(as.matrix(g$lat[,1])),T,1),1,sum)
-  meanlon <- apply(apply(distr,c(2,4),sum)*repmat(t(as.matrix(g$lon[1,])),T,1),1,sum)
-  # Track calculated from mode
-  row <- dim(g$lon)[1]
-  col <- dim(g$lon)[2]
-  modelat <- rep(0,T)
-  modelon <- rep(0,T)
-  for(t in 1:T){
-    asd <- apply(distr[,t,,],c(2,3),sum)
-    ind <- which.max(asd)
-    x <- ceiling(ind/col)
-    y <- ind %% row
-    modelat[t] <- g$lat[y,x]
-    modelon[t] <- g$lon[y,x]
-  }
-  # Track calculated with Viterbi
-  # --- not included in this script
-  list(meanlon=meanlon,meanlat=meanlat,modelon=modelon,modelat=modelat)
-}

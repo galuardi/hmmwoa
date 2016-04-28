@@ -17,7 +17,7 @@ library(rworldmap) # suggested for basemap of plots
 library(spatial.tools) # reqd for syncing rasters, better way to do this?
 
 # calculate light-based likelihood
-setwd('C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/')
+setwd('C:/Users/benjamin.galuardi/Google Drive/Camrin-WOA/hmmwoa_files/')
 #setwd('~/Documents/WHOI/RData/WhiteSharks/2013/121325/')
 
 source('C:\\Users\\ben\\Documents\\GitHub\\hmmwoa\\R\\findDateFormat.r')
@@ -77,7 +77,7 @@ ngrid <- rev(dim(g$lon))
 lon <- g$lon[1,]
 lat <- g$lat[,1]
 
-L.locs <- calc.locs2(locs, iniloc, g, raster = T, dateVec = dateVec, errEll=T)
+L.locs <- calc.locs(locs, iniloc, g, raster = T, dateVec = dateVec, errEll=T)
 L.locs.save <- L.locs
 
 pdf('light ellipses_Lydia.pdf',width=10,height=8)

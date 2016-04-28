@@ -13,8 +13,9 @@
 #' 
 #' @examples
 #' kern = gausskern(3, 0.5)
-#' @author Function originally written for Matlab by Martin W. Pedersen.
+#' @references Pedersen, M.W., Righton, D., Thygesen, U.H., Andersen, K.H., and Madsen, H. 2008. Geolocation of North Sea cod (Gadus morhua) using hidden Markov models and behavioural switching. Canadian Journal of Fisheries and Aquatic Sciences 65(11): 2167–1377. doi:10.1139/F08-144&sid=libx&genre=article.
 
+#' @author Function originally written for Matlab by Martin W. Pedersen, translated to R by Benjamin Galuardi
 
 gausskern <- function(siz, sigma, muadv = 0){
   x = 1:round(siz)
