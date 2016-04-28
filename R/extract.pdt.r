@@ -14,14 +14,14 @@
 extract.pdt <- function(pdt){
 
   # eliminate any oxygen data
-  if(any(grep('X.Ox', colnames(data)))){
-    dropidx <- c(grep('Ox', names(data)), grep('Disc', names(data)))
-    data <- data[,-dropidx]
+  if(any(grep('X.Ox', colnames(pdt)))){
+    dropidx <- c(grep('Ox', names(pdt)), grep('Disc', names(pdt)))
+    pdt <- pdt[,-dropidx]
   }
   
   # convert to long format
-  vars = names(data[,c(which(names(data) == 'Depth1'):length(names(data)))])
-  pdt <- stats::reshape(data, ids = data$Date, direction = 'long',
+  vars = names(pdt[,c(which(names(pdt) == 'Depth1'):length(names(pdt)))])
+  pdt <- stats::reshape(pdt, ids = pdt$Date, direction = 'long',
                  varying = vars, times = vars, sep='', timevar = 'BinNum')
   keepNames = c('Ptt', 'Date', 'NumBins', 'BinNum', 'Depth', 'MinTemp', 'MaxTemp')
   pdt <- pdt[,c(keepNames)]

@@ -81,24 +81,24 @@ calc.locs <- function(locs, iniloc, g, raster = TRUE, dateVec, errEll = F){
         
         #image.plot(g$lon[1,],g$lat[,1],L.light.lat*L.light.lon)
         
-        L <- flip(raster(t(L.light.lat * L.light.lon), xmn = min(lon1), 
+        L <- raster::flip(raster::raster(t(L.light.lat * L.light.lon), xmn = min(lon1), 
                     xmx = max(lon1), ymn = min(lat1), ymx = max(lat1)), direction = 'y')
         
         # offset, assuming shift should be to the south
         shiftDist <- (-1 * (locs$Offset[t] / 1000 / 111))
         
         if(shiftDist >= -10){
-          Ls <- shift(L, y = shiftDist)
-          L.ext <- flip(raster(g$lon, xmn = min(lon), 
+          Ls <- raster::shift(L, y = shiftDist)
+          L.ext <- raster::flip(raster::raster(g$lon, xmn = min(lon), 
                                xmx = max(lon), ymn = min(lat), ymx = max(lat)), direction = 'y')
           # create blank raster
           L.ext[L.ext <= 0] = 1
           
           # then crop our shifted raster
-          Lsx <- crop(Ls, L.ext)
-          rr <- resample(Lsx, L.ext)
+          Lsx <- raster::crop(Ls, L.ext)
+          rr <- raster::resample(Lsx, L.ext)
           #image.plot(lon,lat,t(as.matrix(flip(rr,direction='y'))))
-          L.locs[,,which(dateVec == locDates[t])] <- t(as.matrix(flip(rr, direction = 'y')))
+          L.locs[,,which(dateVec == locDates[t])] <- t(as.matrix(raster::flip(rr, direction = 'y')))
           
         } else{
           # if supposed shift in error ellipse is >10 degrees, we revert to longitude only
@@ -127,10 +127,10 @@ calc.locs <- function(locs, iniloc, g, raster = TRUE, dateVec, errEll = F){
     # this performs some transformations to the likelihood array to convert to useable raster
     crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
     list.locs <- list(x = g$lon[1,], y = g$lat[,1], z = L.locs)
-    ex <- extent(list.locs)
-    L.locs <- brick(list.locs$z, xmn = ex[1], xmx = ex[2], ymn = ex[3], ymx = ex[4], transpose = T, crs)
-    L.locs <- flip(L.locs, direction = 'y')
-    L.locs <- stack(L.locs)
+    ex <- raster::extent(list.locs)
+    L.locs <- raster::brick(list.locs$z, xmn = ex[1], xmx = ex[2], ymn = ex[3], ymx = ex[4], transpose = T, crs)
+    L.locs <- raster::flip(L.locs, direction = 'y')
+    L.locs <- raster::stack(L.locs)
   }
   
   print(class(L.locs))
