@@ -7,17 +7,13 @@
 #'   on daily tag data. Otherwise, numeric isotherm constraint can be specified 
 #'   (e.g. 20 deg C).
 #' @param ohc.dir local directory where get.hycom downloads are stored.
-#' @param g is output from setup.grid and indicates extent and resolution of 
-#'   grid used to calculate likelihoods
 #' @param dateVec is vector of dates from tag to pop-up in 1 day increments.
-#' @param raster logical. should a raster be returned? If false, an array will
-#'   be returned.
 #'   
-#' @return likelihood is array or raster of likelihood surfaces representing 
+#' @return likelihood is raster brick of likelihood surfaces representing 
 #'   estimated position based on tag-based OHC compared to calculated OHC using 
 #'   HYCOM
 
-calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = TRUE){
+calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec){
 
   # constants for OHC calc
   cp <- 3.993 # kJ/kg*C <- heat capacity of seawater
@@ -120,21 +116,6 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = TRUE){
   L.ohc <- raster::brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
   L.ohc <- raster::flip(L.ohc, direction = 'y')
 
-  # make L.ohc match resolution/extent of g
-  row <- dim(g$lon)[1]
-  col <- dim(g$lon)[2]
-  ex <- raster::extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
-  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-  # create empty raster to match resolution/extent
-  rasMatch <- raster::raster(ex, nrows=row, ncols=col, crs = crs)
-  L.ohc <- raster::resample(L.ohc, rasMatch)
-  L.ohc <- stack(L.ohc)
-  
-  if(raster){
-  } else{
-    L.ohc <- raster::as.array(L.ohc, transpose = T)
-  }
-  
   # return ohc likelihood surfaces
   return(L.ohc)
   

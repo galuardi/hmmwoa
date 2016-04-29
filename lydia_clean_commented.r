@@ -27,9 +27,8 @@ d1 <- as.POSIXct('1900-01-02') - as.POSIXct('1900-01-01')
 didx <- dts >= (tag + d1) & dts <= (pop - d1)
 pdt <- pdt[didx,]
 
-# SPATIAL LIMITS ?
-lon = c(-90, -40)
-lat = c(10, 55)
+# SPATIAL LIMITS
+sp.lim <- list(lonmin = -90, lonmax = -40, latmin = 10, latmax = 55)
 
 # VECTOR OF DATES FROM DATA. THIS IS USED IN MANY FUNCTIONS 
 udates <- unique(as.Date(pdt$Date))
@@ -45,14 +44,11 @@ dts <- format(as.POSIXct(locs$Date, format = findDateFormat(locs$Date)), '%Y-%m-
 didx <- dts > (tag + d1) & dts < (pop - d1)
 locs <- locs[didx,]
 
-# SETUP A COMMON GRID
-g <- setup.grid(locs, res = 'quarter') # make sure loading function from misc_funs.r
-ngrid <- rev(dim(g$lon))
-lon <- g$lon[1,]
-lat <- g$lat[,1]
+# setup a grid to base light likelihood on, default is 1/4 deg
+locs.grid <- setup.locs.grid(sp.lim)
 
 # GET THE LIKELIHOOD ELLIPSES
-L.locs <- calc.locs(locs, iniloc, g, raster = T, dateVec = dateVec, errEll=T)
+L.locs <- calc.locs(locs, iniloc, locs.grid, dateVec = dateVec, errEll=T)
 L.locs.save <- L.locs
 
 # PLOT IT ! 
@@ -73,8 +69,6 @@ L.locs.save <- L.locs
 # plot(L.locs[[4]]*L.pdt[[4]]) This won't be right beacuse multiplying by zero..
 # plot(countriesLow, add = T)
 
-# sync resolutions of pdt to locs to match grid, g
-#L.pdt <- spatial_sync_raster(L.pdt, L.locs)
 }
 
 #----------------------------------------------------------------------------------#
@@ -94,8 +88,7 @@ tag.sst <- tag.sst[didx,]
   udates <- unique(as.Date(dts))
   
   sst.dir <- paste('~/Documents/WHOI/RData/SST/OI/', ptt, '/',sep = '')
-  lims <- c(min(lon),max(lon),min(lat),max(lat))
-  
+
   for(i in 1:length(udates)){
     time <- as.Date(udates[i])
     repeat{
@@ -176,6 +169,16 @@ L.pdt.save <- L.pdt
 # TRY QUICK PLOT TO CHECK, IF RASTER = 'STACK' OR 'BRICK' ABOVE
 # plot(L.pdt[[10]])
 # plot(countriesLow, add = T)
+
+
+#----------------------------------------------------------------------------------#
+# SETUP A COMMON GRID
+#----------------------------------------------------------------------------------#
+
+g <- setup.grid(locs, res = 'quarter') # make sure loading function from misc_funs.r
+ngrid <- rev(dim(g$lon))
+lon <- g$lon[1,]
+lat <- g$lat[,1]
 
 
 #----------------------------------------------------------------------------------#
@@ -358,3 +361,19 @@ locs_sst_pdt_par2 <- cbind(dates = dateVec, lon = meanlon, lat = meanlat)
 ## END
 #=======================================================================================#
 
+
+
+# make L.ohc match resolution/extent of g
+row <- dim(g$lon)[1]
+col <- dim(g$lon)[2]
+ex <- raster::extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
+crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+# create empty raster to match resolution/extent
+rasMatch <- raster::raster(ex, nrows=row, ncols=col, crs = crs)
+L.ohc <- raster::resample(L.ohc, rasMatch)
+L.ohc <- stack(L.ohc)
+
+if(raster){
+} else{
+  L.ohc <- raster::as.array(L.ohc, transpose = T)
+}

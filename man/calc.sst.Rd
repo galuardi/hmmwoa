@@ -4,19 +4,14 @@
 \alias{calc.sst}
 \title{Calculate SST-based likelihood}
 \usage{
-calc.sst(tag.sst, sst.dir, g, dateVec, raster = "stack")
+calc.sst(tag.sst, sst.dir, dateVec)
 }
 \arguments{
 \item{tag.sst}{variable containing tag-collected SST data}
 
 \item{sst.dir}{local directory where remote sensing SST downloads are stored}
 
-\item{g}{is output from setup.grid and indicates extent and resolution of 
-grid used to calculate likelihoods}
-
 \item{dateVec}{is vector of dates from tag to pop-up in 1 day increments.}
-
-\item{raster}{logical. should a raster be returned?}
 }
 \value{
 likelihood is array of likelihood surfaces representing matches

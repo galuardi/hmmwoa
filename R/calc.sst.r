@@ -5,10 +5,7 @@
 #' 
 #' @param tag.sst variable containing tag-collected SST data
 #' @param sst.dir local directory where remote sensing SST downloads are stored
-#' @param g is output from setup.grid and indicates extent and resolution of 
-#'   grid used to calculate likelihoods
 #' @param dateVec is vector of dates from tag to pop-up in 1 day increments.
-#' @param raster logical. should a raster be returned?
 #'   
 #' @return likelihood is array of likelihood surfaces representing matches
 #'   between tag-based sst and remotely sensed sst maps
@@ -17,7 +14,7 @@
 #' @examples
 #' none
 
-calc.sst <- function(tag.sst, sst.dir, g, dateVec, raster = TRUE){
+calc.sst <- function(tag.sst, sst.dir, dateVec){
   
   dts <- as.POSIXct(tag.sst$Date, format = findDateFormat(tag.sst$Date))
   tag.sst[,12] <- as.Date(dts)
@@ -65,19 +62,6 @@ calc.sst <- function(tag.sst, sst.dir, g, dateVec, raster = TRUE){
     ex <- raster::extent(list.sst)
     L.sst <- raster::brick(list.sst$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
     L.sst <- raster::flip(L.sst, direction = 'y')
-    
-    # make L.sst match resolution/extent of g
-    row <- dim(g$lon)[1]
-    col <- dim(g$lon)[2]
-    ex <- raster::extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
-    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-    rasMatch <- raster::raster(ex, nrows=row, ncols=col, crs = crs)
-    L.sst <- spatial.tools::spatial_sync_raster(L.sst, rasMatch)
-    
-    if (raster){
-    } else {
-      L.sst <- raster::as.array(L.sst, transpose = T)
-    }
     
     # return sst likelihood surfaces
     return(L.sst)

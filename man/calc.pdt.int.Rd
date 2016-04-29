@@ -4,8 +4,8 @@
 \alias{calc.pdt.int}
 \title{Calculate Depth-temperature based Likelihood}
 \usage{
-calc.pdt.int(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth,
-  raster = "stack", dateVec)
+calc.pdt.int(pdt, dat = dat, lat = lat, lon = lon, depth = depth,
+  dateVec)
 }
 \arguments{
 \item{pdt}{is -PDT data from WC psat tag summarizing depth/temperature data
@@ -17,13 +17,7 @@ over a programmed time interval}
 
 \item{lon}{is vector of longitudes from dat}
 
-\item{g}{is output from setup.grid and indicates extent and resolution of 
-grid used to calculate likelihoods}
-
 \item{depth}{is vector of depths from dat}
-
-\item{raster}{is character indicating whether likelihood 'array',
-'stack' or 'brick' should be output}
 
 \item{dateVec}{is vector of dates from tag to pop-up in 1 day increments.}
 }

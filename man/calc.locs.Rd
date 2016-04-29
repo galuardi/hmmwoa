@@ -4,7 +4,7 @@
 \alias{calc.locs}
 \title{Calculate Position-based Likelihood}
 \usage{
-calc.locs(locs, iniloc, g, raster = TRUE, dateVec, errEll = F)
+calc.locs(locs, iniloc, locs.grid, dateVec, errEll = F)
 }
 \arguments{
 \item{locs}{is -Locations file output from DAP/Tag Portal for WC tags and 
@@ -13,11 +13,7 @@ contains GPS, Argos, and GPE locations as applicable}
 \item{iniloc}{is 2 x 5 dataframe containing day, month, year, lat, lon for 
 both tag and pop locations}
 
-\item{g}{is output from setup.grid and indicates extent and resolution of 
-grid used to calculate likelihoods}
-
-\item{raster}{is logical indicating whether to return likelihood as a raster
-or an array. Default is TRUE and will return a raster.}
+\item{locs.grid}{is list output from \code{setup.locs.grid}}
 
 \item{dateVec}{is vector of dates from tag to pop-up in 1 day increments.}
 

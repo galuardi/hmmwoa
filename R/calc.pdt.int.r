@@ -16,17 +16,13 @@
 #' @param lat is vector of latitudes from dat
 #' @param lon is vector of longitudes from dat
 #' @param depth is vector of depths from dat
-#' @param g is output from setup.grid and indicates extent and resolution of 
-#'   grid used to calculate likelihoods
-#' @param raster is character indicating whether likelihood 'array',
-#'        'stack' or 'brick' should be output
 #' @param dateVec is vector of dates from tag to pop-up in 1 day increments.
 #' 
 #' @return array or raster of likelihoods for depth-temp profile
 #'        matching between tag data and WOA
 #'   
 
-calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = TRUE, dateVec){
+calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, depth = depth, dateVec){
   
   udates <- unique(pdt$Date)
   T <- length(udates)
@@ -110,19 +106,6 @@ calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth,
   ex <- raster::extent(list.pdt)
   L.pdt <- raster::brick(list.pdt$z, xmn = ex[1], xmx = ex[2], ymn = ex[3], ymx = ex[4], transpose = T, crs)
   L.pdt <- raster::flip(L.pdt, direction = 'y')
-  
-  # make L.pdt match resolution/extent of g
-  row <- dim(g$lon)[1]
-  col <- dim(g$lon)[2]
-  ex <- raster::extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
-  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-  rasMatch <- raster::raster(ex, nrows = row, ncols = col, crs = crs)
-  L.pdt <- spatial.tools::spatial_sync_raster(L.pdt, rasMatch)
-  
-  if(raster){
-  } else{
-    L.pdt <- raster::as.array(L.pdt, transpose = T)
-  }
   
   return(L.pdt)
   
