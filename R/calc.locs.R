@@ -86,8 +86,9 @@ calc.locs <- function(locs, iniloc, locs.grid, dateVec, errEll = F){
         
         if(shiftDist >= -10){
           Ls <- raster::shift(L, y = shiftDist)
-          L.ext <- raster::flip(raster::raster(locs.grid$lon, xmn = min(lon), 
-                               xmx = max(lon), ymn = min(lat), ymx = max(lat)), direction = 'y')
+          L.ext <- raster::flip(raster::raster(locs.grid$lon, xmn = min(locs.grid$lon[1,]), 
+                               xmx = max(locs.grid$lon[1,]), ymn = min(locs.grid$lat[,1]),
+                               ymx = max(locs.grid$lat[,1])), direction = 'y')
           # create blank raster
           L.ext[L.ext <= 0] = 1
           

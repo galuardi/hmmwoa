@@ -110,12 +110,16 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec){
     
   }
 
+  t = Sys.time()
+
   crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
   list.ohc <- list(x = lon-360, y = lat, z = L.ohc)
   ex <- raster::extent(list.ohc)
   L.ohc <- raster::brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
   L.ohc <- raster::flip(L.ohc, direction = 'y')
 
+  print(paste('raster manipulation took ', Sys.time() - t))
+  
   # return ohc likelihood surfaces
   return(L.ohc)
   

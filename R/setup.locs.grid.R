@@ -1,14 +1,17 @@
 #' Setup the discrete spatial grid for the HMM
 #' 
-#' @param limits can take either a 'data.frame' of -Locations from WC psat tag
+#' If input limits is a data.frame, longitude limits become +/- 5 degrees and
+#' latitude becomes +/- 10 degrees. You may also input your own list of limits.
+#' 
+#' @param limits can take either a 'data.frame' of -Locations from WC psat tag 
 #'   or a pre-determined list of limits as \code{list(xmin, xmax, ymin, ymax)}
-#' @param res character indicating resolution of grid. 'hycom' is .08 to match
+#' @param res character indicating resolution of grid. 'hycom' is .08 to match 
 #'   hycom reanalysis res. 'quarter' and 'one' are .25 and 1 deg, respectively.
 #'   
 #' @return a list
 #' @export
-#' @references Pedersen MW, Patterson TA, Thygesen UH, Madsen H (2011)
-#'   Estimating animal behavior and residency from movement data. Oikos
+#' @references Pedersen MW, Patterson TA, Thygesen UH, Madsen H (2011) 
+#'   Estimating animal behavior and residency from movement data. Oikos 
 #'   120:1281-1290. doi: 10.1111/j.1600-0706.2011.19044.x
 #'   
 #' @examples
@@ -34,15 +37,15 @@ setup.locs.grid <- function(limits, res = 'quarter'){
   } else if(class(limits) == 'data.frame'){
 
     # Find longitude extents
-    il <- floor(min(locations$Longitude))
-    al <- ceiling(max(locations$Longitude))
+    il <- floor(min(limits$Longitude) - 5)
+    al <- ceiling(max(limits$Longitude) + 5)
     lx <- 0.1 * (al - il)
     lonl <- il - lx
     lonu <- al + lx
     
     # Find latitude extents
-    ila <- floor(min(locations$Latitude))
-    ala <- ceiling(max(locations$Latitude))
+    ila <- floor(min(limits$Latitude) - 10)
+    ala <- ceiling(max(limits$Latitude) + 10)
     ly <- 0.1 * (ala - ila)
     latl <- ila - ly
     latu <- ala + ly

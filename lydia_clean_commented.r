@@ -45,11 +45,14 @@ didx <- dts > (tag + d1) & dts < (pop - d1)
 locs <- locs[didx,]
 
 # setup a grid to base light likelihood on, default is 1/4 deg
+# either of these approaches is ok
 locs.grid <- setup.locs.grid(sp.lim)
+#locs.grid <- setup.locs.grid(locs)
 
 # GET THE LIKELIHOOD ELLIPSES
+t <- Sys.time()
 L.locs <- calc.locs(locs, iniloc, locs.grid, dateVec = dateVec, errEll=T)
-L.locs.save <- L.locs
+Sys.time() - t # around 20 seconds
 
 # PLOT IT ! 
 {
@@ -101,8 +104,12 @@ tag.sst <- tag.sst[didx,]
     }
   }
   
-  L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec = dateVec, g=g)
-  L.sst.save <- L.sst
+  t <- Sys.time()
+  L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec = dateVec)
+  Sys.time() - t
+  # focal for SD calc takes about .5 sec each t step, the dnorm is <.3 sec
+  # total < 1 min
+
 }
 
 #----------------------------------------------------------------------------------#
@@ -125,9 +132,12 @@ tag.sst <- tag.sst[didx,]
     }
   }
   
-  # calc.ohc - about 50 mins...
-  L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, g=g, dateVec=dateVec, isotherm='', raster = TRUE)
-  L.ohc.save <- L.ohc
+  # calc.ohc
+  t <- Sys.time()
+  L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec=dateVec, isotherm='')
+  Sys.time() - t
+  # focal takes <8 secs and dnorm 2-7 secs for each t step (day)
+  
 }
 
 
@@ -135,26 +145,23 @@ tag.sst <- tag.sst[didx,]
 # PDT / WOA LIKELIHOOD
 #----------------------------------------------------------------------------------#
 
-# SET LIMITS OF INTEREST FROM PREVIOUSLY DEFINED LON/LAT LIMITS
-limits = c(min(lon)-3, max(lon)+3, min(lat)-3, max(lat)+3)
-
 # WOA DIRECTORY: LOCATION OF .NC FILE FOR EXTRACTION
 # woa.dir = '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/woa13_25deg_global_meantemp.nc'
 woa.dir = "C:/Users/ben/Documents/WOA/woa13_25deg_global.nc"
 
 # GET THE WOA SUBSET
-return.woa = extract.woa(woa.dir, limits, resolution = 'quarter')
-dat = return.woa$dat 
+return.woa = extract.woa(woa.dir, sp.lim, resolution = 'quarter')
+woa = return.woa$dat 
 lon = as.numeric(return.woa$lon); 
 lat = as.numeric(return.woa$lat); 
 depth = as.numeric(return.woa$depth)
 
 # ELIMINATE PACIFIC FROM WOA DATA
-dat = removePacific(dat, lat, lon)
+woa = removePacific(woa, lat, lon)
 
 # CHECK WOA DATA
 # graphics.off()
-# fields::image.plot(lon,lat,dat[,,1,1])
+# fields::image.plot(lon,lat,woa[,,1,1])
 #image.plot(dat$lon,dat$lat,sd[,,1,1])
 
 #----------------------------------------------------------------------------------#
@@ -162,8 +169,8 @@ dat = removePacific(dat, lat, lon)
 # 'STACK' MAKES THE END OF THIS ROUTINE MUCH SLOWER THAN 'BRICK' OR 'ARRAY'
 # BUT IS ONLY 10 EXTRA SECONDS OR SO
 #----------------------------------------------------------------------------------#
-# about 6  mins for Lydia
-L.pdt <- calc.pdt.int(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = TRUE, dateVec = dateVec)
+# about 6-8 mins for Lydia
+L.pdt <- calc.pdt.int(pdt, dat = woa, lat = lat, lon = lon, depth = depth, dateVec = dateVec)
 L.pdt.save <- L.pdt
 
 # TRY QUICK PLOT TO CHECK, IF RASTER = 'STACK' OR 'BRICK' ABOVE
@@ -175,10 +182,15 @@ L.pdt.save <- L.pdt
 # SETUP A COMMON GRID
 #----------------------------------------------------------------------------------#
 
-g <- setup.grid(locs, res = 'quarter') # make sure loading function from misc_funs.r
-ngrid <- rev(dim(g$lon))
-lon <- g$lon[1,]
-lat <- g$lat[,1]
+# we have some combination of likelihood input rasters
+# we need a common extent/resolution output
+# input a list of likelihood rasters into function, resample raster
+# function should parse rasters and resample to resample raster
+# use resample raster to also generate g grid
+# output list of all resampled likelihoods and g
+
+L.rasters <- list(L.pdt = L.pdt, L.ohc = L.ohc, L.locs = L.locs, L.sst = L.sst)
+L.res1 <- resample.grid(L.rasters, L.ohc)
 
 
 #----------------------------------------------------------------------------------#
@@ -187,11 +199,10 @@ lat <- g$lat[,1]
 #----------------------------------------------------------------------------------#
 
 # INDEX WHERE LIKELIHOODS ARE ZEROS.. FOR EACH L COMPONENT
-
-L.locs = raster::as.array(L.locs)
-L.pdt = raster::as.array(L.pdt)
-L.sst = raster::as.array(L.sst)
-L.ohc = raster::as.array(L.ohc)
+L.locs = raster::as.array(L.res[[1]]$L.locs)
+L.pdt = raster::as.array(L.res[[1]]$L.pdt)
+L.sst = raster::as.array(L.res[[1]]$L.sst)
+L.ohc = raster::as.array(L.res[[1]]$L.ohc)
 
 L.locs[is.na(L.locs)] = 0 # turn NA to 0
 L.pdt[is.na(L.pdt)] = 0
@@ -361,9 +372,10 @@ locs_sst_pdt_par2 <- cbind(dates = dateVec, lon = meanlon, lat = meanlat)
 ## END
 #=======================================================================================#
 
+# TO DO LIST (order of importance):
 
-
-# make L.ohc match resolution/extent of g
+# - make all extents/resolutions match at end of likelihood section, see code chunk below
+{# make L.ohc match resolution/extent of g
 row <- dim(g$lon)[1]
 col <- dim(g$lon)[2]
 ex <- raster::extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
@@ -376,4 +388,14 @@ L.ohc <- stack(L.ohc)
 if(raster){
 } else{
   L.ohc <- raster::as.array(L.ohc, transpose = T)
-}
+}}
+# - sample final L.mle to something coarse for parameter estimation then use higher
+#   res L for the kernels? ** don't forget to adjust parameter values as they are PIXEL based soon?
+# - check all download functions, ensure functionality
+# - add WOA and one example individual fish to data/
+# - add progress bars to calc functions
+# - add error to argos positions in calc.locs
+# - add "real" error to longitude-only light likelihood rather than fixed value
+# - will argos/gps on same day as GPE in loc file supersede it? **when would this happen?**
+# - check isotherm functionality in calc.ohc
+

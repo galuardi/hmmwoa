@@ -12,8 +12,6 @@
 #' 
 setup.grid <- function(locations, res){
 
-  T <- length(locations$Longitude)
-  
   # Find longitude extents
   il <- floor(min(locations$Longitude))
   al <- ceiling(max(locations$Longitude))

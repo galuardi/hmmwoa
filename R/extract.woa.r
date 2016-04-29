@@ -6,7 +6,7 @@
 #' 
 #' @param nc.dir directory to load the global nc file from; specify the complete
 #'   path to the nc file unless it is in your current working directory
-#' @param bbox bounding box of form (long min, long max, lat min, lat max)
+#' @param bbox bounding box of form list(long min, long max, lat min, lat max)
 #' @param resolution indicates whether oceanographic data is gridded at 
 #'   'quarter' or 'one' degree resolution
 #'   
@@ -30,17 +30,17 @@ extract.woa <- function(nc.dir, bbox, resolution){
   depth = ncdf::get.var.ncdf(nc, 'Depth')
   
   # set bounds for extracting data
-  xmin = which.min((bbox[1] - lon) ^ 2)
-  xmax = which.min((bbox[2] - lon) ^ 2)
-  ymin = which.min((bbox[3] - lat) ^ 2) 
-  ymax = which.min((bbox[4] - lat) ^ 2)
+  xmin = which.min((bbox[[1]] - lon) ^ 2)
+  xmax = which.min((bbox[[2]] - lon) ^ 2)
+  ymin = which.min((bbox[[3]] - lat) ^ 2) 
+  ymax = which.min((bbox[[4]] - lat) ^ 2)
   
   if(resolution == 'quarter'){
-    xlen = floor(4 * (bbox[2] - bbox[1])) # for quarter degree
-    ylen = floor(4 * (bbox[4] - bbox[3])) 
+    xlen = floor(4 * (bbox[[2]] - bbox[[1]])) # for quarter degree
+    ylen = floor(4 * (bbox[[4]] - bbox[[3]])) 
   } else if(resolution == 'one'){
-    xlen = bbox[2] - bbox[1] # for one degree
-    ylen = bbox[4] - bbox[3]
+    xlen = bbox[[2]] - bbox[[1]] # for one degree
+    ylen = bbox[[4]] - bbox[[3]]
   } else{
     stop('Resolution of input oceanographic data not defined.')
   }  

@@ -7,10 +7,10 @@
 #' @param sst.dir local directory where remote sensing SST downloads are stored
 #' @param dateVec is vector of dates from tag to pop-up in 1 day increments.
 #'   
-#' @return likelihood is array of likelihood surfaces representing matches
+#' @return likelihood is raster brick of likelihood surfaces representing matches
 #'   between tag-based sst and remotely sensed sst maps
 #' @export
-#' @seealso \code{\link{calc.pdt.int}} \code{\link{calc.ohc.int}}
+#' @seealso \code{\link{calc.pdt.int}}, \code{\link{calc.ohc}}
 #' @examples
 #' none
 
