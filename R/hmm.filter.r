@@ -1,15 +1,18 @@
 #' HMM filter and smoother functions
 #'
+#' 
 #' @param g grid from \code{\link{setup.grid}}
 #' @param L final likelihood (2D)
 #' @param K1 first movement (diffusion) kernel see \code{\link{gausskern}}
 #' @param K2 second movement (diffusion) kernel see \code{\link{gausskern}}
 #' @param P 2x2 probability matrix for tranisitons between states (K1 and K2)
 #'
-#' @return a list: list(phi = phi, pred = pred, psi = psi) where 
-#' \item phi is the probability for each state at each trime step 
-#' \item pred is ....
-#' \item psi is.... 
+#' @return a list: list(phi = phi, pred = pred, psi = psi) where
+#' \itemize{
+#'  \item phi. is the probability for each state at each trime step 
+#'  \item pred. is ....
+#'  \item psi. is.... 
+#' }
 #' @export
 #'
 #' @examples

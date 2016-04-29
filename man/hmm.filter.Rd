@@ -18,10 +18,12 @@ hmm.filter(g, L, K1, K2, P)
 \item{P}{2x2 probability matrix for tranisitons between states (K1 and K2)}
 }
 \value{
-a list: list(phi = phi, pred = pred, psi = psi) where 
-\item phi is the probability for each state at each trime step 
-\item pred is ....
-\item psi is....
+a list: list(phi = phi, pred = pred, psi = psi) where
+\itemize{
+ \item phi is the probability for each state at each trime step 
+ \item pred is ....
+ \item psi is.... 
+}
 }
 \description{
 HMM filter and smoother functions

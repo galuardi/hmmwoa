@@ -10,7 +10,7 @@ extract.woa(nc.dir, bbox, resolution)
 \item{nc.dir}{directory to load the global nc file from; specify the complete
 path to the nc file unless it is in your current working directory}
 
-\item{bbox}{bounding box of form (long min, long max, lat min, lat max)}
+\item{bbox}{bounding box of form list(long min, long max, lat min, lat max)}
 
 \item{resolution}{indicates whether oceanographic data is gridded at 
 'quarter' or 'one' degree resolution}
