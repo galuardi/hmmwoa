@@ -35,7 +35,7 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec){
     print(pdt.i)
     
     # open day's hycom data
-    nc <- ncdf::open.ncdf(paste(ohc.dir, 'Lyd_', as.Date(time), '.nc', sep=''))
+    nc <- ncdf::open.ncdf(paste(ohc.dir, pdt[1,1],'_', as.Date(time), '.nc', sep=''))
     dat <- ncdf::get.var.ncdf(nc, 'water_temp')
     
     if(i == 1){
