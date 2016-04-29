@@ -26,6 +26,6 @@ resample.grid <- function(L.rasters, res){
   
   g <- setup.grid.raster(res)
   
-  list(L.rasters, g)
+  list(L.rasters, g = g)
   
 }

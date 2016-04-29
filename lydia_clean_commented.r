@@ -189,9 +189,9 @@ L.pdt.save <- L.pdt
 # use resample raster to also generate g grid
 # output list of all resampled likelihoods and g
 
-L.rasters <- list(L.pdt = L.pdt, L.ohc = L.ohc, L.locs = L.locs, L.sst = L.sst)
-L.res1 <- resample.grid(L.rasters, L.ohc)
-
+L.rasters <- list(L.pdt = L.pdt.save, L.ohc = L.ohc.save, L.locs = L.locs.save, L.sst = L.sst.save)
+L.res <- resample.grid(L.rasters, L.ohc.save)
+g <- L.res$g
 
 #----------------------------------------------------------------------------------#
 # MULTIPLY DAILY LIKELIHOOD MATRICES
@@ -249,7 +249,7 @@ for(b in which(idx2)){
 crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
 
 # MAKE A LIST OF LIKELIHOOD
-list.pdt <- list(x = lon, y = lat, z = L.pdt)
+list.pdt <- list(x = lon, y = lat, z = Lmat)
 ex <- raster::extent(list.pdt)
 
 # MAKE A RASTER OUT OF IT
@@ -259,8 +259,13 @@ for(i in 1:T){
   if(i==1) L <- L.i else L <- stack(L, L.i)
 }
 
-# MAKE THAT RASTER INTO AN ARRAY
-L <- aperm(raster::as.array(raster::flip(L, direction = 'y')), c(3,2,1))
+# CREATE A MORE COARSE RASTER FOR PARAMETER ESTIMATION LATER
+L.mle <- L
+res(L.mle) <- 1/4
+
+# MAKE BOTH RASTERS (COARSE AND FINE RES L's) INTO AN ARRAY
+L <- aperm(raster::as.array(raster::flip(L, direction = 'y')), c(3, 2, 1))
+L.mle <- aperm(raster::as.array(raster::flip(L.mle, direction = 'y')), c(3, 2, 1))
 
 # CHECK THAT IT WORKED OK
 # lon <- g$lon[1,]
@@ -288,21 +293,28 @@ L <- aperm(raster::as.array(raster::flip(L, direction = 'y')), c(3,2,1))
 #----------------------------------------------------------------------------------#
 L[L == 0] = 1e-15
 L[is.na(L)] = 1e-15
+L.mle[L.mle == 0] = 1e-15
+L.mle[is.na(L.mle)] = 1e-15
+
 #----------------------------------------------------------------------------------#
  # TRY THE MLE. SOME OTHER TIME.
 {
-  # t <- Sys.time()
-  # par0=c(8.908,10.27,3,1,0.707,0.866) # from Pedersen 2011
-  # fit <- nlm(get.nll.fun, par0, g, L)
-  # Sys.time() - t
+  t <- Sys.time()
+  par0=c(8.908,10.27,3,1,0.707,0.866) # from Pedersen 2011
+  fit <- nlm(get.nll.fun, par0, g, L.mle)
+  Sys.time() - t
   
-  # D1 <- exp(fit$estimate[1:2]) # parameters for kernel 1. this is behavior mode transit
-  # D2 <- exp(fit$estimate[3:4]) # parameters for kernel 2. resident behavior mode
-  # p <- 1/(1+exp(-fit$estimate[5:6])) # logit-transformed transition probabilities for switching between the two behavioural states
-  # Probably need to express kernel movement in terms of pixels per time step. The
-  # sparse matrix work likely renders this unnecessary, but going back to
-  # gausskern, it is. For example, if we have .25 degree and daily time step, what
-  # would the speed of the fish be when moving fast? 4 pixels/day?
+  ## **THESE OUTPUT PARAMETERS ARE PIXEL-BASED. DON'T FORGET TO CONVERT FOR USE
+  ##  WITH THE HIGHER RESOLUTION LIKELIHOOD RESULTS STORED IN L 
+  D1 <- exp(fit$estimate[1:2]) # parameters for kernel 1. this is behavior mode transit
+  D2 <- exp(fit$estimate[3:4]) # parameters for kernel 2. resident behavior mode 
+  p <- 1/(1+exp(-fit$estimate[5:6])) # logit-transformed
+  #transition probabilities for switching between the two behavioural states 
+  #Probably need to express kernel movement in terms of pixels per time step.
+  #The sparse matrix work likely renders this unnecessary, but going back to 
+  #gausskern, it is. For example, if we have .25 degree and daily time step,
+  #what would the speed of the fish be when moving fast? 4 pixels/day?
+  
 }
 #----------------------------------------------------------------------------------#
 # OR... JUST DEFINE THE PARAMETERS
@@ -374,23 +386,6 @@ locs_sst_pdt_par2 <- cbind(dates = dateVec, lon = meanlon, lat = meanlat)
 
 # TO DO LIST (order of importance):
 
-# - make all extents/resolutions match at end of likelihood section, see code chunk below
-{# make L.ohc match resolution/extent of g
-row <- dim(g$lon)[1]
-col <- dim(g$lon)[2]
-ex <- raster::extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
-crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-# create empty raster to match resolution/extent
-rasMatch <- raster::raster(ex, nrows=row, ncols=col, crs = crs)
-L.ohc <- raster::resample(L.ohc, rasMatch)
-L.ohc <- stack(L.ohc)
-
-if(raster){
-} else{
-  L.ohc <- raster::as.array(L.ohc, transpose = T)
-}}
-# - sample final L.mle to something coarse for parameter estimation then use higher
-#   res L for the kernels? ** don't forget to adjust parameter values as they are PIXEL based soon?
 # - check all download functions, ensure functionality
 # - add WOA and one example individual fish to data/
 # - add progress bars to calc functions
