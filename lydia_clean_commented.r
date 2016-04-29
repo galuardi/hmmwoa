@@ -3,6 +3,7 @@ library(hmmwoa)
 
 # SETWD
 setwd('C:/Users/benjamin.galuardi/Google Drive/Camrin-WOA/hmmwoa_files/')
+setwd('~/Documents/WHOI/Data/WhiteSharks/2013/121325/')
 
 #----------------------------------------------------------------------------------#
 # ADD MAP DATA
@@ -27,9 +28,6 @@ d1 <- as.POSIXct('1900-01-02') - as.POSIXct('1900-01-01')
 didx <- dts >= (tag + d1) & dts <= (pop - d1)
 pdt <- pdt[didx,]
 
-# SPATIAL LIMITS
-sp.lim <- list(lonmin = -90, lonmax = -40, latmin = 10, latmax = 55)
-
 # VECTOR OF DATES FROM DATA. THIS IS USED IN MANY FUNCTIONS 
 udates <- unique(as.Date(pdt$Date))
 dateVec <- as.Date(seq(tag, pop, by = 'day'))
@@ -44,10 +42,16 @@ dts <- format(as.POSIXct(locs$Date, format = findDateFormat(locs$Date)), '%Y-%m-
 didx <- dts > (tag + d1) & dts < (pop - d1)
 locs <- locs[didx,]
 
-# setup a grid to base light likelihood on, default is 1/4 deg
-# either of these approaches is ok
-locs.grid <- setup.locs.grid(sp.lim)
-#locs.grid <- setup.locs.grid(locs)
+# SPATIAL LIMITS
+sp.lim <- list(lonmin = -90, lonmax = -40, latmin = 10, latmax = 55)
+
+if (exists('sp.lim')){
+  locs.grid <- setup.locs.grid(sp.lim)
+} else{
+  locs.grid <- setup.locs.grid(locs)
+  sp.lim <- list(lonmin = min(locs.grid$lon[1,]), lonmax = max(locs.grid$lon[1,]),
+                 latmin = min(locs.grid$lat[,1]), latmax = max(locs.grid$lat[,1]))
+}
 
 # GET THE LIKELIHOOD ELLIPSES
 t <- Sys.time()
@@ -95,11 +99,11 @@ tag.sst <- tag.sst[didx,]
   for(i in 1:length(udates)){
     time <- as.Date(udates[i])
     repeat{
-      get.oi.sst(lims[1:2],lims[3:4],time,filename=paste(ptt,'_',time,'.nc',sep=''),download.file=TRUE,dir=sst.dir) # filenames based on dates from above
+      get.oi.sst(sp.lim, time, filename = paste(ptt, '_', time, '.nc', sep = ''), download.file = TRUE, dir = sst.dir) # filenames based on dates from above
       #err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
       tryCatch({
-        err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
-      }, error=function(e){print(paste('ERROR: Download of data at ',time,' failed. Trying call to server again.',sep=''))})
+        err <- try(ncdf::open.ncdf(paste(sst.dir, ptt, '_', time, '.nc', sep = '')), silent = T)
+      }, error=function(e){print(paste('ERROR: Download of data at ', time, ' failed. Trying call to server again.', sep = ''))})
       if(class(err) != 'try-error') break
     }
   }
@@ -118,26 +122,26 @@ tag.sst <- tag.sst[didx,]
 
 # IF USING OHC HYCOM
 {
-  ohc.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
-  
-  for(i in 1:length(udates)){
-    time <- as.Date(udates[i])
-    repeat{
-      get.hycom(lon,lat,time,type='a',filename=paste('_-',time,'.nc',sep=''),download.file=TRUE,dir=ohc.dir, vars = 'water_temp') # filenames based on dates from above
-      #err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
-      tryCatch({
-        err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
-      }, error=function(e){print(paste('ERROR: Download of data at ',time,' failed. Trying call to server again.',sep=''))})
-      if(class(err) != 'try-error') break
-    }
+ohc.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
+
+for(i in 1:length(udates)){
+  time <- as.Date(udates[i])
+  repeat{
+    get.hycom(sp.lim, time, type='a', filename = paste(ptt, '_', time, '.nc', sep = ''),
+              download.file = TRUE, dir = ohc.dir, vars = 'water_temp') 
+    tryCatch({
+      err <- try(open.ncdf(paste(ohc.dir,ptt,'_',time,'.nc',sep='')),silent=T)
+    }, error=function(e){print(paste('ERROR: Download of data at ',time,' failed. Trying call to server again.',sep=''))})
+    if(class(err) != 'try-error') break
   }
-  
-  # calc.ohc
-  t <- Sys.time()
-  L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec=dateVec, isotherm='')
-  Sys.time() - t
-  # focal takes <8 secs and dnorm 2-7 secs for each t step (day)
-  
+}
+
+# calc.ohc
+t <- Sys.time()
+L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec = dateVec, isotherm = '')
+Sys.time() - t
+# focal takes <8 secs and dnorm 2-7 secs for each t step (day)
+
 }
 
 

@@ -7,9 +7,7 @@
 #' display progress  until the download completes. Change the default 
 #' \code{download.file} if the download is failing on your platform.
 #' 
-#' @param lon A vector of length 2 with the minimum and maximum longitude (-180,
-#'   180).
-#' @param lat A vector of length 2 with the minimum and maximum latitude.
+#' @param limits A list of length 4; minlon, maxlon, minlat, maxlat. Longitude values are -180,180
 #' @param time A vector of length 2 with the minimum and maximum times in form 
 #'   \code{as.Date(date)}.
 #' @param vars A list of variables to download. This should only contain 
@@ -50,7 +48,7 @@
 #'   
 
 
-get.hycom <- function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
+get.hycom <- function(limits, time, vars=c('water_temp'), include_latlon=TRUE,
                       filename='', type = 'r', download.file=TRUE, dir = getwd()) {
   
   
@@ -108,7 +106,9 @@ get.hycom <- function(lon, lat, time, vars=c('water_temp'), include_latlon=TRUE,
     url = sprintf('%svar=%s&', url, var)
   ## Add the spatial domain.
   url = sprintf('%snorth=%f&west=%f&east=%f&south=%f&horizStride=1&',
-                url, lat[2], lon[1], lon[2], lat[1])
+                url, limits[[4]], limits[[1]], limits[[2]], limits[[3]])
+  # north, west, east, south
+  
   ## Add the time domain.
   if(length(time) == 2){
     url = sprintf('%stime_start=%s%%3A00%%3A00Z&time_end=%s%%3A00%%3A00Z&timeStride=1&',

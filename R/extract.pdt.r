@@ -19,6 +19,10 @@ extract.pdt <- function(pdt){
     pdt <- pdt[,-dropidx]
   }
   
+  if(any(pdt[,2] != pdt[1,2])){
+    stop('Formatting error in input data. Open csv file elsewhere and try adding header names after the "Discont15" column name. There is likely more data stored here that was not assigned a column header.')
+  }
+  
   # convert to long format
   vars = names(pdt[,c(which(names(pdt) == 'Depth1'):length(names(pdt)))])
   pdt <- stats::reshape(pdt, ids = pdt$Date, direction = 'long',

@@ -7,9 +7,7 @@
 #' display progress  until the download completes. Change the default 
 #' \code{download.file} if the download is failing on your platform.
 #' 
-#' @param lon A vector of length 2 with the minimum and maximum longitude (-180,
-#'   180).
-#' @param lat A vector of length 2 with the minimum and maximum latitude.
+#' @param limits A list of length 4; minlon, maxlon, minlat, maxlat. Longitude values are -180,180
 #' @param time A vector of length 2 with the minimum and maximum times in form 
 #'   \code{as.Date(date)}.
 #' @param filename An optional filename. If provided, then the data is 
@@ -24,13 +22,12 @@
 #' @return The url used to extract the requested data from the NetCDF subset 
 #'   service.
 #' @examples 
-#' lon <- c(-90, -60)
-#' lat <- c(0, 30)
+#' sp.lim <- list(-90, -60, 0, 30)
 #' time <- as.Date('2013-03-01')
-#' get.oi.sst(lon, lat, time, filename = '')
+#' get.oi.sst(sp.lim, time, filename = '')
 #' # only returns url because filename is unspecified
 #' \dontrun{ 
-#' get.oi.sst(lon, lat, time, filename = 'my_data.nc')
+#' get.oi.sst(sp.lim, time, filename = 'my_data.nc')
 #' nc <- open.ncdf('my_data.nc')
 #' sst <- get.var.ncdf(nc, 'sst')
 #' image.plot(sst)
@@ -43,7 +40,7 @@
 #' @seealso <links to similar functions>
 #'   
 
-get.oi.sst <- function(lon, lat, time, filename='', download.file=TRUE, dir = getwd()) {
+get.oi.sst <- function(limits, time, filename='', download.file=TRUE, dir = getwd()) {
   
   dir.create(file.path(dir), recursive = TRUE)
   setwd(dir)
@@ -84,7 +81,7 @@ get.oi.sst <- function(lon, lat, time, filename='', download.file=TRUE, dir = ge
   
   ## Add the spatial domain.
   url = sprintf('%s[(0):1:(0)][(%s):1:(%s)][(%s):1:(%s)]',
-                url, lat[1], lat[2], lon[1], lon[2])
+                url, limits[[3]], limits[[4]], limits[[1]], limits[[2]])
   
   ## Download the data if a filename was provided.
   if(filename != ''){

@@ -31,7 +31,7 @@ calc.sst <- function(tag.sst, sst.dir, dateVec){
     
     # open day's sst data
     nc <- ncdf::open.ncdf(paste(sst.dir, ptt, '_', as.Date(time), '.nc', sep='')) #add lat lon in filename '.nc', sep=''))
-    dat <- ncdf::get.var.ncdf(nc, 'analysed_sst') # for OI SST
+    dat <- ncdf::get.var.ncdf(nc, 'sst') # for OI SST
     
     # calc sd of SST
     # focal calc on mean temp and write to sd var
