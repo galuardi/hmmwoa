@@ -119,15 +119,16 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = TRUE){
   ex <- raster::extent(list.ohc)
   L.ohc <- raster::brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
   L.ohc <- raster::flip(L.ohc, direction = 'y')
-  s <- raster::stack(L.ohc)
 
   # make L.ohc match resolution/extent of g
   row <- dim(g$lon)[1]
   col <- dim(g$lon)[2]
   ex <- raster::extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
   crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+  # create empty raster to match resolution/extent
   rasMatch <- raster::raster(ex, nrows=row, ncols=col, crs = crs)
-  L.ohc <- spatial.tools::spatial_sync_raster(L.ohc, rasMatch)
+  L.ohc <- raster::resample(L.ohc, rasMatch)
+  L.ohc <- stack(L.ohc)
   
   if(raster){
   } else{
