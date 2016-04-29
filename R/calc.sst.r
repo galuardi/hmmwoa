@@ -17,7 +17,7 @@
 #' @examples
 #' none
 
-calc.sst <- function(tag.sst, sst.dir, g, dateVec, raster = 'stack'){
+calc.sst <- function(tag.sst, sst.dir, g, dateVec, raster = TRUE){
   
   dts <- as.POSIXct(tag.sst$Date, format = findDateFormat(tag.sst$Date))
   tag.sst[,12] <- as.Date(dts)

@@ -11,11 +11,11 @@ Description: this will be the HMM using WOA data. The guts follow Pedersen et
     al. 2008
 License: MIT
 Depends:
-    raster
+    raster,
+    imager
 Imports: 
     dplyr,
     fields,
-    imager,
     locfit,
     ncdf,
     rworldmap,

@@ -22,12 +22,12 @@
 extract.woa <- function(nc.dir, bbox, resolution){
   
   # load global nc
-  nc = open.ncdf(nc.dir)
+  nc = ncdf::open.ncdf(nc.dir)
   
   # retrieve var bounds from global nc
-  lon = get.var.ncdf(nc, 'Longitude')
-  lat = get.var.ncdf(nc, 'Latitude')
-  depth = get.var.ncdf(nc, 'Depth')
+  lon = ncdf::get.var.ncdf(nc, 'Longitude')
+  lat = ncdf::get.var.ncdf(nc, 'Latitude')
+  depth = ncdf::get.var.ncdf(nc, 'Depth')
   
   # set bounds for extracting data
   xmin = which.min((bbox[1] - lon) ^ 2)
@@ -45,7 +45,7 @@ extract.woa <- function(nc.dir, bbox, resolution){
     stop('Resolution of input oceanographic data not defined.')
   }  
   
-  dat = get.var.ncdf(nc, start = c(xmin, ymin, 1, 1), count = c(xlen + 1, ylen + 1, 57, 12))
+  dat = ncdf::get.var.ncdf(nc, start = c(xmin, ymin, 1, 1), count = c(xlen + 1, ylen + 1, 57, 12))
   
   returnWOA = list(dat = dat, lon = lon[xmin:xmax], lat = lat[ymin:ymax], depth = depth)
   

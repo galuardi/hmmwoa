@@ -39,14 +39,13 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = TRUE){
     print(pdt.i)
     
     # open day's hycom data
-    nc <- open.ncdf(paste(ohc.dir, 'Lyd_', as.Date(time), '.nc', sep=''))
-    dat <- get.var.ncdf(nc, 'water_temp')
+    nc <- ncdf::open.ncdf(paste(ohc.dir, 'Lyd_', as.Date(time), '.nc', sep=''))
+    dat <- ncdf::get.var.ncdf(nc, 'water_temp')
     
     if(i == 1){
-      depth <- get.var.ncdf(nc, 'depth')
-      lon <- get.var.ncdf(nc, 'lon')
-      lat <- get.var.ncdf(nc, 'lat')
-      #f.arr <- array(NA, dim=c(length(lon),length(lat),T))
+      depth <- ncdf::get.var.ncdf(nc, 'depth')
+      lon <- ncdf::get.var.ncdf(nc, 'lon')
+      lat <- ncdf::get.var.ncdf(nc, 'lat')
     }
     
     #extracts depth from tag data for day i
@@ -57,21 +56,21 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = TRUE){
     x <- pdt.i$MidTemp[!is.na(pdt.i$Depth)]  
     
     # use the which.min
-    depIdx = unique(apply(as.data.frame(pdt.i$Depth), 1, FUN=function(x) which.min((x-depth)^2)))
+    depIdx = unique(apply(as.data.frame(pdt.i$Depth), 1, FUN=function(x) which.min((x - depth) ^ 2)))
     hycomDep <- depth[depIdx]
     
     # make predictions based on the regression model earlier for the temperature at standard WOA depth levels for low and high temperature at that depth
-    fit.low <- locfit(pdt.i$MinTemp ~ pdt.i$Depth)
-    fit.high <- locfit(pdt.i$MaxTemp ~ pdt.i$Depth)
+    fit.low <- locfit::locfit(pdt.i$MinTemp ~ pdt.i$Depth)
+    fit.high <- locfit::locfit(pdt.i$MaxTemp ~ pdt.i$Depth)
     n = length(hycomDep)
     
     pred.low = predict(fit.low, newdata = hycomDep, se = T, get.data = T)
     pred.high = predict(fit.high, newdata = hycomDep, se = T, get.data = T)
     
     # data frame for next step
-    df = data.frame(low=pred.low$fit-pred.low$se.fit*sqrt(n)
-                    , high=pred.high$fit+pred.high$se.fit*sqrt(n)
-                    , depth = hycomDep)
+    df = data.frame(low = pred.low$fit - pred.low$se.fit * sqrt(n),
+                    high = pred.high$fit + pred.high$se.fit * sqrt(n),
+                    depth = hycomDep)
     print(df)
     
     # isotherm is minimum temperature recorded for that time point
@@ -82,10 +81,7 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = TRUE){
     maxT.ohc <- cp * rho * sum(df$high - isotherm, na.rm = T) / 10000
     print(minT.ohc)
     print(maxT.ohc)
-    #midT.ohc <- cp * rho * sum(pdt.i$MidTemp - isotherm, na.rm = T) / 10000
-    #datProf <- dat[lonIdx,latIdx,]
-    #dat.ohc <- cp * rho * sum(datProf[depIdx] - isotherm, na.rm = T) / 10000
-    
+
     # Perform hycom integration
     dat[dat<isotherm] <- NA
     dat <- dat - isotherm
@@ -95,9 +91,10 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = TRUE){
     # calc sd of OHC
     # focal calc on mean temp and write to sd var
     t = Sys.time()
-    r = flip(raster(t(ohc)),2)
-    sdx = focal(r, w=matrix(1,nrow=9,ncol=9), fun=function(x) sd(x, na.rm = T))
-    sdx = t(as.matrix(flip(sdx,2)))
+    r = raster::flip(raster::raster(t(ohc)), 2)
+    sdx = raster::focal(r, w = matrix(1, nrow = 9, ncol = 9),
+                        fun = function(x) sd(x, na.rm = T))
+    sdx = t(raster::as.matrix(raster::flip(sdx, 2)))
     print(paste('finishing sd for ', time,'. Section took ', Sys.time() - t))
     
     # compare hycom to that day's tag-based ohc
@@ -108,7 +105,6 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = TRUE){
     if(i == 1){
       # result will be array of likelihood surfaces
       L.ohc <- array(0, dim = c(dim(lik.ohc), length(dateVec)))
-
     }
     
     idx <- which(dateVec == as.Date(time))
@@ -120,18 +116,18 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, g, dateVec, raster = TRUE){
 
   crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
   list.ohc <- list(x = lon-360, y = lat, z = L.ohc)
-  ex <- extent(list.ohc)
-  L.ohc <- brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
-  L.ohc <- flip(L.ohc, direction = 'y')
-  s <- stack(L.ohc)
+  ex <- raster::extent(list.ohc)
+  L.ohc <- raster::brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+  L.ohc <- raster::flip(L.ohc, direction = 'y')
+  s <- raster::stack(L.ohc)
 
   # make L.ohc match resolution/extent of g
   row <- dim(g$lon)[1]
   col <- dim(g$lon)[2]
-  ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
+  ex <- raster::extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
   crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-  rasMatch <- raster(ex, nrows=row, ncols=col, crs = crs)
-  L.ohc <- spatial_sync_raster(L.ohc, rasMatch)
+  rasMatch <- raster::raster(ex, nrows=row, ncols=col, crs = crs)
+  L.ohc <- spatial.tools::spatial_sync_raster(L.ohc, rasMatch)
   
   if(raster){
   } else{

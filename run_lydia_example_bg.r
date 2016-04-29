@@ -152,8 +152,8 @@ if (ohc){
     }
   }
   
-  # calc.ohc
-  L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, g=g, dateVec=dateVec, isotherm='', raster = 'stack', downsample = F)
+  # calc.ohc - about 50 mins...
+  L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, g=g, dateVec=dateVec, isotherm='', raster = TRUE)
   L.ohc.save <- L.ohc
 }
 
@@ -181,14 +181,15 @@ dat = removePacific(dat, lat, lon)
 
 # check woa data
 graphics.off()
-image.plot(lon,lat,dat[,,1,1])
+fields::image.plot(lon,lat,dat[,,1,1])
 #image.plot(dat$lon,dat$lat,sd[,,1,1])
 
 # perform matching
 # 'stack' makes the end of this routine much slower than 'brick' or 'array'
 # but is only 10 extra seconds or so
 
-L.pdt <- calc.pdt.int(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = 'stack', dateVec = dateVec)
+# about 6  mins for Lydia
+L.pdt <- calc.pdt.int(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = TRUE, dateVec = dateVec)
 L.pdt.save <- L.pdt
 
 # try quick plot to check, if raster = 'stack' or 'brick' above
@@ -203,10 +204,10 @@ plot(countriesLow, add = T)
 
 # need an index of where likelihoods are zeros.. for each L component
 
-L.locs = as.array(L.locs)
-L.pdt = as.array(L.pdt)
-L.sst = as.array(L.sst)
-L.ohc = as.array(L.ohc)
+L.locs = raster::as.array(L.locs)
+L.pdt = raster::as.array(L.pdt)
+L.sst = raster::as.array(L.sst)
+L.ohc = raster::as.array(L.ohc)
 
 L.locs[is.na(L.locs)] = 0 # turn NA to 0
 L.pdt[is.na(L.pdt)] = 0
@@ -219,53 +220,51 @@ napdtidx = apply(L.pdt,3, sum, na.rm=T)!=0
 nasstidx = apply(L.sst,3, sum, na.rm=T)!=0
 naohcidx = apply(L.ohc,3, sum, na.rm=T)!=0
 
+
+## HERE WE CHOOSE WHICH L's TO USE
 # indicates which L layers, if any, are all zeros for each day
 #naLidx = nalocidx+nasstidx # where both are zeros. These will be interpolted in the filter
-naLidx = nalocidx+nasstidx+napdtidx
+naLidx = nalocidx + nasstidx + naohcidx
 #dateIdx = naLidx==0 # may not need this but here for now..
 
-Lmat = L.pdt*0
+Lmat = L.pdt * 0
 # where naLidx==0, both likelihoods are zero
 #       naLidx==1, one has data
 #       naLidx==2, both have data
-idx1 = naLidx==1
-idx2 = naLidx==2
-idx3 = naLidx==3
+idx1 = naLidx == 1
+idx2 = naLidx == 2
+idx3 = naLidx == 3
 
-Lmat[,,idx1] = L.locs[,,idx1] + L.sst[,,idx1] + L.pdt[,,idx1] # when only 1 has data
-#Lmat[,,idx2] = L.sst[,,idx2]*L.locs[,,idx2] # when both have data
-Lmat[,,idx3] = L.locs[,,idx3] * L.sst[,,idx3] * L.pdt[,,idx3] # when all have data
+Lmat[,,idx1] = L.locs[,,idx1] + L.sst[,,idx1] + L.ohc[,,idx1] # when only 1 has data
+#Lmat[,,idx2] = L.sst[,,idx2] * L.locs[,,idx2] # when both have data
+Lmat[,,idx3] = L.locs[,,idx3] * L.sst[,,idx3] * L.ohc[,,idx3] # when all have data
 
 for(b in which(idx2)){
   if(nasstidx[b] & nalocidx[b]){
     Lmat[,,b] = L.sst[,,b] * L.locs[,,b]
-  } else if(nasstidx[b] & napdtidx[b]){
-    Lmat[,,b] = L.sst[,,b] * L.pdt[,,b]
-  } else if(nalocidx[b] & napdtidx[b]){
-    Lmat[,,b] = L.locs[,,b] * L.pdt[,,b]
+  } else if(nasstidx[b] & naohcidx[b]){
+    Lmat[,,b] = L.sst[,,b] * L.ohc[,,b]
+  } else if(nalocidx[b] & naohcidx[b]){
+    Lmat[,,b] = L.locs[,,b] * L.ohc[,,b]
   }
 }
 
 crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
 list.pdt <- list(x = lon, y = lat, z = L.pdt)
-ex <- extent(list.pdt)
+ex <- raster::extent(list.pdt)
 
 T <- dim(Lmat)[3]
 for(i in 1:T){
-  L.i <- raster(Lmat[,,i], xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], crs)
+  L.i <- raster::raster(Lmat[,,i], xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], crs)
   if(i==1) L <- L.i else L <- stack(L, L.i)
 }
-#ex <- extent(L)
-# now need to re-format the array to match dims in sphmm (time, lat, lon)
 
-## bg: you don't need to worry about the time dimension. That can be in either position
-L <- aperm(as.array(flip(L, direction = 'y')), c(3,2,1))
+L <- aperm(raster::as.array(raster::flip(L, direction = 'y')), c(3,2,1))
+
 # check that it worked ok
-#lon <- seq(ex[1], ex[2], length=dim(L)[2])
 lon <- g$lon[1,]
 lat <- g$lat[,1]
-#lat <- seq(ex[3], ex[4], length=dim(L)[3])
-image.plot(lon, lat, L[2,,])
+fields::image.plot(lon, lat, L[31,,])
 plot(countriesLow,add=T)
 
 ## ******
@@ -284,60 +283,46 @@ plot(countriesLow,add=T)
 
 # make all NA's very tiny for the convolution
 # the previous steps may have taken care of this...
-L[L==0] = 1e-15
+L[L == 0] = 1e-15
 L[is.na(L)] = 1e-15
 
-# try the MLE
-
-fit <- nlm(get.nll.fun, par0, g, L)
-D1 <- exp(fit$estimate[1:2])
-D2 <- exp(fit$estimate[3:4])
-p <- 1/(1+exp(-fit$estimate[5:6])) 
-
-nllf <- get.nll.fun(parvec=c(D1, D2, p), g, L)
-
-
-par0 <- c(log(10), log(10), log(0.5), log(0.5), log(0.95/0.05), log(0.95/0.05))
-fit <- nlm(get.nll.fun, par0, g, L, dt)
-D1 <- exp(fit$estimate[1:2])
-D2 <- exp(fit$estimate[3:4])
-p <- 1/(1+exp(-fit$estimate[5:6]))
-#=========
-## When using fixed parameters...
-par0=c(8.908,10.27,3,1,0.707,0.866) # what units are these?
-#par0 = c(40, 10, 10, 5, .707, .866)
-
-D1 <- par0[1:2] # parameters for kernel 1. this is behavior mode transit
-D2 <- par0[3:4] # parameters for kernel 2. resident behavior mode
-p <- par0[5:6] # logit-transformed transition probabilities for switching between the two behavioural states
-
-# Probably need to express kernel movement in terms of pixels per time step. The sparse matrix work likely renders this unnecessary, but going back to gausskern, it is. For example, if we have .25 degree and daily time step, what would the speed of the fish be when moving fast? 4 pixels/day?
+if (mle){
+  # try the MLE
+  t <- Sys.time()
+  par0=c(8.908,10.27,3,1,0.707,0.866) # from Pedersen 2011
+  fit <- nlm(get.nll.fun, par0, g, L)
+  Sys.time() - t
+  
+  D1 <- exp(fit$estimate[1:2]) # parameters for kernel 1. this is behavior mode transit
+  D2 <- exp(fit$estimate[3:4]) # parameters for kernel 2. resident behavior mode
+  p <- 1/(1+exp(-fit$estimate[5:6])) # logit-transformed transition probabilities for switching between the two behavioural states
+  # Probably need to express kernel movement in terms of pixels per time step. The
+  # sparse matrix work likely renders this unnecessary, but going back to
+  # gausskern, it is. For example, if we have .25 degree and daily time step, what
+  # would the speed of the fish be when moving fast? 4 pixels/day?
+} else{
+  D1 <- par0[1:2] # parameters for kernel 1. this is behavior mode transit
+  D2 <- par0[3:4] # parameters for kernel 2. resident behavior mode
+  p <- par0[5:6]
+}
 
 K1 = as.cimg(gausskern(D1[1], D1[2], muadv = 0))
 K2 = as.cimg(gausskern(D2[1], D2[2], muadv = 0))
 P <- matrix(c(p[1],1-p[1],1-p[2],p[2]),2,2,byrow=TRUE)
 
-# make all NA's very tiny for the convolution
-# the previous steps may have taken care of this...
-L[L==0] = 1e-15
-L[is.na(L)] = 1e-15
-
 f = hmm.filter2(g,L,K1,K2,P)
 res = apply(f$phi[1,,,],2:3,sum, na.rm=T)
-image.plot(lon, lat, res/max(res), zlim = c(.05,1))
+fields::image.plot(lon, lat, res/max(res), zlim = c(.05,1))
 
 # smooth
 # way faster w/o plotting
 s = hmm.smoother2(f, K1, K2, P, plot = F)
 
-#=========
-## resume here after NLL?
-
 sres = apply(s[1,,,],2:3,sum, na.rm=T)
-image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
+#image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
 
 sres = apply(s[2,,,],2:3,sum, na.rm=T)
-image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
+#image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
 
 distr = s
 meanlat <- apply(apply(distr,c(2,4),sum)*repmat(t(as.matrix(g$lat[,1])),T,1),1,sum)
@@ -358,7 +343,8 @@ spot <- spot[didx,]
 
 sres = apply(s,c(3,4), sum, na.rm=T)
 image.plot(lon, lat, sres/max(sres), zlim = c(.01,1),xlim=c(-86,-47),ylim=c(20,45))
-plot(locs_sst_ohc_par1[,2], locs_sst_ohc_par1[,3], col=2,type='l')
+plot(meanlon, meanlat, col=2,type='l')
+#plot(locs_sst_ohc_par1[,2], locs_sst_ohc_par1[,3], col=2,type='l')
 plot(countriesLow, add = T)
 lines(spot$Longitude, spot$Latitude)
 

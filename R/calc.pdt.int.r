@@ -26,7 +26,7 @@
 #'        matching between tag data and WOA
 #'   
 
-calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = 'stack', dateVec){
+calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth, raster = TRUE, dateVec){
   
   udates <- unique(pdt$Date)
   T <- length(udates)
@@ -52,8 +52,8 @@ calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth,
     woaDep <- depth[depIdx] 
     
     # make predictions based on the regression model earlier for the temperature at standard WOA depth levels for low and high temperature at that depth
-    fit.low <- locfit(pdt.i$MinTemp ~ pdt.i$Depth)
-    fit.high <- locfit(pdt.i$MaxTemp ~ pdt.i$Depth)
+    fit.low <- locfit::locfit(pdt.i$MinTemp ~ pdt.i$Depth)
+    fit.high <- locfit::locfit(pdt.i$MaxTemp ~ pdt.i$Depth)
     n = length(depth[depIdx])
     
     pred.low = predict(fit.low, newdata = depth[depIdx], se = T, get.data = T)
@@ -80,11 +80,9 @@ calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth,
       sd.i = array(NA, dim = dim(dat.i))
       
       for(ii in 1:57){
-        r = flip(raster(t(dat.i[,,ii])), 2)
-        #plot(r, col = tim.colors(100))
-        f1 = focal(r, w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
-        f1 = t(as.matrix(flip(f1, 2)))
-        #plot(f1, add=T)
+        r = raster::flip(raster::raster(t(dat.i[,,ii])), 2)
+        f1 = raster::focal(r, w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
+        f1 = t(raster::as.matrix(raster::flip(f1, 2)))
         sd.i[,,ii] = f1
       } 
     }
@@ -96,8 +94,6 @@ calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth,
       #calculate the likelihood for each depth level, b
       lik.pdt[,,b] = likint3(dat.i[,,depIdx[b]], sd.i[,,depIdx[b]], df[b,1], df[b,2])
       
-      print(paste(b,' loop within ',time,' iteration. ', Sys.time()))
-      
     }
     
     # multiply likelihood across depth levels for each day
@@ -107,34 +103,28 @@ calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, g, depth = depth,
     idx <- which(dateVec == as.Date(time))
     L.pdt[,,idx] = lik.pdt
     
-    print(time)
-    
   }
   
   crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
   list.pdt <- list(x = lon, y = lat, z = L.pdt)
-  ex <- extent(list.pdt)
-  L.pdt <- brick(list.pdt$z, xmn = ex[1], xmx = ex[2], ymn = ex[3], ymx = ex[4], transpose = T, crs)
-  L.pdt <- flip(L.pdt, direction = 'y')
+  ex <- raster::extent(list.pdt)
+  L.pdt <- raster::brick(list.pdt$z, xmn = ex[1], xmx = ex[2], ymn = ex[3], ymx = ex[4], transpose = T, crs)
+  L.pdt <- raster::flip(L.pdt, direction = 'y')
   
   # make L.pdt match resolution/extent of g
   row <- dim(g$lon)[1]
   col <- dim(g$lon)[2]
-  ex <- extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
+  ex <- raster::extent(c(min(g$lon[1,]), max(g$lon[1,]), min(g$lat[,1]), max(g$lat[,1])))
   crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-  rasMatch <- raster(ex, nrows = row, ncols = col, crs = crs)
-  L.pdt <- spatial_sync_raster(L.pdt, rasMatch)
+  rasMatch <- raster::raster(ex, nrows = row, ncols = col, crs = crs)
+  L.pdt <- spatial.tools::spatial_sync_raster(L.pdt, rasMatch)
   
-  if(raster == 'brick'){
-    s <- L.pdt
-  } else if(raster == 'stack'){
-    s <- stack(L.pdt)
-  } else if(raster == 'array'){
-    s <- raster::as.array(L.pdt, transpose = T)
+  if(raster){
+  } else{
+    L.pdt <- raster::as.array(L.pdt, transpose = T)
   }
   
-  print(class(s))
-  return(s)
+  return(L.pdt)
   
 }
 
