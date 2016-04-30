@@ -159,9 +159,12 @@ Sys.time() - t
 
 L.rasters <- list(L.pdt = L.pdt, L.ohc = L.ohc, L.locs = L.locs, L.sst = L.sst)
 t <- Sys.time()
-L.res <- resample.grid(L.rasters, L.ohc)
+L.res <- resample.grid(L.rasters, L.rasters$L.ohc)
+# total of ~5 mins when resampling to ohc, faster when more coarse is desired
 Sys.time() - t
-g <- L.res$g
+L.mle.res <- L.res$L.mle.res
+g <- L.res$g; lon <- g$lon[1,]; lat <- g$lat[,1]
+g.mle <- L.res$g.mle
 
 # save.image...
 #base::save.image('blue259_example.RData')
@@ -232,20 +235,20 @@ for(i in 1:T){
   if(i==1) L <- L.i else L <- stack(L, L.i)
 }
 
-## SOME PROBLEMS HERE...
-
 # CREATE A MORE COARSE RASTER FOR PARAMETER ESTIMATION LATER
-L.mle <- L
-res(L.mle) <- 1/4
+L.mle <- raster::resample(L, L.mle.res)
 
 # MAKE BOTH RASTERS (COARSE AND FINE RES L's) INTO AN ARRAY
 L <- aperm(raster::as.array(raster::flip(L, direction = 'y')), c(3, 2, 1))
-L.mle2 <- aperm(raster::as.array(raster::flip(L.mle, direction = 'y')), c(3, 2, 1))
+L.mle <- aperm(raster::as.array(raster::flip(L.mle, direction = 'y')), c(3, 2, 1))
 
 # CHECK THAT IT WORKED OK
 # lon <- g$lon[1,]
 # lat <- g$lat[,1]
-# fields::image.plot(lon, lat, L[31,,])
+# fields::image.plot(lon, rev(lat), L[1,,])
+# par(mfrow=c(2,1))
+# fields::image.plot(lon, lat, L2[1,,])
+# image.plot(L1[1,,])
 # plot(countriesLow,add=T)
 
 ## ******
@@ -276,7 +279,7 @@ L.mle[is.na(L.mle)] = 1e-15
 {
 t <- Sys.time()
 par0=c(8.908,10.27,3,1,0.707,0.866) # from Pedersen 2011
-fit <- nlm(get.nll.fun, par0, g, L.mle)
+fit <- nlm(get.nll.fun, par0, g.mle, L.mle)
 Sys.time() - t
 
 ## **THESE OUTPUT PARAMETERS ARE PIXEL-BASED. DON'T FORGET TO CONVERT FOR USE
@@ -305,23 +308,65 @@ P <- matrix(c(p[1],1-p[1],1-p[2],p[2]),2,2,byrow=TRUE)
 
 #----------------------------------------------------------------------------------#
 # RUN THE FILTER STEP
-f = hmm.filter2(g,L,K1,K2,P)
+f = hmm.filter(g,L,K1,K2,P)
 res = apply(f$phi[1,,,],2:3,sum, na.rm=T)
 fields::image.plot(lon, lat, res/max(res), zlim = c(.05,1))
 
 #----------------------------------------------------------------------------------#
 # RUN THE SMOOTHING STEP
-s = hmm.smoother2(f, K1, K2, P, plot = F)
+s = hmm.smoother(f, K1, K2, P, plot = F)
 
 # PLOT IT IF YOU WANT TO SEE LIMITS (CI)
-# sres = apply(s[1,,,], 2:3, sum, na.rm=T)
-# image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
+ sres = apply(s[1,,,], 2:3, sum, na.rm=T)
+ fields::image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
 
 #----------------------------------------------------------------------------------#
 # GET THE MOST PROBABLE TRACK
 #----------------------------------------------------------------------------------#
 distr = s
-meanlat <- apply(apply(distr,c(2,4),sum)*repmat(t(as.matrix(g$lat[,1])),T,1),1,sum)
-meanlon <- apply(apply(distr,c(2,3),sum)*repmat(t(as.matrix(g$lon[1,])),T,1),1,sum)
+meanlat <- apply(apply(distr, c(2, 4), sum) * repmat(t(as.matrix(g$lat[,1])), T, 1), 1, sum)
+meanlon <- apply(apply(distr, c(2, 3), sum) * repmat(t(as.matrix(g$lon[1,])), T, 1), 1, sum)
+
+# ADD THE DATES AND STORE THIS VERSION OF ESTIMATED TRACK
+locs_sst_ohc_par1 <- cbind(dates = dateVec, lon = meanlon, lat = meanlat)
+
+# PLOT IT!
+# graphics.off()
+# plot(meanlon, meanlat)
+# plot(countriesLow, add = T)
+
+#----------------------------------------------------------------------------------#
+# COMPARE TO SPOT DATA
+#----------------------------------------------------------------------------------#
+# READ IN SPOT DATA
+# spot = read.csv('C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/121325-SPOT.csv')
+spot = read.table('~/Documents/WHOI/RData/sharkSiteData/AllArgosData.csv', sep=',', header = T)
+spot <- spot[which(spot$ptt == 141261),]
+dts <- as.POSIXct(spot$date, format=findDateFormat(spot$date))
+didx <- dts >= tag & dts <= pop
+spot <- spot[didx,]
+
+# READ IN GPE3 DATA
+gpe <- read.table('~/Documents/WHOI/Data/Blues/2015/141259/141259-6-GPE3.csv',
+                  sep=',',header=T, skip = 5)
+
+
+# PLOT IT
+# sres = apply(s,c(3,4), sum, na.rm=T)
+# image.plot(lon, lat, sres/max(sres), zlim = c(.01,1),xlim=c(-86,-47),ylim=c(20,45))
+ plot(meanlon, meanlat, col=2,type='l', xlim=c(-80,-35),ylim=c(20,46))
+ plot(countriesLow, add = T)
+ lines(spot$lon, spot$lat)
+ lines(gpe$Most.Likely.Longitude, gpe$Most.Likely.Latitude, col='orange')
+ lines(meanlon, meanlat, col=2)
+ 
+# dist <- as.numeric(unlist(geodetic.distance(cbind(spot[(2:length(spot[,1])),c(8,7)]),cbind(spot[(1:length(spot[,1])-1),c(8,7)]))))
+# times <- as.numeric(dts[2:length(dts)] - dts[1:(length(dts)-1)])
+# spd <- dist * 1000 / times # m/s
+
+
+#=======================================================================================#
+## END
+#=======================================================================================#
 
 

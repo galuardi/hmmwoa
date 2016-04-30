@@ -1,6 +1,6 @@
-setup.grid.raster <- function(grid.raster){
+setup.grid.raster <- function(grid.ras){
   
-  ex <- raster::extent(grid.raster)
+  ex <- raster::extent(grid.ras)
   
   # Find longitude extents
   il <- floor(ex[1])
@@ -17,11 +17,11 @@ setup.grid.raster <- function(grid.raster){
   latu <- ala + ly
   
   # Create grid
-  lo <- raster::xFromCol(grid.raster)
-  la <- raster::yFromRow(grid.raster)
+  lo <- raster::xFromCol(grid.ras)
+  la <- rev(raster::yFromRow(grid.ras))
   g <- meshgrid(lo, la)
-  dlo <- raster::xres(grid.raster)
-  dla <- raster::yres(grid.raster)
+  dlo <- raster::xres(grid.ras)
+  dla <- raster::yres(grid.ras)
   
   list(lon = g$X, lat = g$Y, dlo = dlo, dla = dla)
   

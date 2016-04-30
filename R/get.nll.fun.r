@@ -25,10 +25,11 @@ get.nll.fun <- function(parvec=c(D1, D2, p), g, L){
   K2 = imager::as.cimg(gausskern(parvec[3], parvec[4], muadv = 0))
   P <- matrix(c(parvec[5], 1-parvec[5], 1-parvec[6], parvec[6]), 2, 2, byrow = TRUE)
 
-  f = hmm.filter2(g, L, K1, K2, P)
+  f = hmm.filter(g, L, K1, K2, P)
   nllf <- -sum(log(f$psi))
   cat("\r HMM -log(L):", nllf)
   #flush.console()
   nllf
+  
 }
 

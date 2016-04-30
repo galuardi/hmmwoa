@@ -14,18 +14,33 @@
 #' @examples
 #' none
 #' 
-resample.grid <- function(L.rasters, res){
+resample.grid <- function(L.rasters, L.res){
+  
+  L.rasters.old <- L.rasters
   
   for (i in 1:length(L.rasters)){
     r <- L.rasters[[i]]
+    
+    if (i == 1){
+      resol <- raster::res(r)[1]
+    } else{
+      resol <- c(resol, raster::res(r)[1])
+    }
+    
     t <- Sys.time()
-    r <- raster::resample(r, res)
+    r <- raster::resample(r, L.res)
     print(Sys.time() - t)
     L.rasters[[i]] <- r
+
   }
   
-  g <- setup.grid.raster(res)
+  print(resol)
   
-  list(L.rasters, g = g)
+  L.mle.res <- L.rasters.old[[which(resol == max(resol))[1]]]
+  
+  g <- setup.grid.raster(L.res)
+  g.mle <- setup.grid.raster(L.mle.res)
+  
+  list(L.rasters, L.mle.res = L.mle.res, g = g, g.mle = g.mle)
   
 }
