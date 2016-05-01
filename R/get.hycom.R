@@ -62,17 +62,18 @@ get.hycom <- function(limits, time, vars=c('water_temp'), include_latlon=TRUE,
   
   if(type == 'a'){
     expts = data.frame(
-      start=c(as.Date('2008-09-19'), as.Date('2009-05-07'),
-              as.Date('2011-01-03'), as.Date('2013-08-21'),
-              as.Date('2014-04-05')),
-      end=c(as.Date('2009-05-06'), as.Date('2011-01-02'),
+      start=c(as.Date('1992-10-02'), as.Date('1995-08-01'),
+              as.Date('2012-01-01'), as.Date('2013-08-21'),
+              as.Date('2014-04-05'), as.Date('2016-04-18')),
+      end=c(as.Date('1995-07-31'), as.Date('2011-12-31'),
             as.Date('2013-08-20'), as.Date('2014-04-04'),
-            Sys.Date() + 1),
-      url=c('http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_90.6?',
-            'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_90.8?',
+            as.Date('2016-04-17'), Sys.Date() + 1),
+      url=c('http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_19.0?',
+            'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_19.1?',
             'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_90.9?',
             'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_91.0?',
-            'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_91.1?'))
+            'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_91.1?',
+            'http://ncss.hycom.org/thredds/ncss/GLBu0.08/expt_91.2?'))
   } else if(type == 'r'){
     expts = data.frame(
       start=c(as.Date('1992-10-02'),
