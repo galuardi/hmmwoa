@@ -15,7 +15,7 @@ ptt <- 106795
 
 # TAGGING LOCATION
 iniloc <- data.frame(matrix(c(27, 9, 2013, 46.47683333, -45.5640, 
-                              2, 11, 2013, 30.92645, -39.6919), nrow = 2, ncol = 5, byrow = T))
+                              6, 11, 2013, 31.027, -39.684), nrow = 2, ncol = 5, byrow = T))
 colnames(iniloc) = list('day','month','year','lat','lon')
 
 # READ IN PDT DATA FROM WC FILES
@@ -53,7 +53,6 @@ if (exists('sp.lim')){
                  latmin = min(locs.grid$lat[,1]), latmax = max(locs.grid$lat[,1]))
 }
 
-## SKIP LIGHT FOR NOW, CURRENT WC OUTPUT DOESN'T INCLUDE THIS ANYMORE
 # GET THE LIKELIHOOD ELLIPSES
 t <- Sys.time()
 L.locs <- calc.locs(locs, iniloc, locs.grid, dateVec = dateVec, errEll = T)

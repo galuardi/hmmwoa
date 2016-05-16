@@ -34,15 +34,20 @@ findDateFormat <- function(dateVec){
             dateformat = '%H:%M:%S %d-%b-%Y'
             ddates = as.POSIXct(strptime(as.character(dateVec), format = dateformat)) #reads dates as dates
             
-            if(is.na(ddates[1])){
-              stop('No correct date format was found.')
+            if (is.na(ddates[1])){
+              dateformat = '%H:%M:%OS %d-%b-%Y'
+              ddates = as.POSIXct(strptime(as.character(dateVec), format = dateformat)) #reads dates as dates
+              
+              if(is.na(ddates[1])){
+                stop('No correct date format was found.')
+              }
+              
+              } else {}
             } else {}
           } else {}       
       } else {}
     } else {}
   } else {}
-} else {}
-  
   
   dateformat #return dateformat variable
 
