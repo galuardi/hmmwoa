@@ -53,10 +53,17 @@ extract.pdt <- function(pdt){
           pdt.i <- pdt.i[order(pdt.i$Depth),]
           z <- unique(pdt.i$Depth)#; z <- sort(z)
           z[z < 0] = 0; z <- unique(z)
-          minT <- approx(pdt.i$Depth, pdt.i$MinTemp, xout = z)$y
-          maxT <- approx(pdt.i$Depth, pdt.i$MaxTemp, xout = z)$y
+          
           pdt.t <- pdt.i[1:length(z),]
-          pdt.t[,c(5:7)] <- cbind(z,minT,maxT)
+          
+          for(ii in 1:length(z)){
+            minT <- min(pdt.i[which(pdt.i$Depth == z[ii]),6])
+            maxT <- max(pdt.i[which(pdt.i$Depth == z[ii]),7])
+            pdt.t[ii,c(5:7)] <- c(z[ii],minT,maxT)
+          }
+          #minT <- approx(pdt.i$Depth, pdt.i$MinTemp, xout = z)$y
+          #maxT <- approx(pdt.i$Depth, pdt.i$MaxTemp, xout = z)$y
+          #pdt.t[,c(5:7)] <- cbind(z,minT,maxT)
           pdt.t[,4] <- seq(1, length(z), by = 1)
           pdt.t[,3] <- length(z)
           pdt.t[,2] <- paste(format(pdt.t$Date, '%Y-%m-%d'),' 00:00:00', sep = '')
