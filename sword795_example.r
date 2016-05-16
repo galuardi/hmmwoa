@@ -1,8 +1,8 @@
-# RUN BLUE 259 VIA HMMWOA
+# RUN SWORDFISH WITH DIFF TIME CONSTRAINTS/DATA FORMATTING
 library(hmmwoa)
 
 # SETWD
-setwd('~/Documents/WHOI/Data/Blues/2015/141259/') 
+setwd('~/Documents/WHOI/Data/Swords/2013/106795/') 
 
 #----------------------------------------------------------------------------------#
 # ADD MAP DATA
@@ -11,15 +11,15 @@ data("countriesLow")
 
 #----------------------------------------------------------------------------------#
 # READ IN TAG DATA
-ptt <- 141259
+ptt <- 106795
 
 # TAGGING LOCATION
-iniloc <- data.frame(matrix(c(13, 10, 2015, 41.3, -69.27, 
-                              10, 4, 2016, 40.251, -36.061), nrow = 2, ncol = 5, byrow = T))
+iniloc <- data.frame(matrix(c(27, 9, 2013, 46.47683333, -45.5640, 
+                              2, 11, 2013, 30.92645, -39.6919), nrow = 2, ncol = 5, byrow = T))
 colnames(iniloc) = list('day','month','year','lat','lon')
 
 # READ IN PDT DATA FROM WC FILES
-pdt <- read.table(paste(ptt,'-PDTs.csv', sep=''), sep=',',header=T,blank.lines.skip=F, skip = 0)
+pdt <- read.table(paste(ptt,'-PDTs.csv', sep=''), sep=',',header=T,blank.lines.skip=F, skip = 2)
 pdt <- extract.pdt(pdt)
 tag <- as.POSIXct(paste(iniloc[1,1], '/', iniloc[1,2], '/', iniloc[1,3], sep=''), format = '%d/%m/%Y')
 pop <- as.POSIXct(paste(iniloc[2,1], '/', iniloc[2,2], '/', iniloc[2,3], sep=''), format = '%d/%m/%Y')
@@ -317,8 +317,8 @@ fields::image.plot(lon, lat, res/max(res), zlim = c(.05,1))
 s = hmm.smoother(f, K1, K2, P, plot = F)
 
 # PLOT IT IF YOU WANT TO SEE LIMITS (CI)
- sres = apply(s[1,,,], 2:3, sum, na.rm=T)
- fields::image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
+sres = apply(s[1,,,], 2:3, sum, na.rm=T)
+fields::image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
 
 #----------------------------------------------------------------------------------#
 # GET THE MOST PROBABLE TRACK
@@ -354,12 +354,12 @@ gpe <- read.table('~/Documents/WHOI/Data/Blues/2015/141259/141259-6-GPE3.csv',
 # PLOT IT
 # sres = apply(s,c(3,4), sum, na.rm=T)
 # image.plot(lon, lat, sres/max(sres), zlim = c(.01,1),xlim=c(-86,-47),ylim=c(20,45))
- plot(meanlon, meanlat, col=2,type='l', xlim=c(-80,-35),ylim=c(20,46))
- plot(countriesLow, add = T)
- lines(spot$lon, spot$lat)
- lines(gpe$Most.Likely.Longitude, gpe$Most.Likely.Latitude, col='orange')
- lines(meanlon, meanlat, col=2)
- 
+plot(meanlon, meanlat, col=2,type='l', xlim=c(-80,-35),ylim=c(20,46))
+plot(countriesLow, add = T)
+lines(spot$lon, spot$lat)
+lines(gpe$Most.Likely.Longitude, gpe$Most.Likely.Latitude, col='orange')
+lines(meanlon, meanlat, col=2)
+
 # dist <- as.numeric(unlist(geodetic.distance(cbind(spot[(2:length(spot[,1])),c(8,7)]),cbind(spot[(1:length(spot[,1])-1),c(8,7)]))))
 # times <- as.numeric(dts[2:length(dts)] - dts[1:(length(dts)-1)])
 # spd <- dist * 1000 / times # m/s

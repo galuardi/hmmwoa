@@ -1,8 +1,8 @@
-# RUN BLUE 259 VIA HMMWOA
+# RUN BLUE 256 VIA HMMWOA
 library(hmmwoa)
 
 # SETWD
-setwd('~/Documents/WHOI/Data/Blues/2015/141259/') 
+setwd('~/Documents/WHOI/Data/Blues/2015/141256/') 
 
 #----------------------------------------------------------------------------------#
 # ADD MAP DATA
@@ -11,11 +11,11 @@ data("countriesLow")
 
 #----------------------------------------------------------------------------------#
 # READ IN TAG DATA
-ptt <- 141259
+ptt <- 141256
 
 # TAGGING LOCATION
-iniloc <- data.frame(matrix(c(13, 10, 2015, 41.3, -69.27, 
-                              10, 4, 2016, 40.251, -36.061), nrow = 2, ncol = 5, byrow = T))
+iniloc <- data.frame(matrix(c(13, 10, 2015, 41.575, -69.423, 
+                              24, 2, 2016, 26.6798, -69.0147), nrow = 2, ncol = 5, byrow = T))
 colnames(iniloc) = list('day','month','year','lat','lon')
 
 # READ IN PDT DATA FROM WC FILES
@@ -43,7 +43,7 @@ didx <- dts > (tag + d1) & dts < (pop - d1)
 locs <- locs[didx,]
 
 # SPATIAL LIMITS
-sp.lim <- list(lonmin = -82, lonmax = -25, latmin = 15, latmax = 50)
+sp.lim <- list(lonmin = -95, lonmax = -52, latmin = 10, latmax = 55)
 
 if (exists('sp.lim')){
   locs.grid <- setup.locs.grid(sp.lim)
@@ -53,7 +53,6 @@ if (exists('sp.lim')){
                  latmin = min(locs.grid$lat[,1]), latmax = max(locs.grid$lat[,1]))
 }
 
-## SKIP LIGHT FOR NOW, CURRENT WC OUTPUT DOESN'T INCLUDE THIS ANYMORE
 # GET THE LIKELIHOOD ELLIPSES
 t <- Sys.time()
 L.locs <- calc.locs(locs, iniloc, locs.grid, dateVec = dateVec, errEll = T)
@@ -317,8 +316,8 @@ fields::image.plot(lon, lat, res/max(res), zlim = c(.05,1))
 s = hmm.smoother(f, K1, K2, P, plot = F)
 
 # PLOT IT IF YOU WANT TO SEE LIMITS (CI)
- sres = apply(s[1,,,], 2:3, sum, na.rm=T)
- fields::image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
+sres = apply(s[1,,,], 2:3, sum, na.rm=T)
+fields::image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
 
 #----------------------------------------------------------------------------------#
 # GET THE MOST PROBABLE TRACK
@@ -354,12 +353,12 @@ gpe <- read.table('~/Documents/WHOI/Data/Blues/2015/141259/141259-6-GPE3.csv',
 # PLOT IT
 # sres = apply(s,c(3,4), sum, na.rm=T)
 # image.plot(lon, lat, sres/max(sres), zlim = c(.01,1),xlim=c(-86,-47),ylim=c(20,45))
- plot(meanlon, meanlat, col=2,type='l', xlim=c(-80,-35),ylim=c(20,46))
- plot(countriesLow, add = T)
- lines(spot$lon, spot$lat)
- lines(gpe$Most.Likely.Longitude, gpe$Most.Likely.Latitude, col='orange')
- lines(meanlon, meanlat, col=2)
- 
+plot(meanlon, meanlat, col=2,type='l', xlim=c(-80,-35),ylim=c(20,46))
+plot(countriesLow, add = T)
+lines(spot$lon, spot$lat)
+lines(gpe$Most.Likely.Longitude, gpe$Most.Likely.Latitude, col='orange')
+lines(meanlon, meanlat, col=2)
+
 # dist <- as.numeric(unlist(geodetic.distance(cbind(spot[(2:length(spot[,1])),c(8,7)]),cbind(spot[(1:length(spot[,1])-1),c(8,7)]))))
 # times <- as.numeric(dts[2:length(dts)] - dts[1:(length(dts)-1)])
 # spd <- dist * 1000 / times # m/s
