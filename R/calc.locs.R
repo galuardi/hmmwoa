@@ -97,9 +97,19 @@ calc.locs <- function(locs, gps = '', iniloc, locs.grid, dateVec, errEll = T, gp
                                            xmx = max(lon1), ymn = min(lat1), ymx = max(lat1)), direction = 'y')
           
           # offset, assuming shift should be to the south
-          shiftDist <- (-1 * (locs$Offset[t] / 1000 / 111))
+          if(is.na(locs$Offset)){
+            shiftDist <- 0
+          } else{
+            if(locs$Offset.orientation == 180){
+              shiftDist <- (-1 * (locs$Offset[t] / 1000 / 111))
+            } else if(locs$Offset.orientation == 0){
+              shiftDist <- (locs$Offset[t] / 1000 / 111)
+            } else{
+              stop('Error: Offset orientation of 0 or 180deg is not yet supported. Try skipping this days GPE data.')
+            }
+          }
           
-          if(shiftDist >= -10){
+          if(shiftDist >= -10 & shiftDist <= 10){
             Ls <- raster::shift(L, y = shiftDist)
             L.ext <- raster::flip(raster::raster(locs.grid$lon, xmn = min(locs.grid$lon[1,]), 
                                                  xmx = max(locs.grid$lon[1,]), ymn = min(locs.grid$lat[,1]),
