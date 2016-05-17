@@ -24,197 +24,109 @@
 #' @return L is an array of lon x lat likelihood surfaces (matrices) for each
 #'   time point (3rd dimension)
 
-calc.locs <- function(locs, gps = '', iniloc, locs.grid, dateVec, errEll = T, gpeOnly = T){
-
+calc.locs2 <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = T, gpeOnly = T){
+  
+  # get rid of non-GPE locations if gpeOnly == TRUE and check length of resulting locs file
   if(gpeOnly == TRUE){
     locs <- locs[which(locs$Type == 'GPE'),]
-    
     if(length(locs[,1]) < 1){
-      stop('No GPE positions available in input locs file.')
+      stop('No GPE positions available in input locs file. Make sure you have calculated GPE positions and exported the resulting -Locations.csv file from WC DAP/GPE2 software.')
     }
- 
   }
   
+  # set some date vectors for our input data
+  locDates <- as.Date(locs$Date, format = findDateFormat(locs$Date))
+  if(!is.null(gps)){
+    gpsDates <- as.Date(gps$InitTime, format = findDateFormat(gps$InitTime))  
+  } else{
+    gpsDates = NULL
+  }
+  
+  if(any(duplicated(locDates))){
+    # run a simplify function
+    locList <- simplifyLocs(locs, locDates)
+    locs <- locList$locs; locDates <- locList$locDates
+  
+  }
+  
+  if(any(duplicated(gpsDates))){
+    # run a simplify function
+    locList <- simplifyLocs(gps, gpsDates)
+    gps <- locList$locs; gpsDates <- locList$locDates
+    
+  }
+  
+  # set up results array
   row <- dim(locs.grid$lon)[1]
   col <- dim(locs.grid$lon)[2]
-  
   L.locs <- array(0, dim = c(col, row, length(dateVec)))
   
-  # Initial location is known
+  # add tag/pop locations as known
   ilo <- which.min(abs(locs.grid$lon[1,] - iniloc$lon[1]))
   ila <- which.min(abs(locs.grid$lat[,1] - iniloc$lat[1]))
-  L.locs[ilo, ila, 1] <- 1
+  L.locs[ilo, ila, 1] <- 1   # Initial location is known
   
-  locDates <- as.Date(locs$Date, format = findDateFormat(locs$Date))
-  if(gps != ''){
-    gpsDates <- as.Date(gps$InitTime, format = findDateFormat(gps$InitTime))  
-  }
-  
-  # set up a larger grid to base ellipse on and to shift that error, if necessary (GPE only)
-  ngrid <- rev(dim(locs.grid$lon))
-  lon1 <- seq(min(locs.grid$lon[1,]) - 10, max(locs.grid$lon[1,]) + 10, by = locs.grid$dlo)
-  lat1 <- seq(min(locs.grid$lat[,1]) - 10, max(locs.grid$lat[,1]) + 10, by = locs.grid$dla)
-  g1 <- meshgrid(lon1, lat1)
-  locs$Offset[which(is.na(locs$Offset))] <- 0
-  
-  for(t in 2:(length(dateVec)-1)){
-    if(gps != ''){
+  elo <- which.min(abs(locs.grid$lon[1,] - iniloc$lon[2]))
+  ela <- which.min(abs(locs.grid$lat[,1] - iniloc$lat[2]))
+  L.locs[elo, ela, length(dateVec)] <- 1  # End location is known
+
+  for(t in 2:length(dateVec)){
+    print(paste('Starting for loop at ', dateVec[t],' or ', t, ' of max ', length(dateVec)))
+    if(!is.null(gps) & dateVec[t] %in% gpsDates){
       
-      if(gpeOnly == FALSE){
-        warning('Specifying a gps input and having gpeOnly == FALSE may cause wacky things to happen. Recommended to switch gpeOnly to TRUE.')
-      }
+      # if GPS exists then other forms of data for that time point are obsolete
+      idx <- which(gpsDates == dateVec[t]) # set index to identify position in gps file
+      glo <- which.min(abs(locs.grid$lon[1,] - gps$InitLon[idx]))
+      gla <- which.min(abs(locs.grid$lat[,1] - gps$InitLat[idx]))
+      L.locs[glo, gla, t] <- 1
       
-      if(any(dateVec[t] %in% gpsDates)){
+    } else if(!is.null(locs) & dateVec[t] %in% locDates){
+      # set index to identify position in locs file
+      idx <- which(locDates == dateVec[t])
+      
+      if(locs$Type[idx] == 'GPS'){ #locs includes GPS
         # if GPS exists then other forms of data for that time point are obsolete
-        idx <- which(gpsDates == dateVec[t])
-        glo <- which.min(abs(locs.grid$lon[1,] - gps$InitLon[idx]))
-        gla <- which.min(abs(locs.grid$lat[,1] - gps$InitLat[idx]))
+        glo <- which.min(abs(locs.grid$lon[1,] - locs$Longitude[idx]))
+        gla <- which.min(abs(locs.grid$lat[,1] - locs$Latitude[idx]))
         L.locs[glo, gla, t] <- 1
         
-      } else if(any(dateVec[t] %in% locDates)){
-        # do the light thing
-        if(errEll == FALSE){
-          # create longitude likelihood based on GPE data
-          # SD for light-based longitude from Musyl et al. (2001)
-          slon.sd <- 35 / 111 # Converting from kms to degrees
-          
-          # use normally distributed error from position using fixed std dev
-          L.light <- dnorm(t(locs.grid$lon), locs$Longitude[t], slon.sd)
-          
-          L.locs[,,which(dateVec == locDates[t])] <- L.light
-          
-        } else if(errEll == TRUE){
-          # arithmetic converts from meters to degrees
-          # add transformation due to projection?
-          slon.sd <- locs$Error.Semi.minor.axis[t] / 1000 / 111 #semi minor axis
-          L.light.lon <- dnorm(t(g1$X), locs$Longitude[t], slon.sd) # Longitude data
-          slat.sd <- locs$Error.Semi.major.axis[t] / 1000 / 111 #semi major axis
-          L.light.lat <- dnorm(t(g1$Y), locs$Latitude[t], slat.sd)
-          
-          #image.plot(g$lon[1,],g$lat[,1],L.light.lat*L.light.lon)
-          
-          L <- raster::flip(raster::raster(t(L.light.lat * L.light.lon), xmn = min(lon1), 
-                                           xmx = max(lon1), ymn = min(lat1), ymx = max(lat1)), direction = 'y')
-          
-          # offset, assuming shift should be to the south
-          if(is.na(locs$Offset)){
-            shiftDist <- 0
-          } else{
-            if(locs$Offset.orientation == 180){
-              shiftDist <- (-1 * (locs$Offset[t] / 1000 / 111))
-            } else if(locs$Offset.orientation == 0){
-              shiftDist <- (locs$Offset[t] / 1000 / 111)
-            } else{
-              stop('Error: Offset orientation of 0 or 180deg is not yet supported. Try skipping this days GPE data.')
-            }
-          }
-          
-          if(shiftDist >= -10 & shiftDist <= 10){
-            Ls <- raster::shift(L, y = shiftDist)
-            L.ext <- raster::flip(raster::raster(locs.grid$lon, xmn = min(locs.grid$lon[1,]), 
-                                                 xmx = max(locs.grid$lon[1,]), ymn = min(locs.grid$lat[,1]),
-                                                 ymx = max(locs.grid$lat[,1])), direction = 'y')
-            # create blank raster
-            L.ext[L.ext <= 0] = 1
-            
-            # then crop our shifted raster
-            Lsx <- raster::crop(Ls, L.ext)
-            rr <- raster::resample(Lsx, L.ext)
-            #image.plot(lon,lat,t(as.matrix(flip(rr,direction='y'))))
-            L.locs[,,which(dateVec == locDates[t])] <- t(raster::as.matrix(raster::flip(rr, direction = 'y')))
-            
-          } else{
-            # if supposed shift in error ellipse is >10 degrees, we revert to longitude only
-            slon.sd <- 35/111 # Converting from kms to degrees
-            
-            L.light <- dnorm(t(locs.grid$lon), locs$Longitude[t], slon.sd)
-            
-            L.locs[,,which(dateVec == locDates[t])] <- L.light
-            
-          }
-          
-        }
-        
-      } else{} # do nothing
-      
-    } else{
-      # this happens if no gps input is specified, the first two if statements here become obsolete if gpeOnly = TRUE
-      
-      if(locs$Type[t] == 'GPS'){
-        # if GPS exists then other forms of data for that time point are obsolete
-        glo <- which.min(abs(locs.grid$lon[1,] - locs$Longitude[t]))
-        gla <- which.min(abs(locs.grid$lat[,1] - locs$Latitude[t]))
-        L.locs[glo, gla, which(dateVec == locDates[t])] <- 1
-        
-      } else if(locs$Type[t] == 'Argos'){
+      } else if(locs$Type[idx] == 'Argos'){ #locs includes Argos
         # if Argos exists, GPE positions are obsolete
-        alo <- which.min(abs(locs.grid$lon[1,] - locs$Longitude[t]))
-        ala <- which.min(abs(locs.grid$lat[,1] - locs$Latitude[t]))
-        L.locs[alo, ala, which(dateVec == locDates[t])] <- 1
+        alo <- which.min(abs(locs.grid$lon[1,] - locs$Longitude[idx]))
+        ala <- which.min(abs(locs.grid$lat[,1] - locs$Latitude[idx]))
+        L.locs[alo, ala, t] <- 1
         
-      } else if(locs$Type[t] == 'GPE'){
+      } else if(locs$Type[idx] == 'GPE'){ #locs includes GPE
+        
         if(errEll == FALSE){
           # create longitude likelihood based on GPE data
-          # SD for light-based longitude from Musyl et al. (2001)
-          slon.sd <- 35 / 111 # Converting from kms to degrees
-          
+          slon.sd <- locs$Error.Semi.minor.axis[idx] / 1000 / 111 #semi minor axis
           # use normally distributed error from position using fixed std dev
-          L.light <- dnorm(t(locs.grid$lon), locs$Longitude[t], slon.sd)
+          L.light <- dnorm(t(locs.grid$lon), locs$Longitude[idx], slon.sd)
           
-          L.locs[,,which(dateVec == locDates[t])] <- L.light
+          L.locs[,,t] <- L.light
           
         } else if(errEll == TRUE){
-          # arithmetic converts from meters to degrees
-          # add transformation due to projection?
-          slon.sd <- locs$Error.Semi.minor.axis[t] / 1000 / 111 #semi minor axis
-          L.light.lon <- dnorm(t(g1$X), locs$Longitude[t], slon.sd) # Longitude data
-          slat.sd <- locs$Error.Semi.major.axis[t] / 1000 / 111 #semi major axis
-          L.light.lat <- dnorm(t(g1$Y), locs$Latitude[t], slat.sd)
           
-          #image.plot(g$lon[1,],g$lat[,1],L.light.lat*L.light.lon)
-          
-          L <- raster::flip(raster::raster(t(L.light.lat * L.light.lon), xmn = min(lon1), 
-                                           xmx = max(lon1), ymn = min(lat1), ymx = max(lat1)), direction = 'y')
-          
-          # offset, assuming shift should be to the south
-          shiftDist <- (-1 * (locs$Offset[t] / 1000 / 111))
-          
-          if(shiftDist >= -10){
-            Ls <- raster::shift(L, y = shiftDist)
-            L.ext <- raster::flip(raster::raster(locs.grid$lon, xmn = min(locs.grid$lon[1,]), 
-                                                 xmx = max(locs.grid$lon[1,]), ymn = min(locs.grid$lat[,1]),
-                                                 ymx = max(locs.grid$lat[,1])), direction = 'y')
-            # create blank raster
-            L.ext[L.ext <= 0] = 1
-            
-            # then crop our shifted raster
-            Lsx <- raster::crop(Ls, L.ext)
-            rr <- raster::resample(Lsx, L.ext)
-            #image.plot(lon,lat,t(as.matrix(flip(rr,direction='y'))))
-            L.locs[,,which(dateVec == locDates[t])] <- t(raster::as.matrix(raster::flip(rr, direction = 'y')))
-            
-          } else{
-            # if supposed shift in error ellipse is >10 degrees, we revert to longitude only
-            slon.sd <- 35/111 # Converting from kms to degrees
-            
-            L.light <- dnorm(t(locs.grid$lon), locs$Longitude[t], slon.sd)
-            
-            L.locs[,,which(dateVec == locDates[t])] <- L.light
-            
-          }
+          L.locs[,,t] <- calc.errEll(locs[idx,], locs.grid)
           
         }
         
       } else{
-        stop('No data type for this days location.')
+        
+        stop('Error: Error ellipse unspecified.')
+        
       }
+      
+    } else{
+      
+      # no data so we skip this day
+      
     }
+    
+    print(paste('Finishing for loop at ', dateVec[t],' or ', t, ' of max ', length(dateVec)))
+    
   }
-  
-  # End location is known
-  elo <- which.min(abs(locs.grid$lon[1,] - iniloc$lon[2]))
-  ela <- which.min(abs(locs.grid$lat[,1] - iniloc$lat[2]))
-  L.locs[elo, ela, length(dateVec)] <- 1
   
   # this performs some transformations to the likelihood array to convert to useable raster
   crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
@@ -226,4 +138,3 @@ calc.locs <- function(locs, gps = '', iniloc, locs.grid, dateVec, errEll = T, gp
   return(L.locs)
   
 }
-
