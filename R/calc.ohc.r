@@ -13,7 +13,7 @@
 #'   estimated position based on tag-based OHC compared to calculated OHC using 
 #'   HYCOM
 
-calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec){
+calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
 
   # constants for OHC calc
   cp <- 3.993 # kJ/kg*C <- heat capacity of seawater
@@ -35,7 +35,7 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec){
     print(pdt.i)
     
     # open day's hycom data
-    nc <- ncdf::open.ncdf(paste(ohc.dir, pdt[1,1],'_', as.Date(time), '.nc', sep=''))
+    nc <- ncdf::open.ncdf(paste(ohc.dir, 'Swords','_', as.Date(time), '.nc', sep=''))
     dat <- ncdf::get.var.ncdf(nc, 'water_temp')
     
     if(i == 1){
@@ -55,6 +55,15 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec){
     depIdx = unique(apply(as.data.frame(pdt.i$Depth), 1, FUN=function(x) which.min((x - depth) ^ 2)))
     hycomDep <- depth[depIdx]
     
+    if(bathy){
+      mask <- dat[,,max(depIdx)]
+      mask[is.na(mask)] <- NA
+      mask[!is.na(mask)] <- 1
+      for(bb in 1:length(depth)){
+        dat[,,bb] <- dat[,,bb] * mask
+      }
+    }
+
     # make predictions based on the regression model earlier for the temperature at standard WOA depth levels for low and high temperature at that depth
     fit.low <- locfit::locfit(pdt.i$MinTemp ~ pdt.i$Depth)
     fit.high <- locfit::locfit(pdt.i$MaxTemp ~ pdt.i$Depth)
