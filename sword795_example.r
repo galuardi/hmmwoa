@@ -337,7 +337,7 @@ locs_sst_ohc_par1 <- cbind(dates = dateVec, lon = meanlon, lat = meanlat)
 
 # PLOT IT!
 # graphics.off()
- plot(meanlon, meanlat)
+ plot(meanlon, meanlat, type = 'l')
  plot(countriesLow, add = T)
 
 #----------------------------------------------------------------------------------#
