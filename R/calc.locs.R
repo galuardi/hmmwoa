@@ -71,7 +71,7 @@ calc.locs2 <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = T,
   L.locs[elo, ela, length(dateVec)] <- 1  # End location is known
 
   for(t in 2:length(dateVec)){
-    print(paste('Starting for loop at ', dateVec[t],' or ', t, ' of max ', length(dateVec)))
+
     if(!is.null(gps) & dateVec[t] %in% gpsDates){
       
       # if GPS exists then other forms of data for that time point are obsolete
@@ -123,8 +123,6 @@ calc.locs2 <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = T,
       # no data so we skip this day
       
     }
-    
-    print(paste('Finishing for loop at ', dateVec[t],' or ', t, ' of max ', length(dateVec)))
     
   }
   

@@ -42,8 +42,16 @@ dts <- format(as.POSIXct(locs$Date, format = findDateFormat(locs$Date)), '%Y-%m-
 didx <- dts > (tag + d1) & dts < (pop - d1)
 locs <- locs[didx,]
 
+# read in fast gps
+fast <- read.table(paste(ptt,'-1-FastGPS.csv',sep=''), sep=',', header = T,
+                   blank.lines.skip = F, skip = 4)
+fast <- fast[which(fast$InitType == 'FastGPS'),]
+fast.dts <- as.POSIXct(fast$InitTime, format = findDateFormat(fast$InitTime))
+didx <- fast.dts > (tag + d1) & fast.dts < (pop - d1)
+fast <- fast[didx,]
+
 # SPATIAL LIMITS
-sp.lim <- list(lonmin = -82, lonmax = -25, latmin = 15, latmax = 50)
+sp.lim <- list(lonmin = -85, lonmax = -20, latmin = 0, latmax = 60)
 
 if (exists('sp.lim')){
   locs.grid <- setup.locs.grid(sp.lim)
@@ -55,10 +63,8 @@ if (exists('sp.lim')){
 
 # GET THE LIKELIHOOD ELLIPSES
 t <- Sys.time()
-L.locs <- calc.locs(locs, iniloc, locs.grid, dateVec = dateVec, errEll = T)
-Sys.time() - t # around 20 seconds with user-defined limits, up to 5 mins or so with locs limits
-
-# something here for quick example plot to check L.locs?
+L.locs <- calc.locs2(locs, gps = fast, iniloc, locs.grid, dateVec = dateVec, errEll = T)
+Sys.time() - t # around 10 seconds with user-defined limits
 
 #----------------------------------------------------------------------------------#
 # SST LIKELIHOOD
@@ -108,7 +114,7 @@ Sys.time() - t
 {
 
 udates <- unique(as.Date(pdt$Date))
-ohc.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
+ohc.dir <- paste('~/Documents/WHOI/RData/HYCOM/Swords/', ptt, '/',sep = '')
 
 for(i in 1:length(udates)){
   time <- as.Date(udates[i])
@@ -331,8 +337,8 @@ locs_sst_ohc_par1 <- cbind(dates = dateVec, lon = meanlon, lat = meanlat)
 
 # PLOT IT!
 # graphics.off()
-# plot(meanlon, meanlat)
-# plot(countriesLow, add = T)
+ plot(meanlon, meanlat)
+ plot(countriesLow, add = T)
 
 #----------------------------------------------------------------------------------#
 # COMPARE TO SPOT DATA
