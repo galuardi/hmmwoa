@@ -71,8 +71,6 @@ calc.locs <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = TRU
   ela <- which.min(abs(locs.grid$lat[,1] - iniloc$lat[2]))
   L.locs[elo, ela, length(dateVec)] <- 1  # End location is known
 
-  for(t in 2:length(dateVec)){
-
   for(t in 2:(length(dateVec)) - 1){
     if(!is.null(gps) & dateVec[t] %in% gpsDates){
       

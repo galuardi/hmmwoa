@@ -63,8 +63,11 @@ if (exists('sp.lim')){
 
 # GET THE LIKELIHOOD ELLIPSES
 t <- Sys.time()
-L.locs <- calc.locs2(locs, gps = fast, iniloc, locs.grid, dateVec = dateVec, errEll = T)
+L.locs <- calc.locs(locs, gps = fast, iniloc, locs.grid, dateVec = dateVec, errEll = TRUE, gpeOnly = TRUE)
 Sys.time() - t # around 10 seconds with user-defined limits
+
+gpsIdx <- L.locs$gpsIdx
+L.locs <- L.locs$L.locs
 
 #----------------------------------------------------------------------------------#
 # SST LIKELIHOOD
@@ -190,6 +193,17 @@ L.pdt[is.na(L.pdt)] = 0
 L.sst[is.na(L.sst)] = 0
 L.ohc[is.na(L.ohc)] = 0
 
+# which days contain 'known' dates?
+if(!is.null(gpsIdx)){
+  knownIdx <- c(1,length(dateVec),gpsIdx)
+} else{
+  knownIdx <- c(1,length(dateVec))
+}
+# eliminate those from other likelihood surfaces
+L.pdt[,,knownIdx] <- 0
+L.sst[,,knownIdx] <- 0
+L.ohc[,,knownIdx] <- 0
+
 # are all cells in a given likelihood surface == 0?
 nalocidx = apply(L.locs, 3, sum, na.rm=T) != 0 # does sum of likelihood surface
 napdtidx = apply(L.pdt, 3, sum, na.rm=T) != 0
@@ -301,6 +315,7 @@ p <- 1/(1+exp(-fit$estimate[5:6])) # logit-transformed
 }
 #----------------------------------------------------------------------------------#
 # OR... JUST DEFINE THE PARAMETERS
+par0= c(12,36,12,6,.707,.866)
 D1 <- par0[1:2] # parameters for kernel 1. this is behavior mode transit
 D2 <- par0[3:4] # parameters for kernel 2. resident behavior mode
 p <- par0[5:6]
@@ -323,7 +338,7 @@ s = hmm.smoother(f, K1, K2, P, plot = F)
 
 # PLOT IT IF YOU WANT TO SEE LIMITS (CI)
 sres = apply(s[1,,,], 2:3, sum, na.rm=T)
-fields::image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
+fields::image.plot(lon, lat, sres/max(sres), zlim = c(0,1))
 
 #----------------------------------------------------------------------------------#
 # GET THE MOST PROBABLE TRACK
@@ -340,6 +355,8 @@ locs_sst_ohc_par1 <- cbind(dates = dateVec, lon = meanlon, lat = meanlat)
  plot(meanlon, meanlat, type = 'l')
  plot(countriesLow, add = T)
 
+ contour(lon, lat, apply(s, 3:4, sum, na.rm=T), add=F, levels = c(.0001, .05, .5, .99999), col = 2)
+ lines(meanlon, meanlat, pch = 19, typ='o', cex = .2, col = 4)
 #----------------------------------------------------------------------------------#
 # COMPARE TO SPOT DATA
 #----------------------------------------------------------------------------------#
