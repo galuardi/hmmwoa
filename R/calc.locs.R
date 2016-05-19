@@ -24,7 +24,7 @@
 #' @return L is an array of lon x lat likelihood surfaces (matrices) for each
 #'   time point (3rd dimension)
 
-calc.locs2 <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = T, gpeOnly = T){
+calc.locs <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = TRUE, gpeOnly = TRUE){
   
   # get rid of non-GPE locations if gpeOnly == TRUE and check length of resulting locs file
   if(gpeOnly == TRUE){
@@ -32,6 +32,8 @@ calc.locs2 <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = T,
     if(length(locs[,1]) < 1){
       stop('No GPE positions available in input locs file. Make sure you have calculated GPE positions and exported the resulting -Locations.csv file from WC DAP/GPE2 software.')
     }
+  } else{
+    stop('Error: Currently gpeOnly must be set to TRUE otherwise duplicate dates are handled improperly.')
   }
   
   # set some date vectors for our input data
@@ -46,7 +48,6 @@ calc.locs2 <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = T,
     # run a simplify function
     locList <- simplifyLocs(locs, locDates)
     locs <- locList$locs; locDates <- locList$locDates
-  
   }
   
   if(any(duplicated(gpsDates))){
@@ -72,6 +73,7 @@ calc.locs2 <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = T,
 
   for(t in 2:length(dateVec)){
 
+  for(t in 2:(length(dateVec)) - 1){
     if(!is.null(gps) & dateVec[t] %in% gpsDates){
       
       # if GPS exists then other forms of data for that time point are obsolete
@@ -133,6 +135,6 @@ calc.locs2 <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = T,
   L.locs <- raster::brick(list.locs$z, xmn = ex[1], xmx = ex[2], ymn = ex[3], ymx = ex[4], transpose = T, crs)
   L.locs <- raster::flip(L.locs, direction = 'y')
   
-  return(L.locs)
+  return(list(L.locs = L.locs, gpsIdx = which(dateVec %in% gpsDates)))
   
 }
