@@ -4,7 +4,7 @@ load("~/GitHub/CAM_DATA/sword795_example.RData")
 
 # use better rparameters
 
-par0= c(12,36,12,6,.707,.866)
+par0= c(100,300,25,10,.707,.866)
 D1 <- par0[1:2] # parameters for kernel 1. this is behavior mode transit
 D2 <- par0[3:4] # parameters for kernel 2. resident behavior mode
 p <- par0[5:6]
@@ -26,8 +26,10 @@ s2 = hmm.smoother_test(f2, K1, K2, P, plot = F)
 apply(s2, c(2), sum)
 
 # PLOT IT IF YOU WANT TO SEE LIMITS (CI)
-sres = apply(s2[1,,,], 2:3, sum, na.rm=T)
-fields::image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
+sres = apply(s2[,,,], 2:3, sum, na.rm=T)
+
+sres1 = apply(s2[1,,,], 2:3, sum, na.rm=T)
+sres2 = apply(s2[2,,,], 2:3, sum, na.rm=T)
 
 #----------------------------------------------------------------------------------#
 # GET THE MOST PROBABLE TRACK
@@ -36,7 +38,23 @@ distr = s2
 meanlat <- apply(apply(distr, c(2, 4), sum) * repmat(t(as.matrix(g$lat[,1])), T, 1), 1, sum)
 meanlon <- apply(apply(distr, c(2, 3), sum) * repmat(t(as.matrix(g$lon[1,])), T, 1), 1, sum)
 
-lines(meanlon, meanlat, col = 2)
+fields::image.plot(lon, lat, sres/max(sres), zlim = c(.01,1), axes = F)
+lines(meanlon, meanlat, col = 2, typ='o', pch=19, cex=.5)
+points(iniloc[,5], iniloc[,4], pch = c(21,24), bg = c(3,2), cex = 2)
+
+fields::world(add=T, col = 'grey90', fill = T)
+box()
+degAxis(1)
+degAxis(2)
+
+#----------------------------------------------------------------------------------#
+# LOOK AT BOTH MOVEMENT STATES POSTERIOR DISTRIBUTION
+#----------------------------------------------------------------------------------#
+
+par(mfrow = c(1,2))
+fields::image.plot(lon, lat, sres1/max(sres1), zlim = c(.01,1), axes = T)
+fields::image.plot(lon, lat, sres2/max(sres2), zlim = c(.01,1), axes = T)
+
 
 
 # Things to look at... 
