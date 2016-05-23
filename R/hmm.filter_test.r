@@ -32,14 +32,14 @@ hmm.filter_test <- function(g,L,K1,K2,P){
   phi[2,1,,]  <- L[1,,] # first position is known
   pred[2,1,,] <- L[1,,] # first position is known
   
-#   phi[2,T,,]  <- L[T,,] # last position is known
-#   pred[2,T,,] <- L[T,,] # last position is known
+  phi[2,T,,]  <- L[T,,] # last position is known
+  pred[2,T,,] <- L[T,,] # last position is known
  
    # psi <- rep(0,T-1) # sum of the probability of both states at each step
    psi <- rep(0,T) # sum of the probability of both states at each step
    
   # Start filter iterations
-  for(t in 2:T){
+  for(t in 2:(T)){
     # replace this part with older workflow using a gaussian kernel.. 
     # p1 <- as.vector(phi[1,t-1,,])
     # p2 <- as.vector(phi[2,t-1,,])

@@ -18,8 +18,9 @@ hmm.smoother_test <- function(f,K1,K2,P,plot=TRUE){
   row <- dim(f$phi)[3]
   col <- dim(f$phi)[4]
   
-  smooth <- array(0,dim=dim(f$phi))
-  smooth[,T,,] <- f$phi[,T,,]  # end point
+#   smooth <- array(0,dim=dim(f$phi))
+#   smooth[,T,,] <- f$phi[,T,,]  # end point
+  smooth <- f$phi  #default; fill in as the prediction step.
   # smooth[,T,,] <- L[T,,]/sum(L[T,,], na.rm = T) # last position is known; use the likelihood matrix, same as the filter step for starting point.. 
   # smooth[,1,,] <- f$phi[,1,,]  # starting point
   for(t in T:2){
@@ -46,11 +47,24 @@ hmm.smoother_test <- function(f,K1,K2,P,plot=TRUE){
     
     post1 <- matrix(P[1,1]*Rp1 + P[1,2]*Rp2,row,col)
     post2 <- matrix(P[2,1]*Rp1 + P[2,2]*Rp2,row,col)
-    post1 <- post1 * f$phi[1,t-1,,]
-    post2 <- post2 * f$phi[2,t-1,,]
-    fac <- sum(as.vector(post1)) + sum(as.vector(post2))
-    smooth[1,t-1,,] <- post1/fac
-    smooth[2,t-1,,] <- post2/fac
+    if(T==t){
+      post1 <- f$phi[1,t,,]
+      post2 <- f$phi[2,t,,]
+      fac <- sum(as.vector(post1)) + sum(as.vector(post2))
+      smooth[1,t,,] <- post1/fac
+      smooth[2,t,,] <- post2/fac 
+      post1 <- post1 * f$phi[1,t-1,,]
+      post2 <- post2 * f$phi[2,t-1,,]
+      fac <- sum(as.vector(post1)) + sum(as.vector(post2))
+      smooth[1,t-1,,] <- post1/fac
+      smooth[2,t-1,,] <- post2/fac
+    }else{
+      post1 <- post1 * f$phi[1,t-1,,]
+      post2 <- post2 * f$phi[2,t-1,,]
+      fac <- sum(as.vector(post1)) + sum(as.vector(post2))
+      smooth[1,t-1,,] <- post1/fac
+      smooth[2,t-1,,] <- post2/fac
+    }
   }
   smooth
 }
