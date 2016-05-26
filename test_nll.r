@@ -6,6 +6,13 @@ fit <- nlm(get.nll.fun, par0, g, L, dt)
 D1 <- exp(fit$estimate[1:2])
 D2 <- exp(fit$estimate[3:4])
 p <- 1/(1+exp(-fit$estimate[5:6])) 
+
+## Try with larger Diffusion
+t <- Sys.time()
+par0 = c(100, 300, 25, 10, .707, .866) # from Pedersen 2011
+fit <- nlm(f = get.nll.fun, p = par0, g.mle, L.mle)
+Sys.time() - t
+
 # 
 # > fit
 # $minimum
