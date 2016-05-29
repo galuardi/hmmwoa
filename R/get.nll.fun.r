@@ -20,14 +20,19 @@
 #' p <- 1/(1+exp(-fit$estimate[5:6])) 
 
 
-get.nll.fun <- function(parvec=c(D1, D2, p), g, L){
+get.nll.fun <- function(parvec = c(10, 30, 5, 2, .707, .8), g, L){ #c(D1, D2, p)c(10, 30, 5, 2, .707, .8)
   K1 = imager::as.cimg(gausskern(parvec[1], parvec[2], muadv = 0))
   K2 = imager::as.cimg(gausskern(parvec[3], parvec[4], muadv = 0))
   P <- matrix(c(parvec[5], 1-parvec[5], 1-parvec[6], parvec[6]), 2, 2, byrow = TRUE)
 
   f = hmm.filter_test(g, L, K1, K2, P)
+<<<<<<< HEAD
   nllf <- -sum(log(f$psi))
   cat("\r HMM -log(L):", nllf)
+=======
+  nllf <- -sum(log(f$psi[f$psi>0]))
+  print(paste0("\n HMM -log(L):", nllf))
+>>>>>>> fa6086cbad488d3ddf746ba6330dd903d15e6992
   #flush.console()
   nllf
   
