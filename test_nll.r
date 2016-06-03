@@ -54,11 +54,18 @@ D2 <- exp(fit$estimate[3:4])
 p <- 1/(1+exp(-fit$estimate[5:6]))
 
 # use optim and logit transformed transition parameters
+<<<<<<< HEAD
 par0 = c(100/2.6, 300/2.6, 25/2.6, 10/2.6, .95, .95)
 # par0 = c(40, 10, 10, 5, .707, .866)
 p1 = p2 = exp(log(0.95/0.05))/(1+exp(log(0.95/0.05))) # inverse logit for trans prob terms
 logpar = c(par0[1:4], p1, p2) 
 ofit <- optim(par = c(logpar), get.nll.fun, hessian = F)
+=======
+par0 = c(40, 10, 10, 5, .707, .866)
+p1 = p2 = exp(log(0.95/0.05))/(1+exp(log(0.95/0.05))) # inverse logit for trans prob terms
+logpar = c(par0[1:4], p1, p2) 
+ofit <- optim(par = c(logpar), get.nll.fun, hessian = T)
+>>>>>>> abadec0f72ae1ffa9ebf9465de2655349c939b35
 1/(1+exp(-ofit$par[5:6]))
 
 par1 = c(abs(ofit$par[1:4])*2.6, 1/(1+exp(-ofit$par[5:6])))
