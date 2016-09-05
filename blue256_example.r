@@ -55,7 +55,7 @@ if (exists('sp.lim')){
 
 # GET THE LIKELIHOOD ELLIPSES
 t <- Sys.time()
-L.locs <- calc.locs(locs, iniloc, locs.grid, dateVec = dateVec, errEll = T)
+L.locs <- calc.locs(locs, gps = NULL, iniloc, locs.grid, dateVec = dateVec, errEll = T)
 Sys.time() - t # around 20 seconds with user-defined limits, up to 5 mins or so with locs limits
 
 # something here for quick example plot to check L.locs?
