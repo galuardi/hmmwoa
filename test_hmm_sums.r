@@ -4,9 +4,13 @@ load("~/GitHub/CAM_DATA/sword795_example.RData")
 
 # use better rparameters
 
+<<<<<<< HEAD
 par0= c(100,300,25,10,.707,.866)
 par0= c(30,100,30,20,.707,.866)
 
+=======
+par0= c(30,100,30,20,.707,.866)
+>>>>>>> 5e98564c55cc9e977303048861760588f6b357b8
 D1 <- par0[1:2] # parameters for kernel 1. this is behavior mode transit
 D2 <- par0[3:4] # parameters for kernel 2. resident behavior mode
 p <- par0[5:6]
@@ -28,9 +32,17 @@ s2 = hmm.smoother_test(f2, K1, K2, P, plot = F)
 apply(s2, c(2), sum)
 
 # PLOT IT IF YOU WANT TO SEE LIMITS (CI)
+<<<<<<< HEAD
 
 sres1 = apply(s2[1,,,], 2:3, sum, na.rm=T)
 sres2 = apply(s2[2,,,], 2:3, sum, na.rm=T)
+=======
+sres = apply(s2[,,,], 2:3, sum, na.rm=T)
+
+sres1 = apply(s2[1,,,], 2:3, sum, na.rm=T)
+sres2 = apply(s2[2,,,], 2:3, sum, na.rm=T)
+sres = apply(s2[1,,,], 2:3, sum, na.rm=T)
+>>>>>>> 5e98564c55cc9e977303048861760588f6b357b8
 
 #----------------------------------------------------------------------------------#
 # GET THE MOST PROBABLE TRACK

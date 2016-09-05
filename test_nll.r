@@ -9,7 +9,14 @@ p <- 1/(1+exp(-fit$estimate[5:6]))
 
 ## Try with larger Diffusion
 t <- Sys.time()
-par0 = c(100, 300, 25, 10, .707, .866) # from Pedersen 2011
+par0 = c(100, 300, 25, 10, .707, .866) # transitions from Pedersen 2011
+fit <- nlm(f = get.nll.fun, p = par0, g.mle, L.mle)
+Sys.time() - t
+
+
+## Try with larger Diffusion and logit transformed transition prob (.95)
+t <- Sys.time()
+par0 = c(100, 300, 25, 10, .95, .95) # transitions from Pedersen 2011
 fit <- nlm(f = get.nll.fun, p = par0, g.mle, L.mle)
 Sys.time() - t
 
@@ -33,10 +40,11 @@ Sys.time() - t
 # > par0
 # [1] 40.000 10.000 10.000  5.000  0.707  0.866
 
+par0 = c(40, 10, 10, 5, .707, .866)
 p1 = p2 = exp(log(0.95/0.05))/(1+exp(log(0.95/0.05))) # inverse logit for trans prob terms
 logpar = c(par0[1:4], p1, p2) 
 t1 = Sys.time()
-logfit <- nlm(get.nll.fun, logpar, g, L, dt)
+logfit <- nlm(f = get.nll.fun, p = logpar, g.mle, L.mle)
 runtime = Sys.time()-t1
 runtime
 
@@ -45,26 +53,21 @@ D1 <- exp(fit$estimate[1:2])
 D2 <- exp(fit$estimate[3:4])
 p <- 1/(1+exp(-fit$estimate[5:6]))
 
-# use optim
-get.nll.fun <- function(parvec=c(D1, D2, p), g = g, L = L){
-  K1 = as.cimg(gausskern(parvec[1], parvec[2], muadv = 0))
-  K2 = as.cimg(gausskern(parvec[3], parvec[4], muadv = 0))
-  P <- matrix(c(parvec[5], 1-parvec[5], 1-parvec[6], parvec[6]), 2, 2, byrow = TRUE)
-  
-  # make all NA's very tiny for the convolution
-  # the previous steps may have taken care of this...
-  #   L[L==0] = 1e-15
-  #   L[is.na(L)] = 1e-15
-  
-  # filter - moved function to sphmmfuns_hmm
-  f = hmm.filter2(g,L,K1,K2,P)
-  nllf <- -sum(log(f$psi))
-  ##print(nllf)
-  cat("\r HMM -log(L):",nllf)
-  #flush.console()
-  nllf
-}
-logfit <- optim(par = logpar, get.nll.fun)
+# use optim and logit transformed transition parameters
+<<<<<<< HEAD
+par0 = c(100/2.6, 300/2.6, 25/2.6, 10/2.6, .95, .95)
+# par0 = c(40, 10, 10, 5, .707, .866)
+p1 = p2 = exp(log(0.95/0.05))/(1+exp(log(0.95/0.05))) # inverse logit for trans prob terms
+logpar = c(par0[1:4], p1, p2) 
+ofit <- optim(par = c(logpar), get.nll.fun, hessian = F)
+=======
+par0 = c(40, 10, 10, 5, .707, .866)
+p1 = p2 = exp(log(0.95/0.05))/(1+exp(log(0.95/0.05))) # inverse logit for trans prob terms
+logpar = c(par0[1:4], p1, p2) 
+ofit <- optim(par = c(logpar), get.nll.fun, hessian = T)
+>>>>>>> abadec0f72ae1ffa9ebf9465de2655349c939b35
+1/(1+exp(-ofit$par[5:6]))
 
+par1 = c(abs(ofit$par[1:4])*2.6, 1/(1+exp(-ofit$par[5:6])))
 
         
