@@ -24,6 +24,8 @@
 
 calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, depth = depth, dateVec){
   
+  start.t <- Sys.time()
+  
   udates <- unique(pdt$Date)
   T <- length(udates)
   
@@ -106,6 +108,8 @@ calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, depth = depth, da
   ex <- raster::extent(list.pdt)
   L.pdt <- raster::brick(list.pdt$z, xmn = ex[1], xmx = ex[2], ymn = ex[3], ymx = ex[4], transpose = T, crs)
   L.pdt <- raster::flip(L.pdt, direction = 'y')
+  
+  print(paste('PDT calculations took ', Sys.time() - start.t, '.'))
   
   return(L.pdt)
   

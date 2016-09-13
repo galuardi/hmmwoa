@@ -297,7 +297,7 @@ L.mle[is.na(L.mle)] = 1e-15
 # TRY THE MLE. SOME OTHER TIME.
 {
 t <- Sys.time()
-par0=c(8.908,10.27,3,1,0.707,0.866) # from Pedersen 2011
+#par0=c(8.908,10.27,3,1,0.707,0.866) # from Pedersen 2011
 fit <- nlm(get.nll.fun, par0, g.mle, L.mle)
 Sys.time() - t
 
@@ -328,13 +328,13 @@ P <- matrix(c(p[1],1-p[1],1-p[2],p[2]),2,2,byrow=TRUE)
 
 #----------------------------------------------------------------------------------#
 # RUN THE FILTER STEP
-f = hmm.filter(g,L,K1,K2,P)
+f = hmm.filter_test(g,L,K1,K2,P)
 res = apply(f$phi[1,,,],2:3,sum, na.rm=T)
 fields::image.plot(lon, lat, res/max(res), zlim = c(.05,1))
 
 #----------------------------------------------------------------------------------#
 # RUN THE SMOOTHING STEP
-s = hmm.smoother(f, K1, K2, P, plot = F)
+s = hmm.smoother_test(f, K1, K2, P, plot = F)
 
 # PLOT IT IF YOU WANT TO SEE LIMITS (CI)
 sres = apply(s[1,,,], 2:3, sum, na.rm=T)

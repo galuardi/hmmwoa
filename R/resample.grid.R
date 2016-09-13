@@ -16,10 +16,16 @@
 #' 
 resample.grid <- function(L.rasters, L.res){
   
+  start.t <- Sys.time()
+  
   L.rasters.old <- L.rasters
   
   for (i in 1:length(L.rasters)){
     r <- L.rasters[[i]]
+    
+    if(class(r) == 'list'){
+      r <- L.rasters[[i]]$L.locs
+    }
     
     if (i == 1){
       resol <- raster::res(r)[1]
@@ -36,10 +42,12 @@ resample.grid <- function(L.rasters, L.res){
   
   print(resol)
   
-  L.mle.res <- L.rasters.old[[which(resol == max(resol))[1]]]
+  L.mle.res <- L.rasters.old[which(resol == max(resol))][[1]]
   
   g <- setup.grid.raster(L.res)
   g.mle <- setup.grid.raster(L.mle.res)
+  
+  print(paste('Raster resample took ', Sys.time() - start.t, '.'))
   
   list(L.rasters, L.mle.res = L.mle.res, g = g, g.mle = g.mle)
   

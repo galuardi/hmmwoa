@@ -15,6 +15,8 @@
 
 calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
 
+  start.t <- Sys.time()
+  
   # constants for OHC calc
   cp <- 3.993 # kJ/kg*C <- heat capacity of seawater
   rho <- 1025 # kg/m3 <- assumed density of seawater
@@ -35,7 +37,7 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
     print(pdt.i)
     
     # open day's hycom data
-    nc <- ncdf::open.ncdf(paste(ohc.dir, 'Swords','_', as.Date(time), '.nc', sep=''))
+    nc <- ncdf::open.ncdf(paste(ohc.dir, ptt,'_', as.Date(time), '.nc', sep=''))
     dat <- ncdf::get.var.ncdf(nc, 'water_temp')
     
     if(i == 1){
@@ -119,7 +121,7 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
     
   }
 
-  t = Sys.time()
+  raster.t <- Sys.time()
 
   crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
   list.ohc <- list(x = lon-360, y = lat, z = L.ohc)
@@ -127,7 +129,7 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
   L.ohc <- raster::brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
   L.ohc <- raster::flip(L.ohc, direction = 'y')
 
-  print(paste('raster manipulation took ', Sys.time() - t))
+  print(paste('OHC calculations and raster manipulation took ', Sys.time() - start.t, ' and ', Sys.time() - raster.t, ', respesctively.'))
   
   # return ohc likelihood surfaces
   return(L.ohc)

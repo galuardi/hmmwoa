@@ -5,6 +5,7 @@ calc.errEll <- function(locs, locs.grid){
   
   # set up the offset
   locs$Offset[which(is.na(locs$Offset))] <- 0
+  locs$Offset.orientation[which(is.na(locs$Offset.orientation))] <- 0
   
   #then do shift based on:
   if(locs$Offset.orientation == 0){
