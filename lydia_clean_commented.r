@@ -7,6 +7,7 @@ setwd('~/Documents/WHOI/Data/WhiteSharks/2013/121325/')
 
 #----------------------------------------------------------------------------------#
 # ADD MAP DATA
+library(rworldmap)
 data("countriesLow")
 
 #----------------------------------------------------------------------------------#
@@ -358,8 +359,8 @@ locs_sst_pdt_par2 <- cbind(dates = dateVec, lon = meanlon, lat = meanlat)
 
 # PLOT IT!
 # graphics.off()
-# plot(meanlon, meanlat)
-# plot(countriesLow, add = T)
+ plot(meanlon, meanlat)
+ plot(countriesLow, add = T)
 
 #----------------------------------------------------------------------------------#
 # COMPARE TO SPOT DATA
@@ -368,16 +369,17 @@ locs_sst_pdt_par2 <- cbind(dates = dateVec, lon = meanlon, lat = meanlat)
 
 # READ IN SPOT DATA
 # spot = read.csv('C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/121325-SPOT.csv')
-# dts <- as.POSIXct(spot$Date, format=findDateFormat(spot$Date))
-# didx <- dts >= tag & dts <= pop
-# spot <- spot[didx,]
+ spot = read.csv('~/Documents/WHOI/RData/WhiteSharks/2013/121325/121325-SPOT.csv')
+ dts <- as.POSIXct(spot$Date, format=findDateFormat(spot$Date))
+ didx <- dts >= tag & dts <= pop
+ spot <- spot[didx,]
 
 # PLOT IT
 # sres = apply(s,c(3,4), sum, na.rm=T)
 # image.plot(lon, lat, sres/max(sres), zlim = c(.01,1),xlim=c(-86,-47),ylim=c(20,45))
-# plot(meanlon, meanlat, col=2,type='l')
-# plot(countriesLow, add = T)
-# lines(spot$Longitude, spot$Latitude)
+ plot(meanlon, meanlat, col=2,type='l')
+ plot(countriesLow, add = T)
+ lines(spot$Longitude, spot$Latitude)
 
 # dist <- as.numeric(unlist(geodetic.distance(cbind(spot[(2:length(spot[,1])),c(8,7)]),cbind(spot[(1:length(spot[,1])-1),c(8,7)]))))
 # times <- as.numeric(dts[2:length(dts)] - dts[1:(length(dts)-1)])
