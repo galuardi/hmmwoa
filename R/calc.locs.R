@@ -26,6 +26,8 @@
 
 calc.locs <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = TRUE, gpeOnly = TRUE){
   
+  start.t <- Sys.time()
+  
   # get rid of non-GPE locations if gpeOnly == TRUE and check length of resulting locs file
   if(gpeOnly == TRUE){
     locs <- locs[which(locs$Type == 'GPE'),]
@@ -132,6 +134,8 @@ calc.locs <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = TRU
   ex <- raster::extent(list.locs)
   L.locs <- raster::brick(list.locs$z, xmn = ex[1], xmx = ex[2], ymn = ex[3], ymx = ex[4], transpose = T, crs)
   L.locs <- raster::flip(L.locs, direction = 'y')
+  
+  print(paste('Light calculations took ', Sys.time() - start.t, '.'))
   
   return(list(L.locs = L.locs, gpsIdx = which(dateVec %in% gpsDates)))
   

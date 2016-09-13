@@ -16,6 +16,8 @@
 
 calc.sst <- function(tag.sst, sst.dir, dateVec){
   
+  start.t <- Sys.time()
+  
   dts <- as.POSIXct(tag.sst$Date, format = findDateFormat(tag.sst$Date))
   tag.sst[,12] <- as.Date(dts)
   by_dte <- dplyr::group_by(tag.sst, V12)  # group by unique DAILY time points
@@ -62,6 +64,8 @@ calc.sst <- function(tag.sst, sst.dir, dateVec){
     ex <- raster::extent(list.sst)
     L.sst <- raster::brick(list.sst$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
     L.sst <- raster::flip(L.sst, direction = 'y')
+    
+    print(paste('SST calculations took ', Sys.time() - start.t, '.'))
     
     # return sst likelihood surfaces
     return(L.sst)
