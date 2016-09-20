@@ -78,11 +78,12 @@ L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec = dateVec, isotherm = '')
 #----------------------------------------------------------------------------------#
 
 # WOA DIRECTORY: LOCATION OF .NC FILE FOR EXTRACTION
- woa.dir <- '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/woa13_25deg_global_meantemp.nc'
-#woa.dir <- "C:/Users/ben/Documents/WOA/woa13_25deg_global.nc"
+ #woa.dir <- '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/woa13_25deg_global_meantemp.nc'
+ woa.dir <- '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_1deg/global/woa13_1deg_global_meantemp.nc'
+ #woa.dir <- "C:/Users/ben/Documents/WOA/woa13_25deg_global.nc"
 
 # GET THE WOA SUBSET BASED ON SPATIAL LIMITS
-return.woa <- extract.woa(woa.dir, sp.lim, resolution = 'quarter')
+return.woa <- extract.woa(woa.dir, sp.lim, resolution = 'one')
 woa <- return.woa$dat 
 lon <- as.numeric(return.woa$lon); 
 lat <- as.numeric(return.woa$lat); 
