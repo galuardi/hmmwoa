@@ -1,0 +1,102 @@
+---
+title: "A user's guide to improved analysis of marine animal movement data using HMMoce"
+author: "Camrin Braun, Benjamin Galuardi, Simon Thorrold"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    fig_caption: yes
+vignette: >
+  %\VignetteIndexEntry{A user's guide to improved analysis of marine animal movement data using HMMoce}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Summary
+While the number of marine animals being tagged and tracked continues to grow, current satellite tracking techniques largely constrain meaninful inference to largescale movements of surface-dwelling species and are inherently prone to significant error. Hidden Markov models (HMMs) have become increasingly common in the analysis of animal movement data by incorporating underlying behavioral states into movement data. This discretized approach also provides efficient handling of grid-based oceanographic data and likelihood surfaces generated within the package. We present an open-source `R` package, `HMMoce`, that uses a novel state-space HMM approach to improve position estimates derived from electronic tags using three-dimensional oceanographic data. We demonstrate `HMMoce` with example blue shark (*Prionace glauca*) data that is included in the package. Our findings illustrate how our software leverages all available tag data, along with oceanographic information, to improve position estimates of tagged marine species.
+
+## Introduction
+
+There are many approaches to estimating animal movements from various types of tag data. The paradigm in fish tracking has been to use light levels to estimate position, but many species spend considerable time away from the photic zone. Diving behavior, like a typical diel vertical migration exhibited by deep diving swordfish, can render light geolocation useless. Yet, deep diving provides depth-temperature profile data recorded by the archival tag as it samples throughout a tagged individual's vertical movements. This sampling provides a unique signature through the oceanographic environment that can be leveraged to help constrain position. When combined with other tag-measured data streams like sea surface temperature (SST), light levels and maximum diving depth, we expect a unique combination of oceanographic characteristics to be diagnostic of an animal's location.
+
+## Installation and Setup
+You can install `HMMoce` from GitHub using the `devtools` package:
+```{r, eval=F}
+
+devtools::install_git{'https://github.com/camrinbraun/HMMoce', depends = T}
+# then load the package
+library(HMMoce)
+
+```
+Example data can be loaded using
+```{r, eval=F}
+
+data(blue8)
+
+```
+but your own data will need to be read in from .csv files.
+
+## Reading and Formatting Tag Data
+With the package installed, you're ready to get started on your own data. We'll continue with the example blue shark data here, including how to load it from source .csv files Note that `HMMoce` v1.0 is only compatible with Wildlife Computers PSAT tags. We anticipate adding additional tag type/manufacturer functionality based on user needs. We assume the source .csv files have been downloaded from the Wildlife Computers data portal. For more on the portal visit <link>.
+
+Start by setting the tag and pop-up locations and dates
+```{r, eval=F}
+# TAG/POPUP DATES AND LOCATIONS (dd, mm, YYYY, lat, lon)
+iniloc <- data.frame(matrix(c(13, 10, 2015, 41.575, -69.423, 
+                              24, 2, 2016, 26.6798, -69.0147), nrow = 2, ncol = 5, byrow = T))
+colnames(iniloc) = list('day','month','year','lat','lon')
+tag <- as.POSIXct(paste(iniloc[1,1], '/', iniloc[1,2], '/', iniloc[1,3], sep=''), format = '%d/%m/%Y')
+pop <- as.POSIXct(paste(iniloc[2,1], '/', iniloc[2,2], '/', iniloc[2,3], sep=''), format = '%d/%m/%Y')
+# VECTOR OF DATES FROM DATA. THIS WILL BE THE TIME STEPS, T, IN THE LIKELIHOODS
+dateVec <- as.Date(seq(tag, pop, by = 'day')) 
+```
+
+Then set the directory where your data lives and load the necessary files. Here we choose to focus on SST and depth-temperature profiles (PDT).
+```{r, eval=F}
+# READ IN DATA FROM WC FILES
+myDir <- '~/Documents/WHOI/RCode/hmmwoa/inst/extdata/' # WHERE YOUR DATA LIVES, THIS IS WHERE THE EXAMPLE DATA IS STORED
+
+tag.sst <- read.wc(ptt, wd = myDir, type = 'sst', tag=tag, pop=pop); 
+sst.udates <- tag.sst$udates; tag.sst <- tag.sst$data
+
+pdt <- read.wc(ptt, wd = myDir, type = 'pdt', tag=tag, pop=pop); 
+pdt.udates <- pdt$udates; pdt <- pdt$data
+
+```
+The read.wc function reads the type of data requested and automatically formats it for use in the likelihood calculations.
+
+## Getting Environmental Data
+Before we can calculate likelihoods, we need to have the environmental data to compare our tag measurements to. To do this, `HMMoce` has a global get.env function for which you specify your dates of interest, spatial limits, and type of data you need. The `get.env` function then goes online and downloads the requested data of a default data source. The SST default data is the Optimally Interpolated (OI) 1/4$^\circ$ product [link](https://www.ncdc.noaa.gov/oisst) and depth-temperature profiles are compared to Hybrid Coordinate Ocean Model (HYCOM) predictions from the 1/12$^\circ$ global analysis [link](http://hycom.org/dataserver/glb-analysis). These datasets can be *very* large! We definitely recommend running the HYCOM download overnight.
+
+what about woa?
+
+## Generating Likelihoods
+Once the environmental data is downloaded to its respective directory, you're ready for likelihood calculations. We've setup `HMMoce` to be as user-friendly as possible so the likelihood calculation is all completed with just one line of input code:
+```{r, eval=F}
+
+# FOR EXAMPLE, GENERATE DAILY SST LIKELIHOODS
+L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec = dateVec)
+
+```
+Each likelihood calculation has it's own calc function and some minor data preparation steps due to slightly different requirements for the calculations based on the nature of the data. These are outlined clearly in each corresponding section of the example script, *blue8_example.r*. For more information on the details of the likelihood calculations, see the $\href{}{publication}$.
+
+## Resampling and Combining Likelihoods
+After your desired likelihood calculations have been made, we need to do some housekeeping. We currently have several likelihood data streams that need to be combined to form overall likelihoods for each time point (usually one day). To do this, we need to resample all the liklihood rasters to the same extent and resolution using `resample.grid`. This function also returns a variable called `L.mle.res` which is typically a more coarse (lower resolution) representation of the overall likelihoods to speed up parameter estimation in the next step. After resampling, we simply use `make.L` to construct our overall likelihood. This part of the process looks something like:
+
+```{r, eval=F}
+# RESAMPLE LIKELIHOOD RASTERS
+L.res <- resample.grid(L.rasters, L.rasters$L.ohc)
+
+# THEN COMBINE THEM TO MAKE AN OVERALL LIKELIHOOD
+L <- make.L(L1 = L.res[[1]]$L.ohc , L2 = L.res[[1]]$L.sst, L3 = L.res[[1]]$L.locs, L.mle.res = L.mle.res)
+
+```
+
+## Parameter Estimation
+
+
+## The Movement Model
+
+
+## Most Probable Track and Plotting
+
+
