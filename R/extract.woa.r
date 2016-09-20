@@ -29,8 +29,10 @@ extract.woa <- function(nc.dir, bbox=NULL, resolution){
   lat = ncdf::get.var.ncdf(nc, 'Latitude')
   depth = ncdf::get.var.ncdf(nc, 'Depth')
   
-  if(is.null(bbox)){
+  if(is.null(bbox) & resolution == 'quarter'){
     bbox <- list(lonmin = -180, lonmax = 179.75, latmin = -90, latmax = 89.75)
+  } else if(is.null(bbox) & resolution == 'one'){
+    bbox <- list(lonmin = -179.5, lonmax = 179.5, latmin = -89.5, latmax = 89.5)
   }
   
   # set bounds for extracting data
