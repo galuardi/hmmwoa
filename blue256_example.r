@@ -1,25 +1,32 @@
-# RUN BLUE 256 VIA HMMWOA
+# RUN BLUE8 VIA HMMWOA
 library(hmmwoa)
 
 # SETWD
 setwd('~/Documents/WHOI/Data/Blues/2015/141256/') 
+#load('~/Documents/WHOI/RData/Blues/2015/141256/example256_16May.RData')
 
-#----------------------------------------------------------------------------------#
-# ADD MAP DATA
-library(rworldmap)
-data("countriesLow")
-
-#----------------------------------------------------------------------------------#
 # READ IN TAG DATA
-ptt <- 141256
+ptt <- 'Blue8'
 
-# TAG/POPUP LOCATION
+# TAG/POPUP DATES AND LOCATIONS (dd, mm, YYYY, lat, lon)
 iniloc <- data.frame(matrix(c(13, 10, 2015, 41.575, -69.423, 
                               24, 2, 2016, 26.6798, -69.0147), nrow = 2, ncol = 5, byrow = T))
 colnames(iniloc) = list('day','month','year','lat','lon')
+tag <- as.POSIXct(paste(iniloc[1,1], '/', iniloc[1,2], '/', iniloc[1,3], sep=''), format = '%d/%m/%Y')
+pop <- as.POSIXct(paste(iniloc[2,1], '/', iniloc[2,2], '/', iniloc[2,3], sep=''), format = '%d/%m/%Y')
+# VECTOR OF DATES FROM DATA. THIS WILL BE THE TIME STEPS, T, IN THE LIKELIHOODS
+dateVec <- as.Date(seq(tag, pop, by = 'day')) 
 
 # READ IN DATA FROM WC FILES
-a <- read.wc(ptt, iniloc); attach(a)
+myDir <- '~/Documents/WHOI/RCode/hmmwoa/inst/extdata/' # WHERE YOUR DATA LIVES, THIS IS THE EXAMPLE DATA
+tag.sst <- read.wc(ptt, wd = myDir, type = 'sst', tag=tag, pop=pop); 
+sst.udates <- tag.sst$udates; tag.sst <- tag.sst$data
+
+pdt <- read.wc(ptt, wd = myDir, type = 'pdt', tag=tag, pop=pop); 
+pdt.udates <- pdt$udates; pdt <- pdt$data
+
+#light <- read.wc(ptt, wd = myDir, type = 'light', tag=tag, pop=pop); 
+#light.udates <- light$udates; light <- light$data
 
 #----------------------------------------------------------------------------------#
 # LIGHT LIKELIHOOD
@@ -45,24 +52,19 @@ L.locs <- calc.locs(locs, gps = NULL, iniloc, locs.grid, dateVec = dateVec, errE
 #----------------------------------------------------------------------------------#
 
 # IF USING SST:
-{
 sst.dir <- paste('~/Documents/WHOI/RData/SST/OI/', ptt, '/',sep = '')
 
 # DOWNLOAD THE SST DATA
-get.env(sst.udates[1:3], type = 'sst', spatLim = sp.lim, save.dir = sst.dir)
+get.env(sst.udates, type = 'sst', spatLim = sp.lim, save.dir = sst.dir)
 
 # GENERATE DAILY SST LIKELIHOODS
 L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec = dateVec)
-
-}
 
 #----------------------------------------------------------------------------------#
 # OHC / HYCOM LIKELIHOOD(S)
 #----------------------------------------------------------------------------------#
 
 # IF USING OHC HYCOM
-{
-
 ohc.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
 
 # DOWNLOAD OHC(HYCOM) DATA
@@ -70,8 +72,6 @@ get.env(pdt.udates, type = 'ohc', spatLim = sp.lim, save.dir = ohc.dir)
 
 # GENERATE DAILY OHC LIKELIHOODS
 L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec = dateVec, isotherm = '')
-
-}
 
 #----------------------------------------------------------------------------------#
 # PDT / WOA LIKELIHOOD
@@ -108,13 +108,12 @@ g.mle <- L.res$g.mle
 #----------------------------------------------------------------------------------#
 # COMBINE LIKELIHOOD MATRICES
 #----------------------------------------------------------------------------------#
-t <- Sys.time()
+
 L <- make.L(L1 = L.res[[1]]$L.ohc , L2 = L.res[[1]]$L.sst, L3 = L.res[[1]]$L.locs, L.mle.res = L.mle.res)
-Sys.time() - t
 L.mle <- L$L.mle; L <- L$L
 
 #----------------------------------------------------------------------------------#
-# TRY THE MLE. SOME OTHER TIME.
+# TRY THE MLE.
 
 t <- Sys.time()
 par0=c(8.908,10.27,3,1,0.707,0.866) # from Pedersen 2011
@@ -170,41 +169,13 @@ meanlat <- apply(apply(distr, c(2, 4), sum) * repmat(t(as.matrix(g$lat[,1])), T,
 meanlon <- apply(apply(distr, c(2, 3), sum) * repmat(t(as.matrix(g$lon[1,])), T, 1), 1, sum)
 
 # ADD THE DATES AND STORE THIS VERSION OF ESTIMATED TRACK
-locs_sst_ohc_par1 <- cbind(dates = dateVec, lon = meanlon, lat = meanlat)
+mpt <- cbind(dates = dateVec, lon = meanlon, lat = meanlat)
 
 # PLOT IT!
-# graphics.off()
- plot(meanlon, meanlat)
- plot(countriesLow, add = T)
-
-#----------------------------------------------------------------------------------#
-# COMPARE TO SPOT DATA
-#----------------------------------------------------------------------------------#
-# READ IN SPOT DATA
-# spot = read.csv('C:/Users/ben/Google Drive/Camrin-WOA/hmmwoa_files/121325-SPOT.csv')
-spot = read.table('~/Documents/WHOI/RData/sharkSiteData/AllArgosData.csv', sep=',', header = T)
-spot <- spot[which(spot$ptt == 141261),]
-dts <- as.POSIXct(spot$date, format=findDateFormat(spot$date))
-didx <- dts >= tag & dts <= pop
-spot <- spot[didx,]
-
-# READ IN GPE3 DATA
-gpe <- read.table('~/Documents/WHOI/Data/Blues/2015/141259/141259-6-GPE3.csv',
-                  sep=',',header=T, skip = 5)
-
-
-# PLOT IT
-# sres = apply(s,c(3,4), sum, na.rm=T)
-# image.plot(lon, lat, sres/max(sres), zlim = c(.01,1),xlim=c(-86,-47),ylim=c(20,45))
-plot(meanlon, meanlat, col=2,type='l', xlim=c(-80,-35),ylim=c(20,46))
+data("countriesLow") # ADD MAP DATA
+graphics.off()
+plot(meanlon, meanlat)
 plot(countriesLow, add = T)
-lines(spot$lon, spot$lat)
-lines(gpe$Most.Likely.Longitude, gpe$Most.Likely.Latitude, col='orange')
-lines(meanlon, meanlat, col=2)
-
-# dist <- as.numeric(unlist(geodetic.distance(cbind(spot[(2:length(spot[,1])),c(8,7)]),cbind(spot[(1:length(spot[,1])-1),c(8,7)]))))
-# times <- as.numeric(dts[2:length(dts)] - dts[1:(length(dts)-1)])
-# spd <- dist * 1000 / times # m/s
 
 
 #=======================================================================================#
