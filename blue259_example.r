@@ -157,7 +157,7 @@ Sys.time() - t
 # SETUP A COMMON GRID
 #----------------------------------------------------------------------------------#
 
-L.rasters <- list(L.pdt = L.pdt, L.ohc = L.ohc, L.locs = L.locs, L.sst = L.sst)
+L.rasters <- list(L.ohc = L.ohc, L.locs = L.locs, L.sst = L.sst)
 t <- Sys.time()
 L.res <- resample.grid(L.rasters, L.rasters$L.ohc)
 # total of ~5 mins when resampling to ohc, faster when more coarse is desired
