@@ -12,48 +12,41 @@
 #' none
 
 
-read.wc <- function(ptt, iniloc){
+read.wc <- function(ptt, wd = getwd(), tag, pop, gpeNo=NULL, type = 'sst'){
   
-  # READ IN PDT DATA FROM WC FILES
-  pdt <- read.table(paste(ptt,'-PDTs.csv', sep=''), sep=',',header=T,blank.lines.skip=F, skip = 0)
-  pdt <- extract.pdt(pdt)
-  tag <- as.POSIXct(paste(iniloc[1,1], '/', iniloc[1,2], '/', iniloc[1,3], sep=''), format = '%d/%m/%Y')
-  pop <- as.POSIXct(paste(iniloc[2,1], '/', iniloc[2,2], '/', iniloc[2,3], sep=''), format = '%d/%m/%Y')
-  dts <- as.POSIXct(pdt$Date, format = findDateFormat(pdt$Date))
-  d1 <- as.POSIXct('1900-01-02') - as.POSIXct('1900-01-01')
-  didx <- dts >= (tag + d1) & dts <= (pop - d1)
-  pdt <- pdt[didx,]
-  pdt.udates <- unique(as.Date(pdt$Date))
-  
-  #==============  
-  
-  # VECTOR OF DATES FROM DATA. THIS IS USED IN MANY FUNCTIONS 
-  dateVec <- as.Date(seq(tag, pop, by = 'day'))
-
-  #==============    
-  
-  # READ IN LIGHT DATA FROM WC FILES
-  locs <- read.table(paste(ptt, '-Locations-GPE2.csv', sep=''), sep=',', header = T, blank.lines.skip = F)
-  dts <- format(as.POSIXct(locs$Date, format = findDateFormat(locs$Date)), '%Y-%m-%d')
-  didx <- dts > (tag + d1) & dts < (pop - d1)
-  locs <- locs[didx,]
-  
-  #==============    
-  
-  # READ IN TAG SST FROM WC FILES
-  tag.sst <- read.table(paste(ptt, '-SST.csv', sep=''), sep=',',header=T, blank.lines.skip=F)
-  dts <- as.POSIXct(tag.sst$Date, format = findDateFormat(tag.sst$Date))
-  didx <- dts >= (tag + d1) & dts <= (pop - d1)
-  tag.sst <- tag.sst[didx,]
-  if (length(tag.sst[,1]) <= 1){
-    stop('Something wrong with reading and formatting of tags SST data. Check date format.')
+  if(type == 'pdt'){
+    # READ IN PDT DATA FROM WC FILES
+    data <- read.table(paste(wd, ptt,'-PDTs.csv', sep=''), sep=',',header=T,blank.lines.skip=F, skip = 0)
+    data <- extract.pdt(data)
+    dts <- as.POSIXct(data$Date, format = findDateFormat(data$Date))
+    d1 <- as.POSIXct('1900-01-02') - as.POSIXct('1900-01-01')
+    didx <- dts >= (tag + d1) & dts <= (pop - d1)
+    data <- data[didx,]
+    udates <- unique(as.Date(data$Date))
+    
+  } else if(type == 'sst'){
+    # READ IN TAG SST FROM WC FILES
+    data <- read.table(paste(wd, ptt, '-SST.csv', sep=''), sep=',',header=T, blank.lines.skip=F)
+    dts <- as.POSIXct(data$Date, format = findDateFormat(data$Date))
+    d1 <- as.POSIXct('1900-01-02') - as.POSIXct('1900-01-01')
+    didx <- dts >= (tag + d1) & dts <= (pop - d1)
+    data <- data[didx,]
+    if (length(data[,1]) <= 1){
+      stop('Something wrong with reading and formatting of tags SST data. Check date format.')
+    }
+    dts <- as.POSIXct(data$Date, format = findDateFormat(data$Date))
+    udates <- unique(as.Date(dts))
+    
+  } else if(type == 'light'){
+    # READ IN LIGHT DATA FROM WC FILES
+    data <- read.table(paste(wd, ptt, '-', gpeNo,'-GPE3.csv', sep=''), sep=',', header = T, blank.lines.skip = F)
+    dts <- format(as.POSIXct(data$Date, format = findDateFormat(data$Date)), '%Y-%m-%d')
+    didx <- dts > (tag + d1) & dts < (pop - d1)
+    data <- data[didx,]
+    
   }
-  dts <- as.POSIXct(tag.sst$Date, format = findDateFormat(tag.sst$Date))
-  sst.udates <- unique(as.Date(dts))
   
-  # need to return pdt, locs, dateVec, sst.udates, pdt.udates
-  return(list(dateVec = dateVec, pdt = pdt, pdt.udates = pdt.udates,
-              locs = locs, tag.sst = tag.sst, sst.udates = sst.udates))
-  
+  return(list(data = data, udates = udates))
+           
 }
 
