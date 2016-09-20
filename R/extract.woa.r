@@ -19,7 +19,7 @@
 #' @examples
 #' none
 
-extract.woa <- function(nc.dir, bbox, resolution){
+extract.woa <- function(nc.dir, bbox=NULL, resolution){
   
   # load global nc
   nc = ncdf::open.ncdf(nc.dir)
@@ -29,12 +29,16 @@ extract.woa <- function(nc.dir, bbox, resolution){
   lat = ncdf::get.var.ncdf(nc, 'Latitude')
   depth = ncdf::get.var.ncdf(nc, 'Depth')
   
+  if(is.null(bbox)){
+    bbox <- list(lonmin = -180, lonmax = 179.75, latmin = -90, latmax = 89.75)
+  }
+  
   # set bounds for extracting data
   xmin = which.min((bbox[[1]] - lon) ^ 2)
   xmax = which.min((bbox[[2]] - lon) ^ 2)
   ymin = which.min((bbox[[3]] - lat) ^ 2) 
   ymax = which.min((bbox[[4]] - lat) ^ 2)
-  
+
   if(resolution == 'quarter'){
     xlen = floor(4 * (bbox[[2]] - bbox[[1]])) # for quarter degree
     ylen = floor(4 * (bbox[[4]] - bbox[[3]])) 
