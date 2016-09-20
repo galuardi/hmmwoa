@@ -2,7 +2,9 @@
 #'
 #' A dataset containing the objectively analyzed (1/4 degree grid) climatological in situ temperature. These are monthly composits at standard depth levels for the World Ocean. For more information see https://www.nodc.noaa.gov/OC5/woa13/
 #'
-#'@usage data(woa.quarter)
+#' @docType data
+#'
+#' @usage data(woa.quarter)
 #'
 #' @format A list of 4 objects:
 #' \describe{
