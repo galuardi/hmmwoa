@@ -64,7 +64,7 @@ liksrss <- function(obs, srss, srsd){
   sdf$srsd[is.na(sdf$srsd)] = 0
   # wint = apply(wdf, 1, function(x) pracma::integral(dnorm, minT, maxT, mean = x[1], sd = x[2]))
   # wint = apply(wdf, 1, function(x) integrate(dnorm, x[1]-x[2], x[1]+x[2], mean = midT, sd = Tsd * 2)$value) 
-  res = dnorm(obs, values(srss), values(srsd))
+  res = dnorm(obs, sdf$sr, sdf$srsd)
   srssout = srss
   values(srssout) = res
   # w = w * 0
@@ -73,16 +73,21 @@ liksrss <- function(obs, srss, srsd){
   srssout
 } 
 
+gg_color_hue <- function(n) {
+  hues = seq(15, 375, length = n + 1)
+  hcl(h = hues, l = 65, c = 100)[1:n]
+}
+
 
 #=======================================================#
 # Make the Likelihood array for SRSS
 #=======================================================#
-day0 = as.POSIXct(ymd('2011-1-1'))
+day0 = as.POSIXct(ymd('2011-1-01'))
 
 #================================================#
 # vector of interest 1 degree resolution
 #================================================#
-dres = 1
+dres = .25
 
 lon = seq(-80, -50, dres)
 lat = seq(20, 50, dres)
@@ -95,7 +100,7 @@ xy = as.matrix(expand.grid(lon,lat))
 xy = SpatialPoints(xy, proj4string=CRS("+proj=longlat +datum=WGS84"))
 
 #image(lon,lat,matrix(sunriset(xy, day0, direction="sunset", POSIXct.out=TRUE)$day,length(lon),length(lat)))
-contour(lon,lat,matrix(sunriset(xy, day0, direction="sunrise", POSIXct.out=TRUE)$day*24*60, length(lon),length(lat)),add=F, nlevels = 50, col = 'lightblue')
+contour(lon,lat,matrix(sunriset(xy, day0, direction="sunrise", POSIXct.out=TRUE)$day*24*60, length(lon),length(lat)),add=T, nlevels = 50, col = 'lightblue')
 
 contour(lon,lat,matrix(sunriset(xy, day0, direction="sunset", POSIXct.out=TRUE)$day*24*60, length(lon),length(lat)),add=T,nlevels = 50, col = 'salmon')
 
@@ -107,134 +112,113 @@ sr.grid = numeric(length = c(length(lon)*length(lat)*365))
 dim(sr.grid) = c(length(lon),length(lat), 365)
 ss.grid = sr.grid
 
-fyear = seq(ISOdate(2011,1,1), ISOdate(2011,12,31), 'day')
+fyear = seq(ISOdate(2015,1,1), ISOdate(2015,12,31), 'day')
 t1 = Sys.time()
 sr.grid[,,1:365] = sapply(1:365, function(i) matrix(sunriset(xy, fyear[i], direction="sunrise", POSIXct.out=TRUE)$day,length(lon),length(lat)))
 t2 = Sys.time()-t1
-t2
+t2 # less than 2 mins with a 1/4 degree grid over the NWA
 
 ss.grid[,,1:365] = sapply(1:365, function(i) matrix(sunriset(xy, fyear[i], direction="sunset", POSIXct.out=TRUE)$day,length(lon),length(lat)))
+
+# now turn the grids into rasters
+# ** this is where the problem was **
+# raster needed t() and a flip
+crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+list.ras <- list(x = lon, y = lat, z = sr.grid*24*60)
+ex <- raster::extent(list.ras)
+sr.ras <- raster::brick(list.ras$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+sr.ras <- raster::flip(sr.ras, direction = 'y')
+
+list.ras <- list(x = lon, y = lat, z = ss.grid*24*60)
+ss.ras <- raster::brick(list.ras$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+ss.ras <- raster::flip(ss.ras, direction = 'y')
+
+
+#r1 = raster::brick(sr.grid[,,didx]*24*60, xmn = min(lon), xmx = max(lon), ymn = min(lat), ymx = max(lat))
+#f1 = raster::focal(sr.ras[[didx]], w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
+
+# sr = srss1$daymins[3]
 
 #================================================================================#
 # Use the example dataset to build likelihood
 #================================================#
 
-load('C:/Users/benjamin.galuardi/Google Drive/Camrin-WOA/srss_example.RData')
+#load('C:/Users/benjamin.galuardi/Google Drive/Camrin-WOA/srss_example.RData')
+load('~/Documents/WHOI/RData/Blues/2015/141256/srss_example.RData')
 srss1 = light[,c('Day','Time','Type')]
-
 srss1$dtime = dmy_hms(paste(srss1$Day, srss1$Time, sep = " "))#-3600*4
-
 srss1$yday = yday(srss1$dtime)
-
 srss1$daymins = minute(srss1$dtime)+hour(srss1$dtime)*60
-
-ggplot(srss1, aes(x = dtime, y = daymins, colour = Type))+
-  geom_point(size = 3)
-spot.m <- melt(spot,id.vars=c('ptt','date','lat','lon','class','dtime','yday','daymins'),measure.vars=c('srt','sst'))
 ### adjust for times less than 500 minutes. at GMT-4, we will never have sunrise times of less than 500 (~8:30 GMT or 4:30 EST). We would need to be pretty far west for this to be valid. ###
 idx = srss1$daymins<500
 srss1$daymins[idx] = srss1$daymins[idx]+500
 
+ggplot(srss1, aes(x = dtime, y = daymins, colour = Type))+
+  geom_point(size = 3)
 
+# now add spot srss time calculations
+spot$dtime <- as.POSIXct(spot$date, format='%Y-%m-%d %H:%M:%S', tz='UTC')
+spot$yday <- yday(spot$dtime)
+spot$daymins <- minute(spot$dtime)+hour(spot$dtime)*60
+spot.xy = SpatialPoints(spot[,c(4,3)], proj4string=CRS("+proj=longlat +datum=WGS84"))
+#for(i in 1:length(spot[,1])){
+#  spot$sst[i] <- sunriset(spot.xy[i], spot$dtime[i], direction='sunset', POSIXct.out=T)$day*24*60
+#}
+srt <- sapply(1:length(spot[,1]), function(i) sunriset(spot.xy[i], spot$dtime[i], direction='sunrise'))
+spot$srt <- srt*24*60
+sst <- sapply(1:length(spot[,1]), function(i) sunriset(spot.xy[i], spot$dtime[i], direction='sunset'))
+spot$sst <- sst*24*60
+
+# and add extracted values for each spot location
+spot$srt.ex <- NA; spot$sst.ex <- NA
+for(ii in 1:length(spot[,1])){
+  srt.ex <- raster::extract(sr.ras[[spot$yday[ii]]], spot.xy[ii])
+  sst.ex <- raster::extract(ss.ras[[spot$yday[ii]]], spot.xy[ii])
+  spot$srt.ex[ii] <- srt.ex
+  spot$sst.ex[ii] <- sst.ex
+}
+
+#spot$srt <- spot$srt + 240
+#spot$sst <- spot$sst + 240
+
+# something weird is happening when this is melted and plotted because the original srss calcs are correct
+# but when plotted up the line for srt is weird. can be ignored i think considering this is exploratory
+# and the problem doesn't appear to be relevant to the likelihood calc
+spot.m <- melt(spot,id.vars=c('ptt','date','lat','lon','class','dtime','yday','daymins'),measure.vars=c('srt','sst','srt.ex','sst.ex'))
+
+cols <- gg_color_hue(6)
 ggplot(srss1, aes(x = dtime, y = daymins, colour = Type))+
   geom_point(size = 3) +
   geom_line(data=spot.m, aes(x=dtime, y=value, colour=variable))+
-  scale_color_manual(values=c(cols,'#000000','#000000'))
+  scale_color_manual(values=c(cols[1:5],'#000000',cols[6],'#000000'))
   
-  
-ggplot(spot.m, aes(x=dtime, y=value, colour=variable))+
-  geom_line() +
-  geom_point(srss1, aes(x = dtime, y = daymins, colour = Type))
+#=============
+# now let's try the likelihood
+#=============
+# known date/time from the first spot position
+tdate = as.POSIXct(ymd('2016-09-21', tz = 'UTC'))
+didx = yday(tdate)
+tloc <- matrix(as.numeric(c(-70.6731, 41.5265)),1,2) #woods hole
 
-
-#======================================================================================#
-# look at some differences between OBS-GRID
-#======================================================================================#
-# First day at liberty
-
-didx = srss1$yday[3]
-
-par(mfrow=c(1,2))
-image.plot(lon, lat, srss1$daymins[3]-sr.grid[,,didx]*24*60, col = terrain.colors(100, alpha = .25), zlim = c(-20, 20))
-contour(lon, lat, srss1$daymins[3]-sr.grid[,,didx]*24*60, add=T, levels = c(0))
-world(add=T)
-image.plot(lon, lat, srss1$daymins[4]-ss.grid[,,didx]*24*60, add=F, col = terrain.colors(100, alpha = .25), zlim = c(-20, 20))
-contour(lon, lat, srss1$daymins[4]-ss.grid[,,didx]*24*60, add=T,levels=c(0))
-world(add=T)
-
-# try calculating daymins for known spot locations
-# here's a grid of what we're trying to extract from
-contour(lon,lat,sr.grid[,,i]*24*60,col='orange',nlevels=30)
-contour(lon,lat,ss.grid[,,i]*24*60,col='blue',add=T,nlevels=30)
-
-spot$dtime <- as.POSIXct(spot$date, format=findDateFormat(spot$date))
-spot$dtime = dmy_hms(spot$dtime)#-3600*4
-
-spot$yday = yday(spot$dtime)
-
-spot$daymins = minute(spot$dtime)+hour(spot$dtime)*60
-
-didx <- unique(spot$yday)
-spot$srt <- 0; spot$sst <- 0
-
-for(i in didx){
-  # pick the first 'known' location for that day, as an example
-  spot.i <- spot[min(which(spot$yday == i)),]
-  
-  # find sr time at known location
-  sr <- raster(sr.grid[,,i]*24*60, xmn = min(lon), xmx = max(lon), ymn = min(lat), ymx = max(lat))
-  xy <- SpatialPoints(spot.i[,c(4,3)], proj4string=CRS("+proj=longlat +datum=WGS84"))
-  srt <- extract(sr, xy)
-  
-  # find ss time at known location
-  ss <- raster(ss.grid[,,i]*24*60, xmn = min(lon), xmx = max(lon), ymn = min(lat), ymx = max(lat))
-  sst <- extract(ss, xy)
-
-  # add to dataframe
-  spot$srt[min(which(spot$yday == i))] <- srt
-  spot$sst[min(which(spot$yday == i))] <- sst
-  
-}
-
-spot <- spot[which(spot$srt != 0),]
-
-
-#======================================================================================#
-# use starting point for illustration
-
-didx = srss1$yday[1]
-sradj = 0  
-ssadj = 20  ### add 20 minutes to sunset time for comparison... 
-tdate = '2015-10-13'
-tdate = as.POSIXct(ymd(tdate, tz = 'UTC'))
-tloc = matrix(as.numeric(iniloc[1,c(5,4)]),1,2)
-
-
-r1 = raster(sr.grid[,,didx]*24*60, xmn = min(lon), xmx = max(lon), ymn = min(lat), ymx = max(lat))
-f1 = raster::focal(r1, w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
-
+f1 = raster::focal(sr.ras[[didx]], w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
 sr = sunriset(tloc, tdate, direction="sunrise", POSIXct.out=TRUE)$day*60*24
-# sr = srss1$daymins[3]
+print(paste(sr,' from sunriset')); print(paste(extract(sr.ras[[didx]],tloc),' from raster extract'))
+srlik = liksrss(sr, srss = sr.ras[[didx]], srsd = f1)
 
-srlik = liksrss(sr+sradj, srss = r1, srsd = f1)
-
-didx = srss1$yday[3]
-
-r2 = raster(ss.grid[,,didx]*24*60, xmn = min(lon), xmx = max(lon), ymn = min(lat), ymx = max(lat))
-f2 = raster::focal(r2, w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
-
+# and sunset
+f2 = raster::focal(ss.ras[[didx]], w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
 ss = sunriset(tloc, tdate, direction="sunset", POSIXct.out=TRUE)$day*60*24
-# ss = srss1$daymins[4]
+print(paste(ss,' from sunriset')); print(paste(extract(ss.ras[[didx]],tloc),' from raster extract'))
+sslik = liksrss(ss, srss = ss.ras[[didx]], srsd = f2)
 
-sslik = liksrss(ss+ssadj, srss = r2, srsd = f2)
-         
+pdf('test_lik.pdf')         
 plot((srlik)*(sslik))         
-contour(r1, add=T, nlevels = 20)
-contour(r2, add=T, nlevels = 20)
+contour(sr.ras[[didx]], add=T, nlevels = 20)
+contour(ss.ras[[didx]], add=T, nlevels = 20)
 world(add=T)
-points(iniloc[1, c(5,4)], pch = 19, col = 2)
-title('no time adj')
-
+points(tloc, pch = 19, col = 2)
+title('for today in Woods Hole')
+dev.off()
 
 
 
