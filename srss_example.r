@@ -1,5 +1,5 @@
 ## SRSS likelihood example - Blue shark 256
-load('srss_example.RData')
+load('~/Documents/WHOI/RData/Blues/2015/141256/srss_example.RData')
 
 # you have all the variables as loaded and formatted below
 # of interest will be 'light' and 'spot'
