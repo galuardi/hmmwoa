@@ -39,10 +39,13 @@ read.wc <- function(ptt, wd = getwd(), tag, pop, gpeNo=NULL, type = 'sst'){
     
   } else if(type == 'light'){
     # READ IN LIGHT DATA FROM WC FILES
-    data <- read.table(paste(wd, ptt, '-', gpeNo,'-GPE3.csv', sep=''), sep=',', header = T, blank.lines.skip = F)
-    dts <- format(as.POSIXct(data$Date, format = findDateFormat(data$Date)), '%Y-%m-%d')
-    didx <- dts > (tag + d1) & dts < (pop - d1)
+    data <- read.table(paste(wd, ptt, '-LightLoc.csv', sep=''), sep=',',header=T, blank.lines.skip=F,skip=2)
+    data <- data[which(!is.na(data[,1])),]
+    dts <- as.POSIXct(data$Day, format = '%d-%b-%Y', tz = 'UTC')
+    d1 <- as.POSIXct('1900-01-02') - as.POSIXct('1900-01-01')
+    didx <- (dts > (tag + d1)) & (dts < (pop - d1))
     data <- data[didx,]
+    udates <- unique(as.Date(dts))
     
   }
   

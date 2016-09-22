@@ -6,7 +6,7 @@ setwd('~/Documents/WHOI/Data/Blues/2015/141256/')
 #load('~/Documents/WHOI/RData/Blues/2015/141256/example256_16May.RData')
 
 # READ IN TAG DATA
-ptt <- 'Blue8'
+ptt <- '141256'
 
 # TAG/POPUP DATES AND LOCATIONS (dd, mm, YYYY, lat, lon)
 iniloc <- data.frame(matrix(c(13, 10, 2015, 41.575, -69.423, 
@@ -25,8 +25,8 @@ sst.udates <- tag.sst$udates; tag.sst <- tag.sst$data
 pdt <- read.wc(ptt, wd = myDir, type = 'pdt', tag=tag, pop=pop); 
 pdt.udates <- pdt$udates; pdt <- pdt$data
 
-#light <- read.wc(ptt, wd = myDir, type = 'light', tag=tag, pop=pop); 
-#light.udates <- light$udates; light <- light$data
+light <- read.wc(ptt, wd = myDir, type = 'light', tag=tag, pop=pop); 
+light.udates <- light$udates; light <- light$data
 
 #----------------------------------------------------------------------------------#
 # LIGHT LIKELIHOOD
@@ -76,21 +76,28 @@ L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec = dateVec, isotherm = '')
 #----------------------------------------------------------------------------------#
 # PDT / WOA LIKELIHOOD
 #----------------------------------------------------------------------------------#
+# FOR YOUR DATA, YOU WILL NEED THE DIR AND EXTRACT.WOA PORTIONS BELOW
+# FOR THE EXAMPLE, JUST USE DATA(WOA.QUARTER)
 
 # WOA DIRECTORY: LOCATION OF .NC FILE FOR EXTRACTION
- #woa.dir <- '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_25deg/global/woa13_25deg_global_meantemp.nc'
- woa.dir <- '/Users/Cam/Documents/WHOI/RData/pdtMatch/WOA_1deg/global/woa13_1deg_global_meantemp.nc'
- #woa.dir <- "C:/Users/ben/Documents/WOA/woa13_25deg_global.nc"
+#woa.dir <- 'your WOA file.nc'
 
 # GET THE WOA SUBSET BASED ON SPATIAL LIMITS
-return.woa <- extract.woa(woa.dir, sp.lim, resolution = 'one')
-woa <- return.woa$dat 
-lon <- as.numeric(return.woa$lon); 
-lat <- as.numeric(return.woa$lat); 
-depth <- as.numeric(return.woa$depth)
+#return.woa <- extract.woa(woa.dir, sp.lim, resolution = 'one')
+#woa <- return.woa$dat 
+#lon <- as.numeric(return.woa$lon); 
+#lat <- as.numeric(return.woa$lat); 
+#depth <- as.numeric(return.woa$depth)
 
 # ELIMINATE PACIFIC FROM WOA DATA IF YOU'RE WORKING IN THE W ATLANTIC
 #woa <- removePacific(woa, lat, lon)
+
+# OR JUST USE EXAMPLE DATA FOR NOW
+data(woa.quarter)
+woa <- woa.quarter$watertemp 
+lon <- as.numeric(woa.quarter$lon); 
+lat <- as.numeric(woa.quarter$lat); 
+depth <- as.numeric(woa.quarter$depth)
 
 L.pdt <- calc.pdt.int(pdt, dat = woa, lat = lat, lon = lon, depth = depth, dateVec = dateVec)
 
