@@ -12,6 +12,8 @@
 #' @return likelihood is raster brick of likelihood surfaces representing 
 #'   estimated position based on tag-based OHC compared to calculated OHC using 
 #'   HYCOM
+#' @example 
+#' # see example script, blue256_example.r
 
 calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
 

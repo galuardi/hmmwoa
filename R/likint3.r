@@ -1,3 +1,17 @@
+#' Calculate density function and integrate between limits
+#' 
+#' #' \code{likint3} calculates density function for a normal distribution and integrates between limits
+#'  
+#' @param w is an array of grid values like sea surface temperature
+#' @param wsd is an array containing the sd of the grid values, usually from \code{raster::focal}
+#' @param minT is an integer representing the lower limit of the tag-measured variable (e.g. SST)
+#' @param maxT is an integer representing the upper limit of the tag-measured variable
+#' 
+#' @return an array of dim(w) that represents the likelihood of the tag-measured variable as compared to the input grid
+#'   
+#' @examples
+#' none
+
 likint3 <- function(w, wsd, minT, maxT){
   midT = (maxT + minT) / 2
   Tsd = (maxT - minT) / 4

@@ -1,12 +1,14 @@
-#' Read and format tag data
+#' Combine individual source likelihoods
 #' 
-#' \code{make.L} reads and formats tag data output from Wildlife Computers Data Portal
+#' \code{make.L} combines individual likelihoods from various data sources (e.g. SST, OHC) to make overall combined likelihoods for each time point
 #' 
-#' @param 
+#' @param L1 a likelihood array
+#' @param L2 a likelihood array
+#' @param L3 a likelihood array
+#' @param L.mle.res is a coarse resolution array of dim(L1) that speeds up the parameter estimation step later on
+#' @param plot is logical indicating whether you want an example plot
 #'   
-#' @return a list containing: 
-#' 
-#' @export
+#' @return a list containing: L, the overall likelihood array and L.mle, a more coarse version of L used later for parameter estimation
 #' 
 #' @examples
 #' none

@@ -1,5 +1,7 @@
 #' Setup the discrete spatial grid for the HMM
 #' 
+#' #' \code{setup.locs.grid} sets up a discrete spatial grid for the HMM
+#'  
 #' If input limits is a data.frame, longitude limits become +/- 5 degrees and
 #' latitude becomes +/- 10 degrees. You may also input your own list of limits.
 #' 
@@ -9,14 +11,16 @@
 #'   hycom reanalysis res. 'quarter' and 'one' are .25 and 1 deg, respectively.
 #'   
 #' @return a list
-#' @export
 #' @references Pedersen MW, Patterson TA, Thygesen UH, Madsen H (2011) 
 #'   Estimating animal behavior and residency from movement data. Oikos 
 #'   120:1281-1290. doi: 10.1111/j.1600-0706.2011.19044.x
 #'   
 #' @examples
-#' none
+#' # SET SPATIAL LIMITS
+#' sp.lim <- list(lonmin = -95, lonmax = -52, latmin = 10, latmax = 55)
+#' locs.grid <- setup.locs.grid(sp.lim, res = 'one')
 #' 
+
 setup.locs.grid <- function(limits, res = 'quarter'){
 
   if(class(limits) == 'list'){

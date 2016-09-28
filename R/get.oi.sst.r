@@ -35,9 +35,7 @@
 #'   
 #' @author   Function originally written for R by Ben Jones (WHOI) and modified 
 #'   by Camrin Braun and Ben Galuardi.
-#' @references <reference to OI sst website and papers>
-#'   \url{https://www.ncdc.noaa.gov/oisst}
-#' @seealso <links to similar functions>
+#' @references \url{https://www.ncdc.noaa.gov/oisst}
 #'   
 
 get.oi.sst <- function(limits, time, filename='', download.file=TRUE, dir = getwd()) {

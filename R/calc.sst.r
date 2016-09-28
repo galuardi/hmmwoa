@@ -12,7 +12,7 @@
 #' @export
 #' @seealso \code{\link{calc.pdt.int}}, \code{\link{calc.ohc}}
 #' @examples
-#' none
+#' # see example script blue256_example.r
 
 calc.sst <- function(tag.sst, sst.dir, dateVec){
   

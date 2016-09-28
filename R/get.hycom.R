@@ -43,8 +43,7 @@
 #'   
 #' @author   Function originally written for R by Ben Jones (WHOI) and modified
 #'   by Camrin Braun and Ben Galuardi.
-#' @references <reference to HYCOM website and papers> \url{https://hycom.org/}
-#' @seealso <links to similar functions>
+#' @references \url{https://hycom.org/}
 #'   
 
 

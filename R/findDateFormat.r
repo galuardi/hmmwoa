@@ -2,13 +2,16 @@
 #' 
 #' \code{findDateFormat} determines the date format of a given vector of dates
 #' 
-#' @param dateVec a vector of dates as in those from -Histos or  -PDTs from WC tags
+#' @param dateVec a character vector representing dates
 #' @return dateformat is character string used as input to strptime(format = dateformat)
-#' @export 
 #'
 #' @examples
-#' none
+#' dte <- '2015-01-01 05:30:17'
+#' findDateFormat(dte)
+#' dte.POSIX <- as.POSIXct(dte, format = findDateFormat(dte))
+#' dte.POSIX
 #' 
+
 findDateFormat <- function(dateVec){
 
   dateformat = '%Y-%m-%d %H:%M:%S'
@@ -42,10 +45,14 @@ findDateFormat <- function(dateVec){
                 dateformat = '%d-%b-%Y %H:%M:%S'
                 ddates = as.POSIXct(strptime(as.character(dateVec), format = dateformat)) #reads dates as dates
                 
+                if (is.na(ddates[1])){
+                  dateformat = '%d-%b-%y'
+                  ddates = as.POSIXct(strptime(as.character(dateVec), format = dateformat)) #reads dates as dates
+                  
               if(is.na(ddates[1])){
                 stop('No correct date format was found.')
               }
-              
+                  } else {}
                 } else {}
               } else {}
             } else {}
