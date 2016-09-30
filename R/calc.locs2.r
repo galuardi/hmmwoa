@@ -108,6 +108,14 @@ calc.locs2 <- function(light = NULL, locs = NULL, gps = NULL, iniloc, locs.grid,
           
           light[which(lightDates %in% dateVec[t] & light$Type == 'Dawn'), 6] <- sr
           
+          # now for likelihood
+          # get the SD for this day, T
+          srf <- raster::focal(sr.ras[[didx]], w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
+          # the SR likelihood
+          srlik <- liksrss(sr, srss = sr.ras[[didx]], srsd = srf)
+          
+          L.locs[[t]] <- srlik
+          
         } else if(length(light.t[,1]) == 1 & any(light.t$Type == 'Dusk')){
           # if we just have a dusk measurement
           didx <- light.t$yday[1]
@@ -118,6 +126,12 @@ calc.locs2 <- function(light = NULL, locs = NULL, gps = NULL, iniloc, locs.grid,
           }
           
           light[which(lightDates %in% dateVec[t] & light$Type == 'Dusk'), 6] <- ss
+          
+          # and sunset
+          ssf <- raster::focal(ss.ras[[didx]], w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
+          sslik <- liksrss(ss, srss = ss.ras[[didx]], srsd = ssf)
+          
+          L.locs[[t]] <- sslik
           
         } else{
           # if we have both dawn and dusk measurements
@@ -169,141 +183,10 @@ calc.locs2 <- function(light = NULL, locs = NULL, gps = NULL, iniloc, locs.grid,
         
       }
       
-
     } # end for loop
     
   } else{
     # if light is null, we create an empty light likelihood array?
   }
 
-  
-  ### NOW WE HAVE CLEANED LIGHT DATA. NEED TO ADD LIKELIHOOD CALC
-  
 } # end function
-
-
-
-
-
-  #=============
-  
-  # after all that we add any known locations to overwrite any light data for a given T...
-  
-  if(!is.null(locs)){
-    # set some date vectors for our input data
-    locDates <- as.Date(locs$Date, format = findDateFormat(locs$Date))
-    if(!is.null(gps)){
-      gpsDates <- as.Date(gps$InitTime, format = findDateFormat(gps$InitTime))  
-    } else{
-      gpsDates = NULL
-    }
-    
-    if(any(duplicated(locDates))){
-      # run a simplify function
-      locList <- simplifyLocs(locs, locDates)
-      locs <- locList$locs; locDates <- locList$locDates
-    }
-    
-    if(any(duplicated(gpsDates))){
-      # run a simplify function
-      locList <- simplifyLocs(gps, gpsDates)
-      gps <- locList$locs; gpsDates <- locList$locDates
-      
-    }
-  }
-  
-  for(t in 2:(length(dateVec)) - 1){
-    if(!is.null(gps) & dateVec[t] %in% gpsDates){
-      
-      # if GPS exists then other forms of data for that time point are obsolete
-      idx <- which(gpsDates == dateVec[t]) # set index to identify position in gps file
-      glo <- which.min(abs(locs.grid$lon[1,] - gps$InitLon[idx]))
-      gla <- which.min(abs(locs.grid$lat[,1] - gps$InitLat[idx]))
-      L.locs[glo, gla, t] <- 1
-      
-    } else if(!is.null(locs) & dateVec[t] %in% locDates){
-      # set index to identify position in locs file
-      idx <- which(locDates == dateVec[t])
-      
-      if(locs$Type[idx] == 'GPS'){ #locs includes GPS
-        # if GPS exists then other forms of data for that time point are obsolete
-        glo <- which.min(abs(locs.grid$lon[1,] - locs$Longitude[idx]))
-        gla <- which.min(abs(locs.grid$lat[,1] - locs$Latitude[idx]))
-        L.locs[glo, gla, t] <- 1
-        
-      } else if(locs$Type[idx] == 'Argos'){ #locs includes Argos
-        # if Argos exists, GPE positions are obsolete
-        alo <- which.min(abs(locs.grid$lon[1,] - locs$Longitude[idx]))
-        ala <- which.min(abs(locs.grid$lat[,1] - locs$Latitude[idx]))
-        L.locs[alo, ala, t] <- 1
-        
-      } else if(locs$Type[idx] == 'GPE'){ #locs includes GPE
-        
-        if(errEll == FALSE){
-          # create longitude likelihood based on GPE data
-          slon.sd <- locs$Error.Semi.minor.axis[idx] / 1000 / 111 #semi minor axis
-          # use normally distributed error from position using fixed std dev
-          L.light <- dnorm(t(locs.grid$lon), locs$Longitude[idx], slon.sd)
-          
-          L.locs[,,t] <- L.light
-          
-        } else if(errEll == TRUE){
-          
-          L.locs[,,t] <- calc.errEll(locs[idx,], locs.grid)
-          
-        }
-        
-      } else if(!is.null(light) & dateVec[t] %in% lightDates){
-        
-        didx <- light$yday[t]
-        light.t <- light[which(lightDates %in% dateVec[t]),]
-        # get the SD for this day, T
-        f1 <- raster::focal(sr.ras[[didx]], w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
-        # what's the SR?
-        sr <- light.t$daymins[which(light.t$Type == 'Dawn')]
-        # the SR likelihood
-        srlik <- liksrss(sr, srss = sr.ras[[didx]], srsd = f1)
-        
-        # and sunset
-        f2 <- raster::focal(ss.ras[[didx]], w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
-        sslik <- liksrss(ss, srss = ss.ras[[didx]], srsd = f2)
-        
-        idx <- which(dateVec == as.Date(time))
-        L.locs[,,t] <- srlik * sslik
-        
-      } else{
-        
-        stop('Error: Error ellipse unspecified.')
-        
-      }
-      
-    } else{
-      
-      # no data so we skip this day
-      
-    }
-    
-  }
-  
-  
-  # add tag/pop locations as known
-  ilo <- which.min(abs(locs.grid$lon[1,] - iniloc$lon[1]))
-  ila <- which.min(abs(locs.grid$lat[,1] - iniloc$lat[1]))
-  L.locs[ilo, ila, 1] <- 1   # Initial location is known
-  
-  elo <- which.min(abs(locs.grid$lon[1,] - iniloc$lon[2]))
-  ela <- which.min(abs(locs.grid$lat[,1] - iniloc$lat[2]))
-  L.locs[elo, ela, length(dateVec)] <- 1  # End location is known
-  
-  # this performs some transformations to the likelihood array to convert to useable raster
-  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-  list.locs <- list(x = locs.grid$lon[1,], y = locs.grid$lat[,1], z = L.locs)
-  ex <- raster::extent(list.locs)
-  L.locs <- raster::brick(list.locs$z, xmn = ex[1], xmx = ex[2], ymn = ex[3], ymx = ex[4], transpose = T, crs)
-  L.locs <- raster::flip(L.locs, direction = 'y')
-  
-  print(paste('Light calculations took ', Sys.time() - start.t, '.'))
-  
-  return(list(L.locs = L.locs, gpsIdx = which(dateVec %in% gpsDates)))
-  
-}
