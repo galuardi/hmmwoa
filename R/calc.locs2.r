@@ -34,16 +34,24 @@ calc.locs2 <- function(light = NULL, locs = NULL, gps = NULL, iniloc, locs.grid,
   # set up results array
   row <- dim(locs.grid$lon)[1]
   col <- dim(locs.grid$lon)[2]
-  L.locs <- array(0, dim = c(col, row, length(dateVec)))
+  
+  # need lat/lon vectors. come from locs.grid??
+  lon <- locs.grid$lon[1,]
+  lat <- locs.grid$lat[,1]
+  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+  L.grid = numeric(length = c(length(lon)*length(lat)*length(dateVec)))
+  dim(L.grid) = c(length(lon),length(lat), length(dateVec))
+  list.ras <- list(x = lon, y = lat, z = L.grid)
+  ex <- raster::extent(list.ras)
+  L.locs <- raster::brick(list.ras$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+  L.locs <- raster::flip(L.locs, direction = 'y')
+  
+  #L.locs <- array(0, dim = c(col, row, length(dateVec)))
   
   if(!is.null(light)){
     #==================
     # build the SRSS grids
     #==================
-    
-    # need lat/lon vectors. come from locs.grid??
-    lon <- locs.grid$lon[1,]
-    lat <- locs.grid$lat[,1]
     
     # expand.grid and SpatialPoints establishes a grid
     xy = as.matrix(expand.grid(lon,lat))
@@ -55,10 +63,9 @@ calc.locs2 <- function(light = NULL, locs = NULL, gps = NULL, iniloc, locs.grid,
     ss.grid = sr.grid
     
     fyear = seq(ISOdate(year(dateVec[1]), 1, 1, tz = 'UTC'), ISOdate(year(dateVec[1]), 12, 31, tz = 'UTC'), 'day')
-    sr.grid[,,1:365] = sapply(1:365, function(i) matrix(sunriset(xy, fyear[i], direction="sunrise", POSIXct.out=TRUE)$day,length(lon),length(lat)))
-    ss.grid[,,1:365] = sapply(1:365, function(i) matrix(sunriset(xy, fyear[i], direction="sunset", POSIXct.out=TRUE)$day,length(lon),length(lat)))
+    sr.grid[,,1:365] = sapply(1:365, function(i) matrix(sunriset(xy, fyear[i], direction = "sunrise", POSIXct.out = TRUE)$day,length(lon),length(lat)))
+    ss.grid[,,1:365] = sapply(1:365, function(i) matrix(sunriset(xy, fyear[i], direction = "sunset", POSIXct.out = TRUE)$day,length(lon),length(lat)))
     
-    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
     list.ras <- list(x = lon, y = lat, z = sr.grid*24*60)
     ex <- raster::extent(list.ras)
     sr.ras <- raster::brick(list.ras$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
@@ -68,14 +75,119 @@ calc.locs2 <- function(light = NULL, locs = NULL, gps = NULL, iniloc, locs.grid,
     ss.ras <- raster::brick(list.ras$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
     ss.ras <- raster::flip(ss.ras, direction = 'y')
 
+    # need to be able to cut SRSS times from tag that aren't within limits of the grid
+    min.sr <- sapply(1:365, function(i) cellStats(sr.ras[[i]],stat='min',na.rm=T))
+    max.sr <- sapply(1:365, function(i) cellStats(sr.ras[[i]],stat='max',na.rm=T))
+    min.ss <- sapply(1:365, function(i) cellStats(ss.ras[[i]],stat='min',na.rm=T))
+    max.ss <- sapply(1:365, function(i) cellStats(ss.ras[[i]],stat='max',na.rm=T))
+    
+    
     # make some calculations on the tag data: yday, dtime, etc
     light <- light[,c('Day','Time','Type')]
     light$dtime <- dmy_hms(paste(light$Day, light$Time, sep = ' '))
     light$yday <- yday(light$dtime)
     light$daymins <- minute(light$dtime) + (hour(light$dtime) * 60)
+    light <- light[which(light$Type != ''),]
     lightDates <- as.Date(format(light$dtime, '%Y-%m-%d'))
+    
+    for(t in 2:(length(dateVec)) - 1){
+      # data for this time step T
+      light.t <- light[which(lightDates %in% dateVec[t]),]
+      
+      if(length(light.t[,1]) == 0){
+        
+      } else{
+        if(length(light.t[,1]) == 1 & any(light.t$Type == 'Dawn')){
+          # if we just have a dawn measurement
+          didx <- light.t$yday[1]
+          sr <- light.t$daymins[which(light.t$Type == 'Dawn')]
+          
+          if(sr < min.sr[didx] | sr > max.sr[didx]){
+            sr <- NA
+          }
+          
+          light[which(lightDates %in% dateVec[t] & light$Type == 'Dawn'), 6] <- sr
+          
+        } else if(length(light.t[,1]) == 1 & any(light.t$Type == 'Dusk')){
+          # if we just have a dusk measurement
+          didx <- light.t$yday[1]
+          ss <- light.t$daymins[which(light.t$Type == 'Dusk')]
+          
+          if(ss < min.ss[didx] | ss > max.ss[didx]){
+            ss <- NA
+          }
+          
+          light[which(lightDates %in% dateVec[t] & light$Type == 'Dusk'), 6] <- ss
+          
+        } else{
+          # if we have both dawn and dusk measurements
+          didx <- light.t$yday[1]
+          sr <- light.t$daymins[which(light.t$Type == 'Dawn')]
+          ss <- light.t$daymins[which(light.t$Type == 'Dusk')]
+          
+          if(length(sr) > 1){
+            # we want the first SR time if there are multiple
+            sr <- sr[1]
+          }
+          
+          if(length(ss) > 1){
+            # we want the last SS time if there are multiple
+            ss <- ss[length(ss)]
+          }
+          
+          # filter based on possible grid values
+          if(sr < min.sr[didx] | sr > max.sr[didx]){
+            sr <- NA
+          }
+          
+          if(ss < min.ss[didx] | ss > max.ss[didx]){
+            ss <- NA
+          }
+          
+          light[which(lightDates %in% dateVec[t] & light$Type == 'Dawn'), 6] <- sr
+          light[which(lightDates %in% dateVec[t] & light$Type == 'Dusk'), 6] <- ss
+          
+          # now for likelihood
+          # get the SD for this day, T
+          srf <- raster::focal(sr.ras[[didx]], w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
+          # the SR likelihood
+          srlik <- liksrss(sr, srss = sr.ras[[didx]], srsd = srf)
+          
+          # and sunset
+          ssf <- raster::focal(ss.ras[[didx]], w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
+          sslik <- liksrss(ss, srss = ss.ras[[didx]], srsd = ssf)
+          
+          r <- srlik * sslik
+          max.lat <- xyFromCell(r, which.max(r))[2]
+          cds <- rbind(c(min(lon), max.lat), c(max(lon), max.lat))#, c(40,5), c(15,-45), c(-10,-25))
+          lines <- SpatialLines(list(Lines(list(Line(cds)), "1")))
+          r[] <- c(unlist(extract(r, lines)))
+          
+          L.locs[[t]] <- r
+          
+        }
+        
+      }
+      
 
+    } # end for loop
+    
+  } else{
+    # if light is null, we create an empty light likelihood array?
   }
+
+  
+  ### NOW WE HAVE CLEANED LIGHT DATA. NEED TO ADD LIKELIHOOD CALC
+  
+} # end function
+
+
+
+
+
+  #=============
+  
+  # after all that we add any known locations to overwrite any light data for a given T...
   
   if(!is.null(locs)){
     # set some date vectors for our input data
