@@ -1,30 +1,18 @@
 #' Calculate Position-based Likelihood
 #' 
-#' \code{calc.locs} calculates likelihood estimates for each day of animal tag 
-#' data.
+#' \code{calc.locs} calculates likelihood estimates for each day's estimated dawn dusk times from the tag
 #' 
-#' Light errors are parameterized using elliptical error values output in 
-#' '-Locations.csv' (WC tags). GPS and Argos positions are also given a 
-#' "likelihood" using this function but are currently both considered to be 
-#' "known" positions without error.
+#' Tag-measured sunrise/sunset (SRSS) times are first filtered according to the min/max times possible. possible values are computed based on spatial limits included in locs.grid input. after filtering, each yearday has a grid of georeferenced SRSS times that the tag-measured times are compared to in order to generate a likelihood.
 #' 
-#' @param locs is -Locations file output from DAP/Tag Portal for WC tags and 
-#'   contains GPS, Argos, and GPE locations as applicable.
-#' @param gps is -FastGPS file output from WC Tag Portal
-#' @param iniloc is 2 x 5 dataframe containing day, month, year, lat, lon for 
-#'   both tag and pop locations
-#' @param dateVec is vector of dates from tag to pop-up in 1 day increments.
+#' @param light is -LightLoc file output from DAP/Tag Portal for WC tags and 
+#'   contains tag-measured dawn/dusk times.
 #' @param locs.grid is list output from \code{setup.locs.grid}
-#' @param errEll is logical indicating whether error ellipses should be 
-#'   generated for light-based likelihoods as given from output of WC-GPE. False
-#'   if only longitude should be used. If False, standard deviation on light 
-#'   measurements is currently fixed at 0.7 deg longitude following Musyl et al 
-#'   2001. Default is FALSE and will use longitude only.
-#' @param gpeOnly is logical. If TRUE, locs input is trimmed to GPE positions only. This is most applicable in scenarios with FastGPS data and you're adding this as a gps input (see "gps" argument).
-#' @return L is an array of lon x lat likelihood surfaces (matrices) for each
-#'   time point (3rd dimension)
+#' @param dateVec is vector of dates from tag to pop-up in 1 day increments.
+#' @param res is resolution of light grid in degrees. default is 1 deg. higher resolution (e.g. res = .25 for 1/4 deg) takes considerably longer to compute
+#' @return L is a raster of dim(lon x lat x dateVec) containing likelihood surfaces for each
+#'   time point
 
-calc.locs2 <- function(light = NULL, locs = NULL, gps = NULL, iniloc, locs.grid, dateVec, res = 1){
+calc.light <- function(light = NULL, locs.grid, dateVec, res = 1){
   
   start.t <- Sys.time()
   
@@ -187,6 +175,7 @@ calc.locs2 <- function(light = NULL, locs = NULL, gps = NULL, iniloc, locs.grid,
     
   } else{
     # if light is null, we create an empty light likelihood array?
+    # L.locs is still created but is left empty
   }
 
 } # end function
