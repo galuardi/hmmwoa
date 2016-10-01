@@ -12,8 +12,8 @@ ptt <- '141256'
 iniloc <- data.frame(matrix(c(13, 10, 2015, 41.575, -69.423, 
                               24, 2, 2016, 26.6798, -69.0147), nrow = 2, ncol = 5, byrow = T))
 colnames(iniloc) = list('day','month','year','lat','lon')
-tag <- as.POSIXct(paste(iniloc[1,1], '/', iniloc[1,2], '/', iniloc[1,3], sep=''), format = '%d/%m/%Y')
-pop <- as.POSIXct(paste(iniloc[2,1], '/', iniloc[2,2], '/', iniloc[2,3], sep=''), format = '%d/%m/%Y')
+tag <- as.POSIXct(paste(iniloc[1,1], '/', iniloc[1,2], '/', iniloc[1,3], sep=''), format = '%d/%m/%Y', tz='UTC')
+pop <- as.POSIXct(paste(iniloc[2,1], '/', iniloc[2,2], '/', iniloc[2,3], sep=''), format = '%d/%m/%Y', tz='UTC')
 # VECTOR OF DATES FROM DATA. THIS WILL BE THE TIME STEPS, T, IN THE LIKELIHOODS
 dateVec <- as.Date(seq(tag, pop, by = 'day')) 
 
@@ -45,7 +45,26 @@ if (exists('sp.lim')){
 }
 
 # GET THE LIKELIHOOD ELLIPSES
-L.locs <- calc.locs(locs, gps = NULL, iniloc, locs.grid, dateVec = dateVec, errEll = T)
+L.locs <- calc.light(light, locs.grid = locs.grid, dateVec = dateVec)
+
+
+####
+spot <- read.table('121420-Locations.csv', sep=',', header = T)
+spot$dtime <- as.POSIXct(spot$Date, format=findDateFormat(spot$Date), tz='UTC')
+spot$yday <- yday(spot$dtime)
+spot$daymins <- minute(spot$dtime)+hour(spot$dtime)*60
+d1 <- as.POSIXct('1900-01-02') - as.POSIXct('1900-01-01')
+didx <- spot$dtime >= (tag + d1) & spot$dtime <= (pop - d1)
+spot <- spot[didx,]
+spot$day <- as.Date(spot$dtime)
+
+pdf('light try.pdf', height=8, width = 12)
+for(t in 2:(length(dateVec)-1)){
+  plot(L.locs[[t]])
+  world(add=T)
+  points(spot[which(spot$day %in% dateVec[t]),c(8,7)],pch=16)
+}
+dev.off()
 
 #----------------------------------------------------------------------------------#
 # SST LIKELIHOOD
@@ -112,6 +131,14 @@ L.res <- resample.grid(L.rasters, L.rasters$L.ohc)
 L.mle.res <- L.res$L.mle.res
 g <- L.res$g; lon <- g$lon[1,]; lat <- g$lat[,1]
 g.mle <- L.res$g.mle
+
+#----------------------------------------------------------------------------------#
+# BUILD ARRAY OF KNOWN LOCATIONS, IF ANY
+#----------------------------------------------------------------------------------#
+
+# here we create L.locs with dim(L.ohc) but containing known locations, if any
+# known positions may most often be Fastloc/GPS, Argos, acoustic, or sightings data
+# that occur between the tag and pop-up times
 
 #----------------------------------------------------------------------------------#
 # COMBINE LIKELIHOOD MATRICES

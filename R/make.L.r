@@ -5,6 +5,7 @@
 #' @param L1 a likelihood array
 #' @param L2 a likelihood array
 #' @param L3 a likelihood array
+#' @param L.locs is array of dim(L1) that contains any known locations during the deployment that will supersede any other likelihood at that time point
 #' @param L.mle.res is a coarse resolution array of dim(L1) that speeds up the parameter estimation step later on
 #' @param plot is logical indicating whether you want an example plot
 #'   
@@ -13,8 +14,39 @@
 #' @examples
 #' none
 
-make.L <- function(L1, L2 = NULL, L3 = NULL, L.mle.res, plot = TRUE){
+make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateVec = NULL, locs.grid = NULL, plot = TRUE){
 
+  if(!is.null(known.locs)){
+    # convert input date, lat, lon to likelihood surfaces with dim(L1)
+    L.locs <- L1 * 0
+    known.locs$date <- as.Date(known.locs$date)
+    
+    if(is.null(dateVec)){stop('Error: dateVec is null.')}
+    if(is.null(locs.grid)){stop('Error: locs.grid is null.')}
+    
+    # need lat/lon vectors from locs.grid
+    lon <- locs.grid$lon[1,]
+    lat <- locs.grid$lat[,1]
+    
+    idx <- which(dateVec %in% known.locs$date)
+    for(i in idx){
+      known.locs.i <- known.locs[which(known.locs$date %in% dateVec[i]),]
+      
+      if(length(known.locs.i[,1]) > 1){
+        # if multiple known locations are provided for a given day, only the first is used
+        known.locs.i <- known.locs.i[1,]
+      }
+      
+      x = which.min((known.locs.i$lon - lon) ^ 2)
+      y = which.min((known.locs.i$lat - lat) ^ 2)
+
+      # assign the known location for this day, i, as 1 in likelihood raster
+      L.locs[[i]][cellFromXY(L.locs[[idx]], known.locs.i[,c(3,2)])] <- 1
+      
+    }
+    
+  }
+  
   if(is.null(L2) & is.null(L3)){
     L <- L1
     
@@ -113,16 +145,14 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, L.mle.res, plot = TRUE){
     
   }
   
+  if(exists('idx')){
+     for(bb in idx){
+       L[[bb]] <- L.locs[[bb]]
+     }
+  }
+  
   # CREATE A MORE COARSE RASTER FOR PARAMETER ESTIMATION LATER
   L.mle <- raster::resample(L, L.mle.res$L.locs)
-
-  if(plot){
-    # CHECK THAT IT WORKED OK
-    require(fields)
-    image.plot(L[1,,])
-    plot(countriesLow,add=T)
-    
-  }
   
   #----------------------------------------------------------------------------------#
   # MAKE ALL NA'S VERY TINY FOR THE CONVOLUTION
@@ -136,6 +166,14 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, L.mle.res, plot = TRUE){
   # MAKE BOTH RASTERS (COARSE AND FINE RES L's) INTO AN ARRAY
   L <- aperm(raster::as.array(raster::flip(L, direction = 'y')), c(3, 2, 1))
   L.mle <- aperm(raster::as.array(raster::flip(L.mle, direction = 'y')), c(3, 2, 1))
+  
+  if(plot){
+    # CHECK THAT IT WORKED OK
+    require(fields)
+    image.plot(L[1,,])
+    plot(countriesLow,add=T)
+    
+  }
   
   return(list(L = L, L.mle = L.mle))
 }

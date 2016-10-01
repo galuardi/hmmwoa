@@ -56,20 +56,26 @@ if(length(x0)>3){
 # use focal to get a sd field
 # likint3 <- function(w, wsd, minT, maxT){
 liksrss <- function(obs, srss, srsd){
-  # midT = (maxT + minT) / 2
-  # Tsd = (maxT - minT) / 4
-  d = obs-srss
-  # widx = w >= minT & w <= maxT & !is.na(w)
-  sdf = data.frame(sr = as.vector(srss), srsd = as.vector(srsd))
-  sdf$srsd[is.na(sdf$srsd)] = 0
-  # wint = apply(wdf, 1, function(x) pracma::integral(dnorm, minT, maxT, mean = x[1], sd = x[2]))
-  # wint = apply(wdf, 1, function(x) integrate(dnorm, x[1]-x[2], x[1]+x[2], mean = midT, sd = Tsd * 2)$value) 
-  res = dnorm(obs, sdf$sr, sdf$srsd)
-  srssout = srss
-  values(srssout) = res
-  # w = w * 0
-  # w[widx] = wint
-  # w
+  if(is.na(obs)){
+    srssout = srss
+    values(srssout) = 0
+    
+  } else{
+    # midT = (maxT + minT) / 2
+    # Tsd = (maxT - minT) / 4
+    #d = obs-srss
+    # widx = w >= minT & w <= maxT & !is.na(w)
+    sdf = data.frame(sr = as.vector(srss), srsd = as.vector(srsd))
+    sdf$srsd[is.na(sdf$srsd)] = 0
+    # wint = apply(wdf, 1, function(x) pracma::integral(dnorm, minT, maxT, mean = x[1], sd = x[2]))
+    # wint = apply(wdf, 1, function(x) integrate(dnorm, x[1]-x[2], x[1]+x[2], mean = midT, sd = Tsd * 2)$value) 
+    res = dnorm(obs, sdf$sr, sdf$srsd)
+    srssout = srss
+    values(srssout) = res
+    # w = w * 0
+    # w[widx] = wint
+    # w
+  }
   srssout
 } 
 
@@ -87,7 +93,7 @@ day0 = as.POSIXct(ymd('2011-1-01'))
 #================================================#
 # vector of interest 1 degree resolution
 #================================================#
-dres = .25
+dres = 1
 
 lon = seq(-80, -50, dres)
 lat = seq(20, 50, dres)
@@ -153,7 +159,7 @@ srss1$daymins = minute(srss1$dtime)+hour(srss1$dtime)*60
 idx = srss1$daymins<500
 srss1$daymins[idx] = srss1$daymins[idx]+500
 
-ggplot(srss1, aes(x = dtime, y = daymins, colour = Type))+
+ggplot(light, aes(x = dtime, y = daymins, colour = Type))+
   geom_point(size = 3)
 
 # now add spot srss time calculations
@@ -187,7 +193,7 @@ for(ii in 1:length(spot[,1])){
 spot.m <- melt(spot,id.vars=c('ptt','date','lat','lon','class','dtime','yday','daymins'),measure.vars=c('srt','sst','srt.ex','sst.ex'))
 
 cols <- gg_color_hue(6)
-ggplot(srss1, aes(x = dtime, y = daymins, colour = Type))+
+ggplot(light, aes(x = dtime, y = daymins, colour = Type))+
   geom_point(size = 3) +
   geom_line(data=spot.m, aes(x=dtime, y=value, colour=variable))+
   scale_color_manual(values=c(cols[1:5],'#000000',cols[6],'#000000'))
@@ -199,6 +205,10 @@ ggplot(srss1, aes(x = dtime, y = daymins, colour = Type))+
 tdate = as.POSIXct(ymd('2016-09-21', tz = 'UTC'))
 didx = yday(tdate)
 tloc <- matrix(as.numeric(c(-70.6731, 41.5265)),1,2) #woods hole
+
+tloc <- matrix(as.numeric(c(-64.863, 34.617)),1,2) #Lydia 11 Jun 2013
+tdate = as.POSIXct(ymd('2013-06-11', tz = 'UTC'))
+didx = yday(tdate)
 
 f1 = raster::focal(sr.ras[[didx]], w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
 sr = sunriset(tloc, tdate, direction="sunrise", POSIXct.out=TRUE)$day*60*24

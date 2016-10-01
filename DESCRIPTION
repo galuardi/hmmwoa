@@ -12,7 +12,8 @@ Description: this will be the HMM using WOA data. The guts follow Pedersen et
 License: MIT
 Depends: 
     raster,
-    imager
+    imager,
+    maptools
 Imports: 
     dplyr,
     fields,
