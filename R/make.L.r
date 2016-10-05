@@ -14,9 +14,10 @@
 #' @examples
 #' none
 
-make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateVec = NULL, locs.grid = NULL, plot = TRUE){
+make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateVec = NULL, locs.grid = NULL, iniloc = NULL){
 
   if(!is.null(known.locs)){
+    print('known locs are being used')
     # convert input date, lat, lon to likelihood surfaces with dim(L1)
     L.locs <- L1 * 0
     known.locs$date <- as.Date(known.locs$date)
@@ -48,6 +49,8 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
   }
   
   if(is.null(L2) & is.null(L3)){
+    print('entering L1 loop')
+    
     L <- L1
     
     # GET RID OF NA VALUES
@@ -59,6 +62,8 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
     L <- L[naLidx]
     
   } else if(!is.null(L2) & is.null(L3)){
+    print('entering L2 loop')
+    
     # then there were 2
     
     # MAKE AN ARRAY OF ZEROS
@@ -99,6 +104,8 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
     
 
   } else if(!is.null(L2) & !is.null(L3)){
+    print('entering L2 and L3 loop')
+    
     # then there were 3
     
     # MAKE AN ARRAY OF ZEROS
@@ -114,7 +121,7 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
     naL2idx = cellStats(L2, sum, na.rm=T) != 0
     naL3idx = cellStats(L3, sum, na.rm=T) != 0
     
-    # WHERE BOTH ARE ZEROS. THESE WILL BE INTERPOLTED IN THE FILTER
+    # WHERE ALL ARE ZEROS. THESE WILL BE INTERPOLTED IN THE FILTER
     naLidx = naL1idx + naL2idx + naL3idx
     
     # where naLidx==0, both likelihoods are zero
@@ -145,14 +152,42 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
     
   }
   
-  if(exists('idx')){
+  if(!is.null('known.locs')){
+    print('entering known.locs loop at the end')
      for(bb in idx){
        L[[bb]] <- L.locs[[bb]]
      }
   }
   
+  if(!is.null(iniloc)){
+    print('entering iniloc loop at the end')
+    
+    if(!exists('L.locs')){
+      L.locs <- L1 * 0
+    }
+    
+    # need lat/lon vectors from locs.grid
+    lon <- locs.grid$lon[1,]
+    lat <- locs.grid$lat[,1]
+    
+    # tag location
+    x = which.min((iniloc$lon[1] - lon) ^ 2)
+    y = which.min((iniloc$lat[1] - lat) ^ 2)
+    
+    # assign the known location for this day, i, as 1 in likelihood raster
+    L.locs[[1]][cellFromXY(L.locs[[1]], iniloc[1,c(5,4)])] <- 1
+    
+    # pop up location
+    x = which.min((iniloc$lon[2] - lon) ^ 2)
+    y = which.min((iniloc$lat[2] - lat) ^ 2)
+    
+    # assign the known location for this day, i, as 1 in likelihood raster
+    L.locs[[length(dateVec)]][cellFromXY(L.locs[[length(dateVec)]], iniloc[2,c(5,4)])] <- 1
+    
+  }
+  
   # CREATE A MORE COARSE RASTER FOR PARAMETER ESTIMATION LATER
-  L.mle <- raster::resample(L, L.mle.res$L.locs)
+  L.mle <- raster::resample(L, L.mle.res)
   
   #----------------------------------------------------------------------------------#
   # MAKE ALL NA'S VERY TINY FOR THE CONVOLUTION
@@ -166,14 +201,6 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
   # MAKE BOTH RASTERS (COARSE AND FINE RES L's) INTO AN ARRAY
   L <- aperm(raster::as.array(raster::flip(L, direction = 'y')), c(3, 2, 1))
   L.mle <- aperm(raster::as.array(raster::flip(L.mle, direction = 'y')), c(3, 2, 1))
-  
-  if(plot){
-    # CHECK THAT IT WORKED OK
-    require(fields)
-    image.plot(L[1,,])
-    plot(countriesLow,add=T)
-    
-  }
   
   return(list(L = L, L.mle = L.mle))
 }

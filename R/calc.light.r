@@ -13,7 +13,7 @@
 #'   time point
 
 calc.light <- function(light = NULL, locs.grid, dateVec, res = 1){
-  
+  options(warn=2)
   start.t <- Sys.time()
   print(paste('Start time ', start.t))
   #=====
@@ -35,8 +35,6 @@ calc.light <- function(light = NULL, locs.grid, dateVec, res = 1){
   L.light <- raster::brick(list.ras$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
   L.light <- raster::flip(L.light, direction = 'y')
   print(paste('finished creating empty L grid at', Sys.time()))
-  
-  #L.light <- array(0, dim = c(col, row, length(dateVec)))
   
   if(!is.null(light)){
     #==================
@@ -135,6 +133,9 @@ calc.light <- function(light = NULL, locs.grid, dateVec, res = 1){
           sr <- light.t$daymins[which(light.t$Type == 'Dawn')]
           ss <- light.t$daymins[which(light.t$Type == 'Dusk')]
           
+          if(length(sr) == 0){sr <- NA}
+          if(length(ss) == 0){ss <- NA}
+          
           if(length(sr) > 1){
             # we want the first SR time if there are multiple
             sr <- sr[1]
@@ -146,11 +147,15 @@ calc.light <- function(light = NULL, locs.grid, dateVec, res = 1){
           }
           
           # filter based on possible grid values
-          if(sr < min.sr[didx] | sr > max.sr[didx]){
+          if(is.na(sr)){
+            
+          } else if(sr < min.sr[didx] | sr > max.sr[didx]){
             sr <- NA
           }
           
-          if(ss < min.ss[didx] | ss > max.ss[didx]){
+          if(is.na(ss)){
+            
+          } else if(ss < min.ss[didx] | ss > max.ss[didx]){
             ss <- NA
           }
           
@@ -199,4 +204,6 @@ calc.light <- function(light = NULL, locs.grid, dateVec, res = 1){
     # L.light is still created but is left empty
   }
 
+  L.light
+  
 } # end function

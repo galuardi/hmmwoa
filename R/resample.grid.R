@@ -19,10 +19,6 @@ resample.grid <- function(L.rasters, L.res){
   for (i in 1:length(L.rasters)){
     r <- L.rasters[[i]]
     
-    if(class(r) == 'list'){
-      r <- L.rasters[[i]]$L.locs
-    }
-    
     if (i == 1){
       resol <- raster::res(r)[1]
     } else{
@@ -32,6 +28,7 @@ resample.grid <- function(L.rasters, L.res){
     t <- Sys.time()
     r <- raster::resample(r, L.res)
     print(Sys.time() - t)
+    r[r == 0] <- NA
     L.rasters[[i]] <- r
 
   }

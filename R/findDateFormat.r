@@ -46,12 +46,18 @@ findDateFormat <- function(dateVec){
                 ddates = as.POSIXct(strptime(as.character(dateVec), format = dateformat)) #reads dates as dates
                 
                 if (is.na(ddates[1])){
-                  dateformat = '%d-%b-%y'
+                  dateformat = '%d-%b-%Y'
                   ddates = as.POSIXct(strptime(as.character(dateVec), format = dateformat)) #reads dates as dates
                   
+                  if (is.na(ddates[1])){
+                    dateformat = '%d-%b-%y'
+                    ddates = as.POSIXct(strptime(as.character(dateVec), format = dateformat)) #reads dates as dates
+                
               if(is.na(ddates[1])){
                 stop('No correct date format was found.')
               }
+                    
+                    } else {}
                   } else {}
                 } else {}
               } else {}

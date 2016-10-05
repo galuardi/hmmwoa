@@ -67,15 +67,16 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
         dat[,,bb] <- dat[,,bb] * mask
       }
     }
-
+    
     # make predictions based on the regression model earlier for the temperature at standard WOA depth levels for low and high temperature at that depth
-    fit.low <- locfit::locfit(pdt.i$MinTemp ~ pdt.i$Depth)
-    fit.high <- locfit::locfit(pdt.i$MaxTemp ~ pdt.i$Depth)
+    suppressWarnings(fit.low <- locfit::locfit(pdt.i$MinTemp ~ pdt.i$Depth))
+    suppressWarnings(fit.high <- locfit::locfit(pdt.i$MaxTemp ~ pdt.i$Depth))
     n = length(hycomDep)
-    
-    pred.low = predict(fit.low, newdata = hycomDep, se = T, get.data = T)
-    pred.high = predict(fit.high, newdata = hycomDep, se = T, get.data = T)
-    
+      
+    suppressWarnings(pred.low = predict(fit.low, newdata = hycomDep, se = T, get.data = T))
+    suppressWarnings(pred.high = predict(fit.high, newdata = hycomDep, se = T, get.data = T))
+      
+
     # data frame for next step
     df = data.frame(low = pred.low$fit - pred.low$se.fit * sqrt(n),
                     high = pred.high$fit + pred.high$se.fit * sqrt(n),
