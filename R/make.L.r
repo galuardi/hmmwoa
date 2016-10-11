@@ -152,8 +152,10 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
     
   }
   
-  if(!is.null('known.locs')){
+  if(!is.null(known.locs)){
     print('entering known.locs loop at the end')
+    print(known.locs)
+    print(!is.null('known.locs'))
      for(bb in idx){
        L[[bb]] <- L.locs[[bb]]
      }
@@ -164,6 +166,9 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
     
     if(!exists('L.locs')){
       L.locs <- L1 * 0
+      idx <- c(1, length(dateVec))
+    } else{
+      idx <- c(1, idx, length(dateVec))
     }
     
     # need lat/lon vectors from locs.grid
@@ -173,17 +178,22 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
     # tag location
     x = which.min((iniloc$lon[1] - lon) ^ 2)
     y = which.min((iniloc$lat[1] - lat) ^ 2)
-    
+    print(paste('tag',x,y))
     # assign the known location for this day, i, as 1 in likelihood raster
     L.locs[[1]][cellFromXY(L.locs[[1]], iniloc[1,c(5,4)])] <- 1
     
     # pop up location
     x = which.min((iniloc$lon[2] - lon) ^ 2)
     y = which.min((iniloc$lat[2] - lat) ^ 2)
+    print(paste('pop',x,y))
     
     # assign the known location for this day, i, as 1 in likelihood raster
     L.locs[[length(dateVec)]][cellFromXY(L.locs[[length(dateVec)]], iniloc[2,c(5,4)])] <- 1
     
+    # add known to L
+    for(bb in idx){
+      L[[bb]] <- L.locs[[bb]]
+    }
   }
   
   # CREATE A MORE COARSE RASTER FOR PARAMETER ESTIMATION LATER
