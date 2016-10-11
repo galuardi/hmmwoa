@@ -1,9 +1,8 @@
-# RUN BLUE8 VIA HMMWOA
+# RUN BLUE SHARK EXAMPLE, 141256, USING HMMWOA
 library(hmmwoa)
 
 # SETWD
 setwd('~/Documents/WHOI/Data/Blues/2015/141256/') 
-#load('~/Documents/WHOI/RData/Blues/2015/141256/example256_16May.RData')
 
 # READ IN TAG DATA
 ptt <- '141256'
@@ -45,26 +44,7 @@ if (exists('sp.lim')){
 }
 
 # GET THE LIKELIHOOD ELLIPSES
-L.locs <- calc.light(light, locs.grid = locs.grid, dateVec = dateVec)
-
-
-####
-spot <- read.table('121420-Locations.csv', sep=',', header = T)
-spot$dtime <- as.POSIXct(spot$Date, format=findDateFormat(spot$Date), tz='UTC')
-spot$yday <- yday(spot$dtime)
-spot$daymins <- minute(spot$dtime)+hour(spot$dtime)*60
-d1 <- as.POSIXct('1900-01-02') - as.POSIXct('1900-01-01')
-didx <- spot$dtime >= (tag + d1) & spot$dtime <= (pop - d1)
-spot <- spot[didx,]
-spot$day <- as.Date(spot$dtime)
-
-pdf('light try.pdf', height=8, width = 12)
-for(t in 2:(length(dateVec)-1)){
-  plot(L.locs[[t]])
-  world(add=T)
-  points(spot[which(spot$day %in% dateVec[t]),c(8,7)],pch=16)
-}
-dev.off()
+L.light <- calc.light(light, locs.grid = locs.grid, dateVec = dateVec)
 
 #----------------------------------------------------------------------------------#
 # SST LIKELIHOOD
@@ -112,19 +92,19 @@ L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec = dateVec, isotherm = '')
 #woa <- removePacific(woa, lat, lon)
 
 # OR JUST USE EXAMPLE DATA FOR NOW
-data(woa.quarter)
-woa <- woa.quarter$watertemp 
-lon <- as.numeric(woa.quarter$lon); 
-lat <- as.numeric(woa.quarter$lat); 
-depth <- as.numeric(woa.quarter$depth)
+#data(woa.quarter)
+#woa <- woa.quarter$watertemp 
+#lon <- as.numeric(woa.quarter$lon); 
+#lat <- as.numeric(woa.quarter$lat); 
+#depth <- as.numeric(woa.quarter$depth)
 
-L.pdt <- calc.pdt.int(pdt, dat = woa, lat = lat, lon = lon, depth = depth, dateVec = dateVec)
+#L.pdt <- calc.pdt.int(pdt, dat = woa, lat = lat, lon = lon, depth = depth, dateVec = dateVec)
 
 #----------------------------------------------------------------------------------#
 # SETUP A COMMON GRID
 #----------------------------------------------------------------------------------#
 
-L.rasters <- list(L.pdt = L.pdt, L.ohc = L.ohc, L.locs = L.locs$L.locs, L.sst = L.sst)
+L.rasters <- list(L.ohc = L.ohc, L.sst = L.sst)
 L.res <- resample.grid(L.rasters, L.rasters$L.ohc)
 # total of ~5 mins when resampling to ohc, faster when more coarse is desired
 
@@ -133,18 +113,27 @@ g <- L.res$g; lon <- g$lon[1,]; lat <- g$lat[,1]
 g.mle <- L.res$g.mle
 
 #----------------------------------------------------------------------------------#
-# BUILD ARRAY OF KNOWN LOCATIONS, IF ANY
+# LOAD AND FORMAT DATAFRAME OF KNOWN LOCATIONS, IF ANY
 #----------------------------------------------------------------------------------#
 
-# here we create L.locs with dim(L.ohc) but containing known locations, if any
-# known positions may most often be Fastloc/GPS, Argos, acoustic, or sightings data
-# that occur between the tag and pop-up times
+#spot <- read.table('141268-Locations.csv', sep=',', header = T)
+#spot$dtime <- as.POSIXct(spot$Date, format=findDateFormat(spot$Date), tz='UTC')
+#spot$yday <- yday(spot$dtime)
+#spot$daymins <- minute(spot$dtime)+hour(spot$dtime)*60
+#d1 <- as.POSIXct('1900-01-02') - as.POSIXct('1900-01-01')
+#didx <- spot$dtime >= (tag + d1) & spot$dtime <= (pop - d1)
+#spot <- spot[didx,]
+#spot$day <- as.Date(spot$dtime)
+#known.locs <- spot[,c(21,7,8)]
+#colnames(known.locs) <- list('date','lat','lon')
 
 #----------------------------------------------------------------------------------#
 # COMBINE LIKELIHOOD MATRICES
 #----------------------------------------------------------------------------------#
 
-L <- make.L(L1 = L.res[[1]]$L.ohc , L2 = L.res[[1]]$L.sst, L3 = L.res[[1]]$L.locs, L.mle.res = L.mle.res)
+L <- make.L(L1 = L.res[[1]]$L.ohc , L2 = L.res[[1]]$L.sst, 
+            L.mle.res = L.mle.res, dateVec = dateVec,
+            locs.grid = locs.grid, iniloc = iniloc)
 L.mle <- L$L.mle; L <- L$L
 
 #----------------------------------------------------------------------------------#
@@ -217,4 +206,60 @@ plot(countriesLow, add = T)
 ## END
 #=======================================================================================#
 
+
+
+pdf('try L_noknown.pdf', height=8,width=12)
+for (i in 1:length(dateVec)){
+  image.plot(lon,lat,L[i,,])
+  world(add=T)
+}
+dev.off()
+
+
+layout(matrix(c(1,1,1,2,3,4), 2, 3, byrow=TRUE))
+
+
+#L1 = L.res[[1]]$L.ohc , L2 = L.res[[1]]$L.sst, L3 = L.res[[1]]$L.light
+
+# check T = 48:50,54:56
+tidx <- c(123,128,129,131,133:135)
+pdf('try L_piecewise_1.pdf')#,height=20,width=12)
+for(i in tidx){
+  #par(mfrow=c(2,1))
+  image.plot(lon,lat,L[i,,])
+  world(add=T)
+
+  par(mfrow=c(1,3))
+  plot(L.res[[1]]$L.ohc[[i]])
+  world(add=T)
+    
+  plot(L.res[[1]]$L.sst[[i]])
+  world(add=T)
+    
+  plot(L.res[[1]]$L.light[[i]])
+  world(add=T)
+    
+  }
+}
+dev.off()
+
+
+r <- raster::resample(L.sst[[123]], L.ohc[[123]], NAflag=NA)
+
+# look at 131
+i=131
+par(mfrow=c(3,1))
+plot(L.res[[1]]$L.ohc[[i]])
+world(add=T)
+
+plot(L.res[[1]]$L.sst[[i]])
+world(add=T)
+
+plot(L.res[[1]]$L.light[[i]])
+world(add=T)
+
+
+naL1idx = cellStats(L.res[[1]]$L.ohc, sum, na.rm=T) != 0
+naL2idx = cellStats(L.res[[1]]$L.sst, sum, na.rm=T) != 0
+naL3idx = cellStats(L.res[[1]]$L.light, sum, na.rm=T) != 0
 
