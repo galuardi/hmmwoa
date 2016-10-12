@@ -18,9 +18,8 @@ Imports:
     dplyr,
     fields,
     locfit,
-    ncdf,
-    rworldmap,
-    spatial.tools
+    RNetCDF,
+    rworldmap
 RoxygenNote: 5.0.1
 BugReports: https://github.com/galuardi/hmmwoa/issues
 LazyData: true
