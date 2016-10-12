@@ -117,9 +117,48 @@ P = matrix(rbind(r1, r2), 2,2)
 ```
 I anticipate the code above would eventually end up within a function like `get.nll.fun`, right?
 
-## END HERE FOR NOW
-
 ## The Questions
+The process portion of the HMM is represented by diffusive kernels *K1* and *K2* based on diffusion parameters in *D*. These parameters are of differing bandwidth and extent estimates for 'migratory' and 'resident' states (Fig. 1a,b). 
+
+```{r eval = T, echo=FALSE, message=FALSE, cache=T, fig.cap=paste('Figure 1. Movement kernels using fixed diffusion rates of', D1[1], '(+/-',D1[2],') and ', D2[1], '(+/-', D2[2],') for [A] migratory and [B] resident movement states, respectively.'), fig.width=7}
+
+library(fields)
+load('~/Documents/WHOI/Data/Blues/2015/141256/blue256_example_5Oct2016.RData')
+jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan","#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+par(mfrow=c(1,2))
+image(K1[,,1,1], axes = F, col=jet.colors(30))
+title('Migratory kernel')
+image(K2[,,1,1], axes = F, col=jet.colors(30))
+title('Resident kernel')
+image(P, axes = F, col=jet.colors(30))
+title('Transition Probability')
+
+```
+
+To run an expectation Maximization process, we need to be able to calculate input parameters based on our posterior output in an iterative fashion. Our inputs are $K_1$, $K_2$ and $P_1$, representing our resident, migratory kernels and transition probability matrix (Fig. 1). 
+
+Calculating a new $P_n$ is straightforward as outlined above. What we need help with is determining kernel parameters based on our output. In other words, given a posterior probability grid, how do we calculate kernel bandwidth and extent? All literature so far has pointed to the standard process of determing a kernel based on bandwidth etc., not the other way around. 
+
+In our functions, the parameters are $siz$ and $Sigma$ representing the extent in each dimension and bandwidth, respectively. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 We use kernels to represent the process portion of the HMM that we parameterize with our best estimates of movement parameters like diffusion *D*. Remember we're also considering differential movement parameters based on an animal's behavior state so kernels are quite different between 'migratory' and 'resident' states (Fig. 1) and we need a robust way to estimate probability of switching between states.
 
 ```{r eval=FALSE, echo=FALSE, message=FALSE, cache=TRUE, fig.cap=paste('Figure 1. Movement kernels using fixed diffusion rates of', D1[1], '(+/-',D1[2],') and ', D2[1], '(+/-', D2[2],') for [A] migratory and [B] resident movement states, respectively.'), fig.width=7}
