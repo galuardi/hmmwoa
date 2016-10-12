@@ -28,8 +28,8 @@
 #' # only returns url because filename is unspecified
 #' \dontrun{ 
 #' get.oi.sst(sp.lim, time, filename = 'my_data.nc')
-#' nc <- open.ncdf('my_data.nc')
-#' sst <- get.var.ncdf(nc, 'sst')
+#' nc <- open.nc('my_data.nc')
+#' sst <- var.get.nc(nc, 'sst')
 #' image.plot(sst)
 #' }
 #'   

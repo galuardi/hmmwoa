@@ -26,7 +26,7 @@ get.env <- function(uniqueDates, type = NA, spatLim, save.dir = getwd()){
       repeat{
         get.oi.sst(spatLim, time, filename = paste(ptt, '_', time, '.nc', sep = ''), download.file = TRUE, dir = save.dir) # filenames based on dates from above
         tryCatch({
-          err <- try(ncdf::open.ncdf(paste(save.dir,'/', ptt, '_', time, '.nc', sep = '')), silent = T)
+          err <- try(RNetCDF::open.nc(paste(save.dir,'/', ptt, '_', time, '.nc', sep = '')), silent = T)
         }, error=function(e){print(paste('ERROR: Download of data at ', time, ' failed. Trying call to server again.', sep = ''))})
         if(class(err) != 'try-error') break
       }
@@ -40,7 +40,7 @@ get.env <- function(uniqueDates, type = NA, spatLim, save.dir = getwd()){
         get.hycom(spatLim, time, type = 'a', filename = paste(ptt, '_', time, '.nc', sep = ''),
                   download.file = TRUE, dir = save.dir, vars = 'water_temp') 
         tryCatch({
-          err <- try(ncdf::open.ncdf(paste(save.dir,'/', ptt, '_', time, '.nc', sep = '')), silent = T)
+          err <- try(RNetCDF::open.nc(paste(save.dir,'/', ptt, '_', time, '.nc', sep = '')), silent = T)
         }, error=function(e){print(paste('ERROR: Download of data at ', time, ' failed. Trying call to server again.', sep = ''))})
         if(class(err) != 'try-error') break
       }

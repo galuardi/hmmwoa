@@ -41,13 +41,13 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
     print(pdt.i)
     
     # open day's hycom data
-    nc <- ncdf::open.ncdf(paste(ohc.dir, ptt,'_', as.Date(time), '.nc', sep=''))
-    dat <- ncdf::get.var.ncdf(nc, 'water_temp')
+    nc <- RNetCDF::open.nc(paste(ohc.dir, ptt,'_', as.Date(time), '.nc', sep=''))
+    dat <- RNetCDF::var.get.nc(nc, 'water_temp')
     
     if(i == 1){
-      depth <- ncdf::get.var.ncdf(nc, 'depth')
-      lon <- ncdf::get.var.ncdf(nc, 'lon')
-      lat <- ncdf::get.var.ncdf(nc, 'lat')
+      depth <- RNetCDF::var.get.nc(nc, 'depth')
+      lon <- RNetCDF::var.get.nc(nc, 'lon')
+      lat <- RNetCDF::var.get.nc(nc, 'lat')
     }
     
     #extracts depth from tag data for day i

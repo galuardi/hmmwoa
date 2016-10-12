@@ -22,12 +22,12 @@
 extract.woa <- function(nc.dir, bbox=NULL, resolution){
   
   # load global nc
-  nc = ncdf::open.ncdf(nc.dir)
+  nc = RNetCDF::open.nc(nc.dir)
   
   # retrieve var bounds from global nc
-  lon = ncdf::get.var.ncdf(nc, 'Longitude')
-  lat = ncdf::get.var.ncdf(nc, 'Latitude')
-  depth = ncdf::get.var.ncdf(nc, 'Depth')
+  lon = RNetCDF::var.get.nc(nc, 'Longitude')
+  lat = RNetCDF::var.get.nc(nc, 'Latitude')
+  depth = RNetCDF::var.get.nc(nc, 'Depth')
   
   if(is.null(bbox) & resolution == 'quarter'){
     bbox <- list(lonmin = -180, lonmax = 179.75, latmin = -90, latmax = 89.75)
@@ -51,7 +51,7 @@ extract.woa <- function(nc.dir, bbox=NULL, resolution){
     stop('Resolution of input oceanographic data not defined.')
   }  
   
-  dat = ncdf::get.var.ncdf(nc, start = c(xmin, ymin, 1, 1), count = c(xlen + 1, ylen + 1, 57, 12))
+  dat = RNetCDF::var.get.nc(nc, start = c(xmin, ymin, 1, 1), count = c(xlen + 1, ylen + 1, 57, 12))
   
   returnWOA = list(dat = dat, lon = lon[xmin:xmax], lat = lat[ymin:ymax], depth = depth)
   

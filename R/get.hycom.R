@@ -36,8 +36,8 @@
 #' # only returns url because filename is unspecified
 #' \dontrun{ 
 #' get.hycom(lon, lat, time, type='a', filename = 'my_data.nc', vars = 'water_temp')
-#' nc <- open.ncdf('my_data.nc')
-#' hycom <- get.var.ncdf(nc, 'water_temp')
+#' nc <- open.nc('my_data.nc')
+#' hycom <- var.get.nc(nc, 'water_temp')
 #' image.plot(hycom[,,1])
 #' }
 #'   

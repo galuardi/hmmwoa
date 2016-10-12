@@ -32,8 +32,8 @@ calc.sst <- function(tag.sst, sst.dir, dateVec){
     sst.i <- c(tag.sst$minT[i] * .99, tag.sst$maxT[i] * 1.01) # sensor error
     
     # open day's sst data
-    nc <- ncdf::open.ncdf(paste(sst.dir, ptt, '_', as.Date(time), '.nc', sep='')) #add lat lon in filename '.nc', sep=''))
-    dat <- ncdf::get.var.ncdf(nc, 'sst') # for OI SST
+    nc <- RNetCDF::open.nc(paste(sst.dir, ptt, '_', as.Date(time), '.nc', sep='')) #add lat lon in filename '.nc', sep=''))
+    dat <- RNetCDF::var.get.nc(nc, 'sst') # for OI SST
     
     # calc sd of SST
     # focal calc on mean temp and write to sd var
@@ -49,8 +49,8 @@ calc.sst <- function(tag.sst, sst.dir, dateVec){
     print(paste('finishing lik.sst for ', time,'. Section took ', Sys.time() - t))
     
     if(i == 1){
-      lon <- ncdf::get.var.ncdf(nc, 'longitude')
-      lat <- ncdf::get.var.ncdf(nc, 'latitude')
+      lon <- RNetCDF::var.get.nc(nc, 'longitude')
+      lat <- RNetCDF::var.get.nc(nc, 'latitude')
       # result will be array of likelihood surfaces
       L.sst <- array(0, dim = c(dim(lik.sst), length(dateVec)))
     }
