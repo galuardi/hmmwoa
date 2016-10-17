@@ -80,13 +80,14 @@ L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec = dateVec, isotherm = '')
 
 # WOA DIRECTORY: LOCATION OF .NC FILE FOR EXTRACTION
 #woa.dir <- 'your WOA file.nc'
+data(woa.quarter)
 
 # GET THE WOA SUBSET BASED ON SPATIAL LIMITS
 #return.woa <- extract.woa(woa.dir, sp.lim, resolution = 'one')
-#woa <- return.woa$dat 
-#lon <- as.numeric(return.woa$lon); 
-#lat <- as.numeric(return.woa$lat); 
-#depth <- as.numeric(return.woa$depth)
+woa <- woa.quarter$watertemp
+lon <- woa.quarter$lon 
+lat <- woa.quarter$lat
+depth <- woa.quarter$depth
 
 # ELIMINATE PACIFIC FROM WOA DATA IF YOU'RE WORKING IN THE W ATLANTIC
 #woa <- removePacific(woa, lat, lon)
@@ -98,13 +99,13 @@ L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec = dateVec, isotherm = '')
 #lat <- as.numeric(woa.quarter$lat); 
 #depth <- as.numeric(woa.quarter$depth)
 
-#L.pdt <- calc.pdt.int(pdt, dat = woa, lat = lat, lon = lon, depth = depth, dateVec = dateVec)
+L.pdt <- calc.pdt.int(pdt, dat = woa, lat = lat, lon = lon, depth = depth, dateVec = dateVec)
 
 #----------------------------------------------------------------------------------#
 # SETUP A COMMON GRID
 #----------------------------------------------------------------------------------#
 
-L.rasters <- list(L.ohc = L.ohc, L.sst = L.sst)
+L.rasters <- list(L.ohc = L.ohc, L.sst = L.sst, L.pdt = L.pdt, L.light = L.light)
 L.res <- resample.grid(L.rasters, L.rasters$L.ohc)
 # total of ~5 mins when resampling to ohc, faster when more coarse is desired
 
@@ -116,16 +117,8 @@ g.mle <- L.res$g.mle
 # LOAD AND FORMAT DATAFRAME OF KNOWN LOCATIONS, IF ANY
 #----------------------------------------------------------------------------------#
 
-#spot <- read.table('141268-Locations.csv', sep=',', header = T)
-#spot$dtime <- as.POSIXct(spot$Date, format=findDateFormat(spot$Date), tz='UTC')
-#spot$yday <- yday(spot$dtime)
-#spot$daymins <- minute(spot$dtime)+hour(spot$dtime)*60
-#d1 <- as.POSIXct('1900-01-02') - as.POSIXct('1900-01-01')
-#didx <- spot$dtime >= (tag + d1) & spot$dtime <= (pop - d1)
-#spot <- spot[didx,]
-#spot$day <- as.Date(spot$dtime)
-#known.locs <- spot[,c(21,7,8)]
 #colnames(known.locs) <- list('date','lat','lon')
+#   where 'date' is from as.Date(known.locs$date)
 
 #----------------------------------------------------------------------------------#
 # COMBINE LIKELIHOOD MATRICES
