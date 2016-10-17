@@ -13,7 +13,8 @@ License: MIT
 Depends: 
     raster,
     imager,
-    maptools
+    maptools,
+    lubridate
 Imports: 
     dplyr,
     fields,
