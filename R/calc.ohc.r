@@ -42,7 +42,8 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
     
     # open day's hycom data
     nc <- RNetCDF::open.nc(paste(ohc.dir, ptt,'_', as.Date(time), '.nc', sep=''))
-    dat <- RNetCDF::var.get.nc(nc, 'water_temp')
+    dat <- RNetCDF::var.get.nc(nc, 'water_temp') * RNetCDF::att.get.nc(nc, 'water_temp', attribute='scale_factor') + 
+      RNetCDF::att.get.nc(nc, variable='water_temp', attribute='add_offset')
     
     if(i == 1){
       depth <- RNetCDF::var.get.nc(nc, 'depth')

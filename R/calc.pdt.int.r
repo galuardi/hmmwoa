@@ -23,7 +23,7 @@
 #'   
 
 calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, depth = depth, dateVec){
-  
+  options(warn=-1)
   start.t <- Sys.time()
   
   udates <- unique(pdt$Date)
@@ -110,7 +110,7 @@ calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, depth = depth, da
   L.pdt <- raster::flip(L.pdt, direction = 'y')
   
   print(paste('PDT calculations took ', Sys.time() - start.t, '.'))
-  
+  options(warn=2)
   return(L.pdt)
   
 }
