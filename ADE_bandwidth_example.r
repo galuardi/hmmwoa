@@ -36,3 +36,18 @@ sampud = kernelUD(samp)
 # compare h values
 
 rbind(ud@h$h, sampud@h$h)
+
+
+iter <- seq(10,10010,by=100)
+hvec <- rep(NA, length(iter))
+for (n in iter){
+  #n = 10 # samples to draw
+  samp = rudf[sample(1:nrow(rudf), n, prob = rudf[,1], replace = T),2:3]
+  coordinates(samp) = ~x+y
+  sampud = kernelUD(samp)
+  
+  # compare h values
+  hvec[which(iter == n)] <- sampud@h$h
+  #rbind(ud@h$h, sampud@h$h)
+  
+}
