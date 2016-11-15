@@ -11,6 +11,7 @@ esri_h <- function(rdf){
   term2 <- sqrt(1 / log(2)) * Dm
   
   #n <- cellStats(r, 'sum')
+  weights = rdf[,1]
   n <- sum(weights)
   
   if(sdd < term2){
