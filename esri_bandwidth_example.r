@@ -15,6 +15,7 @@ mc <- mean_centre(weighted=TRUE, weights=as.data.frame(r.pts)[,1], points=as.dat
 Dm <- median(distances(centre.xy = mc[,2:3], destmat = as.data.frame(r.pts)[,c(2,3)]))
 
 term2 <- sqrt(1 / log(2)) * Dm
+n <- cellStats(r, 'sum')
 
 if(sdd < term2){
   bnd <- .9 * sdd * n^(-0.2)
