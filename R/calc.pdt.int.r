@@ -91,7 +91,7 @@ calc.pdt.int <- function(pdt, dat = dat, lat = lat, lon = lon, depth = depth, da
     for (b in 1:length(depIdx)) {
       #calculate the likelihood for each depth level, b
       lik.pdt[,,b] = likint3(dat.i[,,depIdx[b]], sd.i[,,depIdx[b]], df[b,1], df[b,2])
-      
+      #w=dat.i[,,depIdx[b]]; wsd=sd.i[,,depIdx[b]]; minT=df[b,1]; maxT=df[b,2]
     }
     
     # multiply likelihood across depth levels for each day

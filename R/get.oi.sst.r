@@ -40,7 +40,7 @@
 
 get.oi.sst <- function(limits, time, filename='', download.file=TRUE, dir = getwd()) {
   
-  dir.create(file.path(dir), recursive = TRUE)
+  dir.create(file.path(dir), recursive = TRUE, showWarnings = FALSE)
   setwd(dir)
   
   ## Set the base URL based on the start date. If the ending date exceeds the
