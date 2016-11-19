@@ -34,6 +34,9 @@ hmm.filter <- function(g, L, K1, K2, P){
   pred[2,1,,] <- L[1,,] # first position is known
   psi <- rep(0, T - 1) # sum of the probability of both states at each step
   
+  K1 <- imager::as.cimg(K1)
+  K2 <- imager::as.cimg(K2)
+  
   # Start filter iterations
   for(t in 2:T){
     # replace this part with older workflow using a gaussian kernel.. 
@@ -44,8 +47,8 @@ hmm.filter <- function(g, L, K1, K2, P){
     
     p1 = imager::as.cimg(t(phi[1, t-1,,]))
     p2 = imager::as.cimg(t(phi[2, t-1,,]))
-    q1 = imager::convolve(p1, imager::as.cimg(K1))
-    q2 = imager::convolve(p2, imager::as.cimg(K2))
+    q1 = imager::convolve(p1, K1)
+    q2 = imager::convolve(p2, K2)
     
     # q1 = arot(t(as.matrix(q1)),3)
     # q2 = arot(t(as.matrix(q2)),3)
