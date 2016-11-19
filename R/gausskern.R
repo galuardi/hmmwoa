@@ -20,11 +20,13 @@
 gausskern <- function(siz, sigma, muadv = 0){
   x = 1:round(siz)
   mu = c(mean(x), mean(x)) + muadv
-  fx = (matrix(exp((-0.5 * (x - mu[1]) / sigma) ^ 2)) / (sqrt(2 * pi) * sigma))
+  #fx = (matrix(exp((-0.5 * (x - mu[1]) / sigma) ^ 2)) / (sqrt(2 * pi) * sigma))
   
   options(digits = 5)
   fx = exp(-.5 * ((x - mu[1]) / sigma) ^ 2) / sqrt((2 * pi) * sigma)
   fy = exp(-.5 * ((x - mu[2]) / sigma) ^ 2) / sqrt((2 * pi) * sigma)
+  #fx = exp(.5 * ((x - mu[1]) / sigma)) / sqrt((2 * pi) * sigma)
+  #fy = exp(.5 * ((x - mu[2]) / sigma)) / sqrt((2 * pi) * sigma)
   
   fx[!is.finite(fx)] = 0
   #fy = (matrix(exp((-0.5*((x-mu[2])/sigma))^2))/(sqrt(2*pi)*sigma));
