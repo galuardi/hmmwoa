@@ -26,6 +26,8 @@ calc.sst <- function(tag.sst, sst.dir, dateVec){
   
   T <- length(tag.sst[,1])
   
+  print(paste('Starting iterations through time ', '...'))
+  
   for(i in 1:T){
     
     time <- tag.sst$date[i]
@@ -37,17 +39,13 @@ calc.sst <- function(tag.sst, sst.dir, dateVec){
     
     # calc sd of SST
     # focal calc on mean temp and write to sd var
-    t = Sys.time()
     r = raster::flip(raster::raster(t(dat)), 2)
     sdx = raster::focal(r, w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
     sdx = t(raster::as.matrix(raster::flip(sdx, 2)))
-    print(paste('finishing sd for ', time,'. Section took ', Sys.time() - t))
-    
+
     # compare sst to that day's tag-based ohc
-    t = Sys.time()
     lik.sst <- likint3(dat, sdx, sst.i[1], sst.i[2])
-    print(paste('finishing lik.sst for ', time,'. Section took ', Sys.time() - t))
-    
+
     if(i == 1){
       lon <- RNetCDF::var.get.nc(nc, 'longitude')
       lat <- RNetCDF::var.get.nc(nc, 'latitude')
@@ -59,16 +57,16 @@ calc.sst <- function(tag.sst, sst.dir, dateVec){
     L.sst[,,idx] = lik.sst
   }
     
-    crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
-    list.sst <- list(x = lon, y = lat, z = L.sst)
-    ex <- raster::extent(list.sst)
-    L.sst <- raster::brick(list.sst$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
-    L.sst <- raster::flip(L.sst, direction = 'y')
+  print(paste('Making final likelihood raster...'))
+  
+  crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
+  list.sst <- list(x = lon, y = lat, z = L.sst)
+  ex <- raster::extent(list.sst)
+  L.sst <- raster::brick(list.sst$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
+  L.sst <- raster::flip(L.sst, direction = 'y')
     
-    print(paste('SST calculations took ', Sys.time() - start.t, '.'))
-    
-    # return sst likelihood surfaces
-    return(L.sst)
+  # return sst likelihood surfaces
+  return(L.sst)
     
 }
   

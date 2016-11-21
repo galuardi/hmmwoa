@@ -23,7 +23,11 @@
 #'   
 
 calc.profile <- function(pdt, dat = NULL, lat = NULL, lon = NULL, dateVec, envType = 'woa', hycom.dir = NULL){
-  if(envType == 'woa'){
+  
+  options(warn=-1)
+  start.t <- Sys.time()
+  
+   if(envType == 'woa'){
     if(is.null(dat) | is.null(lat) | is.null(lon)){
       stop('Error: dat, lat, lon must all be specified if envType == woa')
     }
@@ -38,15 +42,13 @@ calc.profile <- function(pdt, dat = NULL, lat = NULL, lon = NULL, dateVec, envTy
     
   }
   
-  options(warn=-1)
-  start.t <- Sys.time()
-  
   udates <- unique(pdt$Date)
   T <- length(udates)
   
   pdt$MidTemp <- (pdt$MaxTemp + pdt$MinTemp) / 2
   
-  print(paste('Starting iterations through time...'))
+  print(paste('Starting iterations through time ', '...'))
+  
   for(i in 1:T){
     
     # define time based on tag data
@@ -96,16 +98,17 @@ calc.profile <- function(pdt, dat = NULL, lat = NULL, lon = NULL, dateVec, envTy
         dat.i = dat[,,,pdtMonth] #extract months climatology
         
         # calculate sd using Le Bris neighbor method and focal()
-        sd.i = array(NA, dim = c(dim(dat.i)[1:2], length(depIdx)))
+        sd.i = array(NA, dim = c(dim(dat.i)[1:2], length(depth)))
         
-        for(ii in 1:length(depIdx)){
-          r = raster::flip(raster::raster(t(dat.i[,,depIdx[ii]])), 2)
+        for(ii in 1:length(depth)){
+          r = raster::flip(raster::raster(t(dat.i[,,ii])), 2)
           f1 = raster::focal(r, w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
           f1 = t(raster::as.matrix(raster::flip(f1, 2)))
           sd.i[,,ii] = f1
         }
         
       }
+      
     } else if (envType == 'hycom'){
       
       # load hycom data for this day
@@ -131,9 +134,6 @@ calc.profile <- function(pdt, dat = NULL, lat = NULL, lon = NULL, dateVec, envTy
         dat.i[,,bb] <- dat.i[,,bb] * mask
       }
       
-      print(paste('Reading and masking days data took ', Sys.time()-t, '...'))
-      
-      t <- Sys.time()
       # calculate sd using Le Bris neighbor method and focal()
       sd.i = array(NA, dim = c(dim(dat.i)[1:2], length(depIdx)))
       
@@ -143,7 +143,7 @@ calc.profile <- function(pdt, dat = NULL, lat = NULL, lon = NULL, dateVec, envTy
         f1 = t(raster::as.matrix(raster::flip(f1, 2)))
         sd.i[,,ii] = f1
       } 
-      print(paste('SD calculation took ', Sys.time()-t, '...'))
+      #print(paste('SD calculation took ', format(round(Sys.time() - start.t, 1), format='%M'), '...'))
     }
     
     print(paste('Calculating likelihood for ', as.Date(time), '...', sep=''))
@@ -153,7 +153,7 @@ calc.profile <- function(pdt, dat = NULL, lat = NULL, lon = NULL, dateVec, envTy
     
     for (b in 1:length(depIdx)) {
       #calculate the likelihood for each depth level, b
-      lik.pdt[,,b] = likint3(dat.i[,,depIdx[b]], sd.i[,,b], df[b,1], df[b,2])
+      lik.pdt[,,b] = likint3(dat.i[,,depIdx[b]], sd.i[,,depIdx[b]], df[b,1], df[b,2])
       
     }
     
@@ -174,7 +174,6 @@ calc.profile <- function(pdt, dat = NULL, lat = NULL, lon = NULL, dateVec, envTy
   L.prof <- raster::brick(list.pdt$z, xmn = ex[1], xmx = ex[2], ymn = ex[3], ymx = ex[4], transpose = T, crs)
   L.prof <- raster::flip(L.prof, direction = 'y')
   
-  print(paste('PDT calculations took ', Sys.time() - start.t, '.'))
   options(warn = 2)
   return(L.prof)
   

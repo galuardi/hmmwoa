@@ -21,13 +21,13 @@
 
 
 get.nll.fun <- function(parvec = c(10, 30, 5, 2, .707, .8), g = g.mle, L = L.mle){ #c(D1, D2, p)c(10, 30, 5, 2, .707, .8)
-  K1 = imager::as.cimg(gausskern(parvec[1], parvec[2], muadv = 0))
-  K2 = imager::as.cimg(gausskern(parvec[3], parvec[4], muadv = 0))
+  K1 <- gausskern(parvec[1], parvec[2], muadv = 0)
+  K2 <- gausskern(parvec[3], parvec[4], muadv = 0)
   P <- matrix(c(parvec[5], 1-parvec[5], 1-parvec[6], parvec[6]), 2, 2, byrow = TRUE)
 
   f = hmm.filter(g, L, K1, K2, P)
   nllf <- -sum(log(f$psi[f$psi>0]))
-  print(paste0("\n HMM -log(L):", nllf))
+  print(paste0("HMM -log(L): ", nllf))
   #flush.console()
   nllf
   

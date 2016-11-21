@@ -34,12 +34,13 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
   
   if(isotherm != '') iso.def <- TRUE else iso.def <- FALSE
   
+  print(paste('Starting iterations through time ', '...'))
+  
   for(i in 1:T){
     
     time <- udates[i]
     pdt.i <- pdt[which(pdt$Date == time),]
-    print(pdt.i)
-    
+
     # open day's hycom data
     nc <- RNetCDF::open.nc(paste(ohc.dir, ptt,'_', as.Date(time), '.nc', sep=''))
     dat <- RNetCDF::var.get.nc(nc, 'water_temp') * RNetCDF::att.get.nc(nc, 'water_temp', attribute='scale_factor') + 
@@ -72,33 +73,32 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
     }
     
     # make predictions based on the regression model earlier for the temperature at standard WOA depth levels for low and high temperature at that depth
-    #suppressWarnings(
-      fit.low <- locfit::locfit(pdt.i$MinTemp ~ pdt.i$Depth)
-    #suppressWarnings(
-      fit.high <- locfit::locfit(pdt.i$MaxTemp ~ pdt.i$Depth)
+    suppressWarnings(
+    fit.low <- locfit::locfit(pdt.i$MinTemp ~ pdt.i$Depth)
+    )
+    suppressWarnings(
+    fit.high <- locfit::locfit(pdt.i$MaxTemp ~ pdt.i$Depth)
+    )
     n = length(hycomDep)
       
     #suppressWarnings(
-      pred.low = predict(fit.low, newdata = hycomDep, se = T, get.data = T)
+    pred.low = predict(fit.low, newdata = hycomDep, se = T, get.data = T)
     #suppressWarnings(
-      pred.high = predict(fit.high, newdata = hycomDep, se = T, get.data = T)
+    pred.high = predict(fit.high, newdata = hycomDep, se = T, get.data = T)
       
 
     # data frame for next step
     df = data.frame(low = pred.low$fit - pred.low$se.fit * sqrt(n),
                     high = pred.high$fit + pred.high$se.fit * sqrt(n),
                     depth = hycomDep)
-    print(df)
-    
+
     # isotherm is minimum temperature recorded for that time point
     if(iso.def == FALSE) isotherm <- min(df$low, na.rm = T)
     
     # perform tag data integration at limits of model fits
     minT.ohc <- cp * rho * sum(df$low - isotherm, na.rm = T) / 10000
     maxT.ohc <- cp * rho * sum(df$high - isotherm, na.rm = T) / 10000
-    print(minT.ohc)
-    print(maxT.ohc)
-
+    
     # Perform hycom integration
     dat[dat<isotherm] <- NA
     dat <- dat - isotherm
@@ -107,18 +107,14 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
     
     # calc sd of OHC
     # focal calc on mean temp and write to sd var
-    t = Sys.time()
     r = raster::flip(raster::raster(t(ohc)), 2)
     sdx = raster::focal(r, w = matrix(1, nrow = 9, ncol = 9),
                         fun = function(x) sd(x, na.rm = T))
     sdx = t(raster::as.matrix(raster::flip(sdx, 2)))
-    print(paste('finishing sd for ', time,'. Section took ', Sys.time() - t))
-    
+
     # compare hycom to that day's tag-based ohc
-    t = Sys.time()
     lik.ohc <- likint3(ohc, sdx, minT.ohc, maxT.ohc)
-    print(paste('finishing lik.ohc for ', time,'. Section took ', Sys.time() - t))
-    
+
     if(i == 1){
       # result will be array of likelihood surfaces
       L.ohc <- array(0, dim = c(dim(lik.ohc), length(dateVec)))
@@ -127,20 +123,16 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
     idx <- which(dateVec == as.Date(time))
     L.ohc[,,idx] = lik.ohc
 
-    print(paste(time, ' finished.', sep=''))
-    
   }
 
-  raster.t <- Sys.time()
-
+  print(paste('Making final likelihood raster...'))
+  
   crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
   list.ohc <- list(x = lon-360, y = lat, z = L.ohc)
   ex <- raster::extent(list.ohc)
   L.ohc <- raster::brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
   L.ohc <- raster::flip(L.ohc, direction = 'y')
 
-  print(paste('OHC calculations and raster manipulation took ', Sys.time() - start.t, ' and ', Sys.time() - raster.t, ', respesctively.'))
-  
   # return ohc likelihood surfaces
   return(L.ohc)
   
