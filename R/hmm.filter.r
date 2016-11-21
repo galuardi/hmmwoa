@@ -30,7 +30,9 @@ hmm.filter <- function(g, L, K1, K2, P){
   phi  <- array(0, dim = c(m, T, col, row)) # posterior (final) step array
   
   # Start in resident state at the known initial location
+  phi[1,1,,]  <- L[1,,] # first position is known
   phi[2,1,,]  <- L[1,,] # first position is known
+  pred[1,1,,] <- L[1,,] # first position is known
   pred[2,1,,] <- L[1,,] # first position is known
   psi <- rep(0, T - 1) # sum of the probability of both states at each step
   
@@ -89,8 +91,10 @@ hmm.filter <- function(g, L, K1, K2, P){
   }
   
   # End in resident state at the known final location
-  phi[2,T,,]  <- L[T,,] # first position is known
-  pred[2,T,,] <- L[T,,] # first position is known
+  phi[1,T,,]  <- L[T,,] # last position is known
+  phi[2,T,,]  <- L[T,,] # last position is known
+  pred[1,T,,] <- L[T,,] # last position is known
+  pred[2,T,,] <- L[T,,] # last position is known
   
   list(phi = phi, pred = pred, psi = psi)
 
