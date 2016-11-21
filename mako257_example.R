@@ -53,14 +53,13 @@ sst.dir <- paste('~/Documents/WHOI/RData/SST/OI/', ptt, '/',sep = '')
 get.env(sst.udates, type = 'sst', spatLim = sp.lim, save.dir = sst.dir)
 
 # IF USING OHC, DOWNLOAD HYCOM DATA
-ohc.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
-get.env(pdt.udates, type = 'ohc', spatLim = sp.lim, save.dir = ohc.dir)
+hycom.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
+get.env(pdt.udates, type = 'ohc', spatLim = sp.lim, save.dir = hycom.dir)
 
 #----------------------------------------------------------------------------------#
 # CALC LIKELIHOODS
 #----------------------------------------------------------------------------------#
 
-#-------
 # LIGHT LIKELIHOOD
 L.light <- calc.light(light, locs.grid = locs.grid, dateVec = dateVec)
 
@@ -70,7 +69,12 @@ L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec = dateVec)
 
 #-------
 # GENERATE DAILY OHC LIKELIHOODS
-L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec = dateVec, isotherm = '')
+L.ohc <- calc.ohc(pdt, ohc.dir = hycom.dir, dateVec = dateVec, isotherm = '')
+
+#-------
+# GENERATE DAILY PROFILE LIKELIHOODS
+L.prof <- calc.profile(pdt, dateVec = dateVec, envType = 'hycom', hycom.dir = hycom.dir)
+L.prof.woa <- calc.profile(pdt, dat = woa, lat = lat, lon = lon, dateVec = dateVec, envType = 'woa')
 
 #-------
 # GENERATE PROFILE/WOA LIKELIHOODS
@@ -97,7 +101,7 @@ L.pdt <- calc.pdt.int(pdt, dat = woa, lat = lat, lon = lon, depth = depth, dateV
 # SETUP A COMMON GRID
 #----------------------------------------------------------------------------------#
 
-L.rasters <- list(L.ohc = L.ohc, L.sst = L.sst, L.pdt = L.pdt, L.light = L.light)
+L.rasters <- list(L.ohc = L.ohc, L.sst = L.sst, L.pdt = L.prof, L.light = L.light)
 L.res <- resample.grid(L.rasters, L.rasters$L.ohc)
 # total of ~5 mins when resampling to ohc, faster when more coarse is desired
 
@@ -116,16 +120,23 @@ g.mle <- L.res$g.mle
 # COMBINE LIKELIHOOD MATRICES
 #----------------------------------------------------------------------------------#
 
-L <- make.L(L1 = L.res[[1]]$L.ohc , L2 = L.res[[1]]$L.sst, 
+L <- make.L(L1 = L.res[[1]]$L.ohc , L2 = L.res[[1]]$L.sst,
+            L3 = L.res[[1]]$L.light, 
             L.mle.res = L.mle.res, dateVec = dateVec,
             locs.grid = locs.grid, iniloc = iniloc)
 L.mle <- L$L.mle; L <- L$L
+
+Lp <- make.L(L1 = L.res[[1]]$L.pdt, L2 = L.res[[1]]$L.sst,
+            L3 = L.res[[1]]$L.light, 
+            L.mle.res = L.mle.res, dateVec = dateVec,
+            locs.grid = locs.grid, iniloc = iniloc)
+Lp.mle <- Lp$L.mle; Lp <- Lp$L
 
 #----------------------------------------------------------------------------------#
 # TRY THE MLE.
 
 t <- Sys.time()
-par0=c(8.908,10.27,3,1,0.707,0.866) # from Pedersen 2011
+par0=c(9,10,3,1,0.707,0.866) # from Pedersen 2011
 fit <- nlm(get.nll.fun, par0, g.mle, L.mle)
 Sys.time() - t
 
@@ -153,19 +164,36 @@ p <- par0[5:6]
 #----------------------------------------------------------------------------------#
 # GENERATE MOVEMENT KERNELS. D VALUES ARE MEAN AND SD PIXELS
 K1 = gausskern(D1[1], D1[2], muadv = 0)
-#K2 = as.cimg(gausskern(D2[1], D2[2], muadv = 0))
 K2 = gausskern(D2[1], D2[2], muadv = 0)
 P <- matrix(c(p[1],1-p[1],1-p[2],p[2]),2,2,byrow=TRUE)
 
 #----------------------------------------------------------------------------------#
 # RUN THE FILTER STEP
-f = hmm.filter(g,L,K1,K2,P)
+f = hmm.filter(g, L, K1, K2, P)
 res = apply(f$phi[1,,,],2:3,sum, na.rm=T)
-fields::image.plot(lon, lat, res/max(res), zlim = c(.05,1))
+#fields::image.plot(lon, lat, res/max(res), zlim = c(.05,1))
+par(mfrow=c(2,2))
+image.plot(lon,lat,f$phi[1,10,,])
+image.plot(lon,lat,f$phi[2,10,,])
+image.plot(lon,lat,f$phi[1,100,,])
+image.plot(lon,lat,f$phi[2,100,,])
 
 #----------------------------------------------------------------------------------#
 # RUN THE SMOOTHING STEP
-s = hmm.smoother(f, K1, K2, P, plot = F)
+s = hmm.smoother_test(f, K1, K2, P, plot = F)
+par(mfrow=c(2,2))
+image.plot(lon,lat,s[1,1,,])
+world(add=T,fill=T)
+points(iniloc[1,c(5:4)])
+image.plot(lon,lat,s[2,1,,])
+world(add=T,fill=T)
+points(iniloc[1,c(5:4)])
+image.plot(lon,lat,f$phi[1,1,,])
+world(add=T,fill=T)
+#points(iniloc[2,c(5:4)])
+image.plot(lon,lat,f$phi[2,1,,])
+world(add=T,fill=T)
+#points(iniloc[2,c(5:4)])
 
 # PLOT IT IF YOU WANT TO SEE LIMITS (CI)
 sres = apply(s[1,,,], 2:3, sum, na.rm=T)
@@ -182,70 +210,18 @@ meanlon <- apply(apply(distr, c(2, 3), sum) * repmat(t(as.matrix(g$lon[1,])), T,
 mpt <- cbind(dates = dateVec, lon = meanlon, lat = meanlat)
 
 # PLOT IT!
-data("countriesLow") # ADD MAP DATA
-graphics.off()
-plot(meanlon, meanlat)
-plot(countriesLow, add = T)
+#data("countriesLow") # ADD MAP DATA
+#graphics.off()
+spot <- read.table('~/Documents/WHOI/RData/sharkSiteData/AllArgosData.csv', sep=',', header = T)
+spot$date <- as.POSIXct(spot$date, format=findDateFormat(spot$date))
+spot <- spot[which(spot$ptt == 141267 & spot$date <= as.POSIXct('2016-04-12')),]
+plot(spot$lon, spot$lat, ylim=c(35,45),xlim=c(-80,-57), type='l', col='blue')
+world(add=T, fill=T)
+lines(meanlon, meanlat)
 
+## SOMETHING WEIRD HAPPENING AFTER L IS CREATED. FINAL TRACK DOESNT SHOW TAGGING LOCATION
+## AND MAYBE NOT POP UP EITHER? IS 0,0 POSITION COMING FROM T-1 IN FILTER STEP?
 
 #=======================================================================================#
 ## END
 #=======================================================================================#
-
-
-
-pdf('try L_noknown.pdf', height=8,width=12)
-for (i in 1:length(dateVec)){
-  image.plot(lon,lat,L[i,,])
-  world(add=T)
-}
-dev.off()
-
-
-layout(matrix(c(1,1,1,2,3,4), 2, 3, byrow=TRUE))
-
-
-#L1 = L.res[[1]]$L.ohc , L2 = L.res[[1]]$L.sst, L3 = L.res[[1]]$L.light
-
-# check T = 48:50,54:56
-tidx <- c(123,128,129,131,133:135)
-pdf('try L_piecewise_1.pdf')#,height=20,width=12)
-for(i in tidx){
-  #par(mfrow=c(2,1))
-  image.plot(lon,lat,L[i,,])
-  world(add=T)
-
-  par(mfrow=c(1,3))
-  plot(L.res[[1]]$L.ohc[[i]])
-  world(add=T)
-    
-  plot(L.res[[1]]$L.sst[[i]])
-  world(add=T)
-    
-  plot(L.res[[1]]$L.light[[i]])
-  world(add=T)
-    
-  }
-}
-dev.off()
-
-
-r <- raster::resample(L.sst[[123]], L.ohc[[123]], NAflag=NA)
-
-# look at 131
-i=131
-par(mfrow=c(3,1))
-plot(L.res[[1]]$L.ohc[[i]])
-world(add=T)
-
-plot(L.res[[1]]$L.sst[[i]])
-world(add=T)
-
-plot(L.res[[1]]$L.light[[i]])
-world(add=T)
-
-
-naL1idx = cellStats(L.res[[1]]$L.ohc, sum, na.rm=T) != 0
-naL2idx = cellStats(L.res[[1]]$L.sst, sum, na.rm=T) != 0
-naL3idx = cellStats(L.res[[1]]$L.light, sum, na.rm=T) != 0
-
