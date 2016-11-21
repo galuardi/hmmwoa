@@ -88,6 +88,10 @@ hmm.filter <- function(g, L, K1, K2, P){
     phi[2,t,,] <- post2 / (psi[t-1] + 1e-15)
   }
   
+  # End in resident state at the known final location
+  phi[2,T,,]  <- L[T,,] # first position is known
+  pred[2,T,,] <- L[T,,] # first position is known
+  
   list(phi = phi, pred = pred, psi = psi)
 
 }
