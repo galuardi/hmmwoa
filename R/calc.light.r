@@ -104,7 +104,7 @@ calc.light <- function(light = NULL, locs.grid, dateVec, res = 1){
         srlik <- liksrss(sr, srss = sr.ras[[didx]], srsd = srf)
         
         L.light[[t]] <- srlik
-        
+
       } else if(length(light.t[,1]) == 1 & any(light.t$Type == 'Dusk')){
         # if we just have a dusk measurement
         didx <- light.t$yday[1]
@@ -121,7 +121,7 @@ calc.light <- function(light = NULL, locs.grid, dateVec, res = 1){
         sslik <- liksrss(ss, srss = ss.ras[[didx]], srsd = ssf)
         
         L.light[[t]] <- sslik
-        
+
       } else{
         # if we have both dawn and dusk measurements
         didx <- light.t$yday[1]
@@ -178,18 +178,22 @@ calc.light <- function(light = NULL, locs.grid, dateVec, res = 1){
           if(any(srlik[] != 0)){
             #just srlik
             L.light[[t]] <- srlik
-            
+
           } else{
             #just sslik
             L.light[[t]] <- sslik
-            
+
           }
         }
         
         L.light[[t]] <- r
-        
+
       }
       
+    }
+    
+    if(cellStats(L.light[[t]], 'max', na.rm=T) != 0){
+      L.light[[t]] <- (L.light[[t]] / cellStats(L.light[[t]], 'max')) - 0.2
     }
     
   } # end for loop

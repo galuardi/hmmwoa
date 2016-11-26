@@ -162,7 +162,7 @@ calc.profile <- function(pdt, dat = NULL, lat = NULL, lon = NULL, dateVec, envTy
     
     # identify date index and add completed likelihood to L.pdt array    
     idx <- which(dateVec == as.Date(time))
-    L.prof[,,idx] = lik.pdt
+    L.prof[,,idx] = (lik.pdt / max(lik.pdt, na.rm=T)) - 0.2
     
   }
   

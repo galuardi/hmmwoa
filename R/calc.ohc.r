@@ -121,7 +121,7 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
     }
     
     idx <- which(dateVec == as.Date(time))
-    L.ohc[,,idx] = lik.ohc
+    L.ohc[,,idx] = (lik.ohc / max(lik.ohc, na.rm=T)) - 0.2
 
   }
 

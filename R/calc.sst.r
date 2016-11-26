@@ -54,7 +54,8 @@ calc.sst <- function(tag.sst, sst.dir, dateVec){
     }
     
     idx <- which(dateVec == as.Date(time))
-    L.sst[,,idx] = lik.sst
+    L.sst[,,idx] = (lik.sst / max(lik.sst, na.rm=T)) - 0.2
+    
   }
     
   print(paste('Making final likelihood raster...'))
