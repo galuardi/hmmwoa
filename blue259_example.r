@@ -74,7 +74,7 @@ L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec = dateVec)
 
 #-------
 # GENERATE DAILY OHC LIKELIHOODS
-L.ohc <- calc.ohc(pdt, ohc.dir = hycom.dir, dateVec = dateVec, isotherm = '')
+#L.ohc <- calc.ohc(pdt, ohc.dir = hycom.dir, dateVec = dateVec, isotherm = '')
 
 #-------
 
@@ -83,7 +83,7 @@ L.ohc <- calc.ohc(pdt, ohc.dir = hycom.dir, dateVec = dateVec, isotherm = '')
 #----------------------------------------------------------------------------------#
 
 #L.rasters <- list(L.ohc = L.ohc, L.sst = L.sst, L.pdt = L.prof, L.light = L.light)
-L.rasters <- list(L.sst = L.sst, L.light = L.light, L.ohc = L.ohc)
+L.rasters <- list(L.sst = L.sst, L.light = L.light)
 L.res <- resample.grid(L.rasters, L.rasters$L.sst)
 # total of ~5 mins when resampling to ohc, faster when more coarse is desired
 
@@ -145,6 +145,7 @@ s = hmm.smoother_test(f, K1, K2, P, plot = F)
 # GET THE MOST PROBABLE TRACK
 #----------------------------------------------------------------------------------#
 distr = s
+T <- dim(distr)[2]
 meanlat <- apply(apply(distr, c(2, 4), sum) * repmat(t(as.matrix(g$lat[,1])), T, 1), 1, sum)
 meanlon <- apply(apply(distr, c(2, 3), sum) * repmat(t(as.matrix(g$lon[1,])), T, 1), 1, sum)
 

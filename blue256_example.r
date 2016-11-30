@@ -46,6 +46,9 @@ if (exists('sp.lim')){
 # GET THE LIKELIHOOD ELLIPSES
 L.light <- calc.light(light, locs.grid = locs.grid, dateVec = dateVec)
 
+locs <- read.table('141256-Locations-GPE2.csv',sep=',',header=T, blank.lines.skip = F)
+L.light.ell <- calc.locs(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = TRUE, gpeOnly = TRUE)
+
 #----------------------------------------------------------------------------------#
 # SST LIKELIHOOD
 #----------------------------------------------------------------------------------#
@@ -67,7 +70,7 @@ L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec = dateVec)
 ohc.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
 
 # DOWNLOAD OHC(HYCOM) DATA
-get.env(pdt.udates, type = 'ohc', spatLim = sp.lim, save.dir = ohc.dir)
+#get.env(pdt.udates, type = 'ohc', spatLim = sp.lim, save.dir = ohc.dir)
 
 # GENERATE DAILY OHC LIKELIHOODS
 L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec = dateVec, isotherm = '')
@@ -105,8 +108,8 @@ L.pdt <- calc.pdt.int(pdt, dat = woa, lat = lat, lon = lon, depth = depth, dateV
 # SETUP A COMMON GRID
 #----------------------------------------------------------------------------------#
 
-L.rasters <- list(L.ohc = L.ohc, L.sst = L.sst, L.pdt = L.pdt, L.light = L.light)
-L.res <- resample.grid(L.rasters, L.rasters$L.ohc)
+L.rasters <- list(L.ohc = L.ohc, L.sst = L.sst, L.light = L.light.ell$L.locs)
+L.res <- resample.grid(L.rasters, L.rasters$L.sst)
 # total of ~5 mins when resampling to ohc, faster when more coarse is desired
 
 L.mle.res <- L.res$L.mle.res
@@ -124,7 +127,12 @@ g.mle <- L.res$g.mle
 # COMBINE LIKELIHOOD MATRICES
 #----------------------------------------------------------------------------------#
 
-L <- make.L(L1 = L.res[[1]]$L.ohc , L2 = L.res[[1]]$L.sst, 
+L <- make.L(L1 = L.res[[1]]$L.ohc, L2 = L.res[[1]]$L.sst, 
+            L3 = L.res[[1]]$L.light,
+            L.mle.res = L.mle.res, dateVec = dateVec,
+            locs.grid = locs.grid, iniloc = iniloc)
+L <- make.L(L1 = L.res[[1]]$L.sst, 
+            L2 = L.res[[1]]$L.light,
             L.mle.res = L.mle.res, dateVec = dateVec,
             locs.grid = locs.grid, iniloc = iniloc)
 L.mle <- L$L.mle; L <- L$L
@@ -133,7 +141,7 @@ L.mle <- L$L.mle; L <- L$L
 # TRY THE MLE.
 
 t <- Sys.time()
-par0=c(8.908,10.27,3,1,0.707,0.866) # from Pedersen 2011
+par0=c(9, 10, 1.152, .0472, 0.707, 0.866) # from Pedersen 2011
 fit <- nlm(get.nll.fun, par0, g.mle, L.mle)
 Sys.time() - t
 
@@ -160,39 +168,43 @@ p <- par0[5:6]
 
 #----------------------------------------------------------------------------------#
 # GENERATE MOVEMENT KERNELS. D VALUES ARE MEAN AND SD PIXELS
-K1 = as.cimg(gausskern(D1[1], D1[2], muadv = 0))
-K2 = as.cimg(gausskern(D2[1], D2[2], muadv = 0))
+K1 = gausskern(D1[1], D1[2], muadv = 0)
+#K2 = as.cimg(gausskern(D2[1], D2[2], muadv = 0))
+K2 = gausskern(D2[1], D2[2], muadv = 0)
 P <- matrix(c(p[1],1-p[1],1-p[2],p[2]),2,2,byrow=TRUE)
 
 #----------------------------------------------------------------------------------#
 # RUN THE FILTER STEP
-f = hmm.filter(g,L,K1,K2,P)
-res = apply(f$phi[1,,,],2:3,sum, na.rm=T)
-fields::image.plot(lon, lat, res/max(res), zlim = c(.05,1))
+f = hmm.filter(g, L, K1, K2, P)
+#res = apply(f$phi[1,,,],2:3,sum, na.rm=T)
+#fields::image.plot(lon, lat, res/max(res), zlim = c(.05,1))
 
 #----------------------------------------------------------------------------------#
 # RUN THE SMOOTHING STEP
-s = hmm.smoother(f, K1, K2, P, plot = F)
+s = hmm.smoother_test(f, K1, K2, P)
 
 # PLOT IT IF YOU WANT TO SEE LIMITS (CI)
-sres = apply(s[1,,,], 2:3, sum, na.rm=T)
-fields::image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
+#sres = apply(s[1,,,], 2:3, sum, na.rm=T)
+#fields::image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
 
 #----------------------------------------------------------------------------------#
 # GET THE MOST PROBABLE TRACK
 #----------------------------------------------------------------------------------#
 distr = s
+T <- dim(distr)[2]
 meanlat <- apply(apply(distr, c(2, 4), sum) * repmat(t(as.matrix(g$lat[,1])), T, 1), 1, sum)
 meanlon <- apply(apply(distr, c(2, 3), sum) * repmat(t(as.matrix(g$lon[1,])), T, 1), 1, sum)
 
 # ADD THE DATES AND STORE THIS VERSION OF ESTIMATED TRACK
-mpt <- cbind(dates = dateVec, lon = meanlon, lat = meanlat)
+#mpt <- cbind(dates = dateVec, lon = meanlon, lat = meanlat)
 
 # PLOT IT!
-data("countriesLow") # ADD MAP DATA
-graphics.off()
-plot(meanlon, meanlat)
-plot(countriesLow, add = T)
+#data("countriesLow") # ADD MAP DATA
+#graphics.off()
+plot(meanlon, meanlat,type='l')
+world(add=T)
+
+#plot(countriesLow, add = T)
 
 
 #=======================================================================================#
@@ -221,18 +233,18 @@ for(i in tidx){
   #par(mfrow=c(2,1))
   image.plot(lon,lat,L[i,,])
   world(add=T)
-
+  
   par(mfrow=c(1,3))
   plot(L.res[[1]]$L.ohc[[i]])
   world(add=T)
-    
+  
   plot(L.res[[1]]$L.sst[[i]])
   world(add=T)
-    
+  
   plot(L.res[[1]]$L.light[[i]])
   world(add=T)
-    
-  }
+  
+}
 }
 dev.off()
 

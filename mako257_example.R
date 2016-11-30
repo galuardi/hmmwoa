@@ -50,7 +50,7 @@ if (exists('sp.lim')){
 
 # IF USING SST, DOWNLOAD THE SST DATA:
 sst.dir <- paste('~/Documents/WHOI/RData/SST/OI/', ptt, '/',sep = '')
-get.env(sst.udates, type = 'sst', spatLim = sp.lim, save.dir = sst.dir)
+get.env(sst.udates[1], type = 'sst', spatLim = sp.lim, save.dir = sst.dir)
 
 # IF USING OHC, DOWNLOAD HYCOM DATA
 hycom.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
@@ -73,8 +73,8 @@ L.ohc <- calc.ohc(pdt, ohc.dir = hycom.dir, dateVec = dateVec, isotherm = '')
 
 #-------
 # GENERATE DAILY PROFILE LIKELIHOODS
-L.prof <- calc.profile(pdt, dateVec = dateVec, envType = 'hycom', hycom.dir = hycom.dir)
-L.prof.woa <- calc.profile(pdt, dat = woa, lat = lat, lon = lon, dateVec = dateVec, envType = 'woa')
+#L.prof <- calc.profile(pdt, dateVec = dateVec, envType = 'hycom', hycom.dir = hycom.dir)
+#L.prof.woa <- calc.profile(pdt, dat = woa, lat = lat, lon = lon, dateVec = dateVec, envType = 'woa')
 
 #-------
 # GENERATE PROFILE/WOA LIKELIHOODS
@@ -101,8 +101,9 @@ L.pdt <- calc.pdt.int(pdt, dat = woa, lat = lat, lon = lon, depth = depth, dateV
 # SETUP A COMMON GRID
 #----------------------------------------------------------------------------------#
 
-L.rasters <- list(L.ohc = L.ohc, L.sst = L.sst, L.pdt = L.prof, L.light = L.light)
-L.res <- resample.grid(L.rasters, L.rasters$L.ohc)
+#L.rasters <- list(L.ohc = L.ohc, L.sst = L.sst, L.pdt = L.prof, L.light = L.light)
+L.rasters <- list(L.sst = L.sst, L.light = L.light, L.ohc = L.ohc)
+L.res <- resample.grid(L.rasters, L.rasters$L.sst)
 # total of ~5 mins when resampling to ohc, faster when more coarse is desired
 
 L.mle.res <- L.res$L.mle.res
@@ -120,8 +121,8 @@ g.mle <- L.res$g.mle
 # COMBINE LIKELIHOOD MATRICES
 #----------------------------------------------------------------------------------#
 
-L <- make.L(L1 = L.res[[1]]$L.ohc , L2 = L.res[[1]]$L.sst,
-            L3 = L.res[[1]]$L.light, 
+L <- make.L(L1 = L.res[[1]]$L.sst,
+            L2 = L.res[[1]]$L.ohc,
             L.mle.res = L.mle.res, dateVec = dateVec,
             locs.grid = locs.grid, iniloc = iniloc)
 L.mle <- L$L.mle; L <- L$L
@@ -135,10 +136,12 @@ Lp.mle <- Lp$L.mle; Lp <- Lp$L
 #----------------------------------------------------------------------------------#
 # TRY THE MLE.
 
-t <- Sys.time()
-par0=c(9,10,3,1,0.707,0.866) # from Pedersen 2011
-fit <- nlm(get.nll.fun, par0, g.mle, L.mle)
-Sys.time() - t
+#t <- Sys.time()
+#par0=c(9,10,3,1,0.707,0.866) # from Pedersen 2011
+par0=c(8.908,10.27,1.152,0.0472,0.707,0.866)
+
+#fit <- nlm(get.nll.fun, par0, g.mle, L.mle)
+#Sys.time() - t
 
 ## **THESE OUTPUT PARAMETERS ARE PIXEL-BASED. DON'T FORGET TO CONVERT FOR USE
 ##  WITH THE HIGHER RESOLUTION LIKELIHOOD RESULTS STORED IN L 
@@ -195,9 +198,24 @@ image.plot(lon,lat,f$phi[2,1,,])
 world(add=T,fill=T)
 #points(iniloc[2,c(5:4)])
 
+## set some options first
+#oopt = ani.options(interval = 0.2, nmax = 3)
+## use a loop to create images one by one
+pdf('mako257_smooth.pdf',width=12,height=8)
+for (i in T:1) {
+  image.plot(lon,lat,s[1,i,,])
+  world(add=T,fill=T)
+  title(paste(i))
+  #ani.pause()  ## pause for a while ('interval')
+}
+dev.off()
+## restore the options
+#ani.options(oopt)
+
+
 # PLOT IT IF YOU WANT TO SEE LIMITS (CI)
-sres = apply(s[1,,,], 2:3, sum, na.rm=T)
-fields::image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
+#sres = apply(s[1,,,], 2:3, sum, na.rm=T)
+#fields::image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
 
 #----------------------------------------------------------------------------------#
 # GET THE MOST PROBABLE TRACK
@@ -205,6 +223,9 @@ fields::image.plot(lon, lat, sres/max(sres), zlim = c(.05,1))
 distr = s
 meanlat <- apply(apply(distr, c(2, 4), sum) * repmat(t(as.matrix(g$lat[,1])), T, 1), 1, sum)
 meanlon <- apply(apply(distr, c(2, 3), sum) * repmat(t(as.matrix(g$lon[1,])), T, 1), 1, sum)
+
+plot(meanlon,meanlat,type='l')
+world(add=T, fill=T, col='grey')
 
 # ADD THE DATES AND STORE THIS VERSION OF ESTIMATED TRACK
 mpt <- cbind(dates = dateVec, lon = meanlon, lat = meanlat)
@@ -225,3 +246,40 @@ lines(meanlon, meanlat)
 #=======================================================================================#
 ## END
 #=======================================================================================#
+lon.g <- g.mle$lon[1,]; lat.g <- g.mle$lat[,1]
+for (t in 1:181){
+  image.plot(lon, lat, s[1,t,,], xlab='', ylab='')
+  title(paste(t))
+  Sys.sleep(0.5)
+}
+
+idx <- c(83,122,124,132,141,145:148,156,157,174)
+pdf('check L_v2.pdf', height=14, width=10)
+par(mfrow=c(3,1))
+
+for (t in idx){
+  #plot(L.res[[1]]$L.light[[t]], xlab='', ylab='')
+  #world(add=T)
+  #title(paste('light ', t))
+  
+  plot(L.res[[1]]$L.ohc[[t]], xlab='', ylab='')
+  world(add=T)
+  title(paste('ohc ', t))
+  
+  plot(L.res[[1]]$L.sst[[t]], xlab='', ylab='')
+  world(add=T)
+  title(paste('sst ', t))
+  
+  image.plot(lon, lat, L[t,,], xlab='', ylab='')
+  world(add=T)
+  title(paste('L ', t))
+  
+}
+
+dev.off()
+
+# need to normalize all L rasters before they go into make.L()
+# figure out how these all red layers are created and fix it
+# how do we get negatives?! (t=147)
+
+
