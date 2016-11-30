@@ -30,46 +30,34 @@ hmm.filter <- function(g, L, K1, K2, P){
   phi  <- array(0, dim = c(m, T, col, row)) # posterior (final) step array
   
   # Start in resident state at the known initial location
-  phi[1,1,,]  <- L[1,,] # first position is known
+  #phi[1,1,,]  <- L[1,,] # first position is known
   phi[2,1,,]  <- L[1,,] # first position is known
-  pred[1,1,,] <- L[1,,] # first position is known
+  #pred[1,1,,] <- L[1,,] # first position is known
   pred[2,1,,] <- L[1,,] # first position is known
   psi <- rep(0, T - 1) # sum of the probability of both states at each step
   
+  # convert movement kernels from matrix to cimg for convolution
   K1 <- imager::as.cimg(K1)
   K2 <- imager::as.cimg(K2)
   
   # Start filter iterations
   for(t in 2:T){
-    # replace this part with older workflow using a gaussian kernel.. 
-    # p1 <- as.vector(phi[1,t-1,,])
-    # p2 <- as.vector(phi[2,t-1,,])
-    # q1 <- as.vector(p1%*%K1)
-    # q2 <- as.vector(p2%*%K2)
-    
+   
+    # convolve previous day's likelihood with movement kernels
     p1 = imager::as.cimg(t(phi[1, t-1,,]))
     p2 = imager::as.cimg(t(phi[2, t-1,,]))
     q1 = imager::convolve(p1, K1)
     q2 = imager::convolve(p2, K2)
-    
-    # q1 = arot(t(as.matrix(q1)),3)
-    # q2 = arot(t(as.matrix(q2)),3)
     q1 = t(as.matrix(q1))
     q2 = t(as.matrix(q2))
-    
-    # 	par(mfrow=c(1,2))
-    # 	image(q1)
-    # 	image(q2)
-    
-    # pred[1,t,,] <- matrix(P[1,1]*q1+P[2,1]*q2,row,col)
-    # pred[2,t,,] <- matrix(P[1,2]*q1+P[2,2]*q2,row,col)
     
     # multiply by transition probability 
     pred[1,t,,] <- P[1,1] * q1 + P[2,1] * q2
     pred[2,t,,] <- P[1,2] * q1 + P[2,2] * q2
     
+    # is there a data-based likelihood observation for this day, t?
     sumL = sum(L[t,,])  
-    if(sumL > 0){
+    if(sumL > 1e-6){
       post1 <- pred[1,t,,] * L[t,,]
       post2 <- pred[2,t,,] * L[t,,]
     }else{
@@ -88,13 +76,14 @@ hmm.filter <- function(g, L, K1, K2, P){
     
     phi[1,t,,] <- post1 / (psi[t-1] + 1e-15)
     phi[2,t,,] <- post2 / (psi[t-1] + 1e-15)
+    
   }
   
   # End in resident state at the known final location
-  phi[1,T,,]  <- L[T,,] # last position is known
-  phi[2,T,,]  <- L[T,,] # last position is known
-  pred[1,T,,] <- L[T,,] # last position is known
-  pred[2,T,,] <- L[T,,] # last position is known
+  #phi[1,T,,]  <- L[T,,] # last position is known
+  #phi[2,T,,]  <- L[T,,] # last position is known
+  #pred[1,T,,] <- L[T,,] # last position is known
+  #pred[2,T,,] <- L[T,,] # last position is known
   
   list(phi = phi, pred = pred, psi = psi)
 
