@@ -31,7 +31,7 @@ calc.sst <- function(tag.sst, sst.dir, dateVec){
   for(i in 1:T){
     
     time <- tag.sst$date[i]
-    sst.i <- c(tag.sst$minT[i] * .99, tag.sst$maxT[i] * 1.01) # sensor error
+    sst.i <- c(tag.sst$minT[i] * .95, tag.sst$maxT[i] * 1.05) # sensor error
     
     # open day's sst data
     nc <- RNetCDF::open.nc(paste(sst.dir, ptt, '_', as.Date(time), '.nc', sep='')) #add lat lon in filename '.nc', sep=''))
@@ -66,6 +66,8 @@ calc.sst <- function(tag.sst, sst.dir, dateVec){
   L.sst <- raster::brick(list.sst$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
   L.sst <- raster::flip(L.sst, direction = 'y')
     
+  L.sst[L.sst < 0] <- 0
+  
   # return sst likelihood surfaces
   return(L.sst)
     
