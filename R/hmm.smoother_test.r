@@ -41,24 +41,24 @@ hmm.smoother_test <- function(f, K1, K2, P){
     post1 <- matrix(P[1,1] * Rp1 + P[1,2] * Rp2, row, col)
     post2 <- matrix(P[2,1] * Rp1 + P[2,2] * Rp2, row, col)
     
-    #if(T == t){
-    #  post1 <- f$phi[1,t,,]
-    #  post2 <- f$phi[2,t,,]
-    #  fac <- sum(as.vector(post1)) + sum(as.vector(post2))
-    #  smooth[1,t,,] <- post1 / fac
-    #  smooth[2,t,,] <- post2 / fac 
-    #  post1.try <- post1 * f$phi[1,t-1,,]
-    #  post2.try <- post2 * f$phi[2,t-1,,]
-    #  fac.try <- sum(as.vector(post1.try)) + sum(as.vector(post2.try))
-    #  smooth[1,t-1,,] <- post1.try / fac.try
-    #  smooth[2,t-1,,] <- post2.try / fac.try
-    #}else{
+    if(T == t){
+      post1 <- f$phi[1,t,,]
+      post2 <- f$phi[2,t,,]
+      fac <- sum(as.vector(post1)) + sum(as.vector(post2))
+      smooth[1,t,,] <- post1 / fac
+      smooth[2,t,,] <- post2 / fac 
       post1 <- post1 * f$phi[1,t-1,,]
       post2 <- post2 * f$phi[2,t-1,,]
       fac <- sum(as.vector(post1)) + sum(as.vector(post2))
       smooth[1,t-1,,] <- post1 / fac
       smooth[2,t-1,,] <- post2 / fac
-    #}
+    }else{
+      post1 <- post1 * f$phi[1,t-1,,]
+      post2 <- post2 * f$phi[2,t-1,,]
+      fac <- sum(as.vector(post1)) + sum(as.vector(post2))
+      smooth[1,t-1,,] <- post1 / fac
+      smooth[2,t-1,,] <- post2 / fac
+    }
   }
   
   smooth
