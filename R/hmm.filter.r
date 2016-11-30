@@ -67,13 +67,6 @@ hmm.filter <- function(g, L, K1, K2, P){
     
     psi[t-1] <- sum(as.vector(post1), na.rm=T) + sum(as.vector(post2), na.rm=T)
     
-    # remove NaNs... 
-    # normalise (divide here by sum, not max)
-    # 	post1 <- normalise(post1)
-    # 	post2 <- normalise(post2)
-    # 	post1[is.nan(post1)] = 0
-    # 	post2[is.nan(post2)] = 0
-    
     phi[1,t,,] <- post1 / (psi[t-1] + 1e-15)
     phi[2,t,,] <- post2 / (psi[t-1] + 1e-15)
     
@@ -88,5 +81,4 @@ hmm.filter <- function(g, L, K1, K2, P){
   list(phi = phi, pred = pred, psi = psi)
 
 }
-
 
