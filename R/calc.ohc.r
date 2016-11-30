@@ -133,6 +133,8 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
   L.ohc <- raster::brick(list.ohc$z, xmn=ex[1], xmx=ex[2], ymn=ex[3], ymx=ex[4], transpose=T, crs)
   L.ohc <- raster::flip(L.ohc, direction = 'y')
 
+  L.ohc[L.ohc < 0] <- 0
+  
   # return ohc likelihood surfaces
   return(L.ohc)
   

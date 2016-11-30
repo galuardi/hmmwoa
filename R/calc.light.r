@@ -198,6 +198,8 @@ calc.light <- function(light = NULL, locs.grid, dateVec, res = 1){
     
   } # end for loop
   
+  L.light[L.light < 0] <- 0
+  
   L.light
   
 } # end function
