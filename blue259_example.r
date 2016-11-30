@@ -135,7 +135,7 @@ f = hmm.filter(g, L, K1, K2, P)
 
 #----------------------------------------------------------------------------------#
 # RUN THE SMOOTHING STEP
-s = hmm.smoother_test(f, K1, K2, P, plot = F)
+s = hmm.smoother(f, K1, K2, P, plot = F)
 
 # PLOT IT IF YOU WANT TO SEE LIMITS (CI)
 #sres = apply(s[1,,,], 2:3, sum, na.rm=T)

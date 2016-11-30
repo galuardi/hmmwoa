@@ -11,7 +11,7 @@
 #' @export
 #'
 #' @examples
-hmm.smoother_test <- function(f, K1, K2, P){
+hmm.smoother <- function(f, K1, K2, P){
   ## Smoothing the filtered estimates
   ## The equations for smoothing are presented in Pedersen et al. 2011, Oikos, Appendix
   T <- dim(f$phi)[2]

@@ -183,7 +183,7 @@ image.plot(lon,lat,f$phi[2,100,,])
 
 #----------------------------------------------------------------------------------#
 # RUN THE SMOOTHING STEP
-s = hmm.smoother_test(f, K1, K2, P, plot = F)
+s = hmm.smoother(f, K1, K2, P, plot = F)
 par(mfrow=c(2,2))
 image.plot(lon,lat,s[1,1,,])
 world(add=T,fill=T)
