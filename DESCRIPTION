@@ -13,12 +13,11 @@ Description: Improved analysis of marine animal movement data by implementing
     deployed on marine animals, typically fish) to three-dimensional oceanographic
     data.
 License: MIT
-Depends: 
+Imports: 
     raster,
     imager,
     maptools,
-    lubridate
-Imports: 
+    lubridate,
     dplyr,
     fields,
     locfit,
