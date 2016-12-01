@@ -141,7 +141,7 @@ L.mle <- L$L.mle; L <- L$L
 # TRY THE MLE.
 
 t <- Sys.time()
-par0=c(9, 10, 1.152, .0472, 0.707, 0.866) # from Pedersen 2011
+#par0=c(9, 10, 1.152, .0472, 0.707, 0.866) # from Pedersen 2011
 fit <- nlm(get.nll.fun, par0, g.mle, L.mle)
 Sys.time() - t
 

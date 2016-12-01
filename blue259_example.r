@@ -74,9 +74,11 @@ L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec = dateVec)
 
 #-------
 # GENERATE DAILY OHC LIKELIHOODS
-#L.ohc <- calc.ohc(pdt, ohc.dir = hycom.dir, dateVec = dateVec, isotherm = '')
+L.ohc <- calc.ohc(pdt, ohc.dir = hycom.dir, dateVec = dateVec, isotherm = '')
 
 #-------
+# GENERATE DAILY PROFILE LIKELIHOODS
+L.prof <- calc.profile(pdt, dateVec = dateVec, envType = 'hycom', hycom.dir = hycom.dir)
 
 #----------------------------------------------------------------------------------#
 # SETUP A COMMON GRID
@@ -112,6 +114,16 @@ L.mle <- L$L.mle; L <- L$L
 # TRY THE MLE.
 
 # NOT RIGHT NOW
+#t <- Sys.time()
+#guess <- c(log(10),log(10),log(0.5),log(0.5),log(0.95/0.05),log(0.95/0.05))
+#fit <- nlm(neg.log.lik.fun, guess, g.mle, L.mle)
+#fit <- mle2(neg.log.lik.fun, start = list(guess),
+#            method='L-BFGS-B', lower=c(0,0,0,0,0,0), upper = c(1000,1000,100,100,1,1),
+#            fixed=NULL, data=NULL, g.mle, L.mle)#, parnames = c('1','2','3','4','5','6'))
+#fit <- mle2(get.nll.fun, start = list(siz1=par0[1], sigma1=par0[2], siz2=par0[3],
+#                                      sigma2=par0[4], p1=par0[5], p2=par0[6]), g.mle, L.mle)
+
+#Sys.time() - t
 
 #----------------------------------------------------------------------------------#
 # OR... JUST DEFINE THE PARAMETERS
@@ -128,14 +140,14 @@ P <- matrix(c(p[1],1-p[1],1-p[2],p[2]),2,2,byrow=TRUE)
 
 #----------------------------------------------------------------------------------#
 # RUN THE FILTER STEP
-f = hmm.filter(g, L, K1, K2, P)
+f = hmm.filter(g.mle, L.mle, K1, K2, P)
 # PLOT IT IF YOU WANT TO SEE LIMITS (CI)
 #res = apply(f$phi[1,,,],2:3,sum, na.rm=T)
 #fields::image.plot(lon, lat, res/max(res), zlim = c(.05,1))
 
 #----------------------------------------------------------------------------------#
 # RUN THE SMOOTHING STEP
-s = hmm.smoother(f, K1, K2, P, plot = F)
+s = hmm.smoother(f, K1, K2, P)
 
 # PLOT IT IF YOU WANT TO SEE LIMITS (CI)
 #sres = apply(s[1,,,], 2:3, sum, na.rm=T)
@@ -146,12 +158,12 @@ s = hmm.smoother(f, K1, K2, P, plot = F)
 #----------------------------------------------------------------------------------#
 distr = s
 T <- dim(distr)[2]
-meanlat <- apply(apply(distr, c(2, 4), sum) * repmat(t(as.matrix(g$lat[,1])), T, 1), 1, sum)
-meanlon <- apply(apply(distr, c(2, 3), sum) * repmat(t(as.matrix(g$lon[1,])), T, 1), 1, sum)
-
+meanlat <- apply(apply(distr, c(2, 4), sum) * repmat(t(as.matrix(g.mle$lat[,1])), T, 1), 1, sum)
+meanlon <- apply(apply(distr, c(2, 3), sum) * repmat(t(as.matrix(g.mle$lon[1,])), T, 1), 1, sum)
+#track <- calc.track(distr, g)
 plot(meanlon,meanlat,type='l')
 world(add=T, fill=T, col='grey')
-
+lines(meanlon,meanlat,col='blue')
 #=======================================================================================#
 ## END
 #=======================================================================================#

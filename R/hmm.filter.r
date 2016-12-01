@@ -1,4 +1,4 @@
-#' HMM filter and smoother functions
+#' HMM filter functions
 #'
 #' 
 #' @param g grid from \code{\link{setup.grid}}

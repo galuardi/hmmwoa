@@ -1,25 +1,26 @@
-#' Calculate Depth-temperature based Likelihood
+#' Calculate Depth-temperature profile based likelihood
 #' 
-#' \code{calc.pdt.int} calculates likelihood of animal position based on 
+#' \code{calc.profile} calculates likelihood of animal position based on 
 #' summarized depth-temperature profiles
 #' 
 #' Tag-based depth-temperature profile summaries are compared to climatological 
-#' profiles from the World Ocean Atlas (WOA) and "matched" to generate position 
-#' likelihoods. This essentially attempts to estimate animal position based on 
+#' profiles from the World Ocean Atlas (WOA) or HYbrid Coordinate Ocean Model (HYCOM) 
+#' and "matched" to generate position likelihoods. This essentially attempts to estimate animal position based on 
 #' the water mass it is in, particularly if extensive diving performs thorough 
 #' sampling of the environment. However, remember the in situ data is being 
-#' compared to climatological means.
+#' compared to climatological means or the results of an oceanographic model.
 #' 
 #' @param pdt is -PDT data from WC psat tag summarizing depth/temperature data
 #'   over a programmed time interval
-#' @param dat is monthly global 1/4deg climatology data from WOA13
-#' @param lat is vector of latitudes from dat
-#' @param lon is vector of longitudes from dat
-#' @param depth is vector of depths from dat
+#' @param dat is monthly global 1/4deg climatology data from WOA13. NULL if envType = 'hycom'.
+#' @param lat is vector of latitudes from dat. NULL if envType = 'hycom'.
+#' @param lon is vector of longitudes from dat. NULL if envType = 'hycom'.
 #' @param dateVec is vector of dates from tag to pop-up in 1 day increments.
+#' @param envType is character indicating whether to compare tag-based profile to World Ocean Atlas ('woa') or HYCOM ('hycom').
+#' @param hycom.dir is path to stored HYCOM model outputs if envType = 'hycom'
 #' 
-#' @return array or raster of likelihoods for depth-temp profile
-#'        matching between tag data and WOA
+#' @return raster of likelihoods for depth-temp profile
+#'        matching between tag data and oceanographic profiles
 #'   
 
 calc.profile <- function(pdt, dat = NULL, lat = NULL, lon = NULL, dateVec, envType = 'woa', hycom.dir = NULL){
@@ -143,20 +144,28 @@ calc.profile <- function(pdt, dat = NULL, lat = NULL, lon = NULL, dateVec, envTy
         f1 = t(raster::as.matrix(raster::flip(f1, 2)))
         sd.i[,,ii] = f1
       } 
-      #print(paste('SD calculation took ', format(round(Sys.time() - start.t, 1), format='%M'), '...'))
-    }
-    
-    print(paste('Calculating likelihood for ', as.Date(time), '...', sep=''))
-    
-    # setup the likelihood array for each day. Will have length (dim[3]) = n depths
-    lik.pdt = array(NA, dim = c(dim(dat.i)[1], dim(dat.i)[2], length(depIdx)))
-    
-    for (b in 1:length(depIdx)) {
-      #calculate the likelihood for each depth level, b
-      lik.pdt[,,b] = likint3(dat.i[,,depIdx[b]], sd.i[,,depIdx[b]], df[b,1], df[b,2])
       
     }
     
+    print(paste('Calculating likelihood for ', as.Date(time), '...', sep=''))
+
+    # setup the likelihood array for each day. Will have length (dim[3]) = n depths
+    lik.pdt = array(NA, dim = c(dim(dat.i)[1], dim(dat.i)[2], length(depIdx)))
+    
+    if (envType == 'woa'){
+      for (b in 1:length(depIdx)) {
+        #calculate the likelihood for each depth level, b
+        lik.pdt[,,b] = likint3(dat.i[,,depIdx[b]], sd.i[,,depIdx[b]], df[b,1], df[b,2])
+        
+      }
+    } else{
+      for (b in 1:length(depIdx)) {
+        #calculate the likelihood for each depth level, b
+        lik.pdt[,,b] = likint3(dat.i[,,depIdx[b]], sd.i[,,b], df[b,1], df[b,2])
+        
+      }
+    }
+
     # multiply likelihood across depth levels for each day
     lik.pdt <- apply(lik.pdt, 1:2, prod, na.rm = F)
     
