@@ -26,7 +26,7 @@
 
 calc.locs <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = TRUE, gpeOnly = TRUE){
   
-  start.t <- Sys.time()
+  print(paste('Starting likelihood calculation...'))
   
   # get rid of non-GPE locations if gpeOnly == TRUE and check length of resulting locs file
   if(gpeOnly == TRUE){
@@ -74,6 +74,9 @@ calc.locs <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = TRU
   L.locs[elo, ela, length(dateVec)] <- 1  # End location is known
 
   for(t in 2:(length(dateVec)) - 1){
+    
+    print(paste('Starting iterations through deployment period...'))
+    
     if(!is.null(gps) & dateVec[t] %in% gpsDates){
       
       # if GPS exists then other forms of data for that time point are obsolete
@@ -128,14 +131,14 @@ calc.locs <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = TRU
     
   }
   
+  print(paste('Making final likelihood raster...'))
+  
   # this performs some transformations to the likelihood array to convert to useable raster
   crs <- "+proj=longlat +datum=WGS84 +ellps=WGS84"
   list.locs <- list(x = locs.grid$lon[1,], y = locs.grid$lat[,1], z = L.locs)
   ex <- raster::extent(list.locs)
   L.locs <- raster::brick(list.locs$z, xmn = ex[1], xmx = ex[2], ymn = ex[3], ymx = ex[4], transpose = T, crs)
   L.locs <- raster::flip(L.locs, direction = 'y')
-  
-  print(paste('Light calculations took ', Sys.time() - start.t, '.'))
   
   return(list(L.locs = L.locs, gpsIdx = which(dateVec %in% gpsDates)))
   
