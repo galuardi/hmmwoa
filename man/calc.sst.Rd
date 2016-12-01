@@ -4,7 +4,7 @@
 \alias{calc.sst}
 \title{Calculate SST-based likelihood}
 \usage{
-calc.sst(tag.sst, sst.dir, dateVec)
+calc.sst(tag.sst, ptt, sst.dir, dateVec)
 }
 \arguments{
 \item{tag.sst}{variable containing tag-collected SST data}
@@ -25,6 +25,6 @@ likelihoods
 # see example script blue256_example.r
 }
 \seealso{
-\code{\link{calc.pdt.int}}, \code{\link{calc.ohc}}
+\code{\link{calc.ohc}}
 }
 

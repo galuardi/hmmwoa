@@ -26,7 +26,4 @@ a list containing: DAT is an array of temperature data with
 dataset derived from monthly gridded climatology data contained in the 2013 
 World Ocean Atlas
 }
-\examples{
-none
-}
 

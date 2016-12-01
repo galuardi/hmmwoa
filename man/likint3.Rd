@@ -21,7 +21,4 @@ an array of dim(w) that represents the likelihood of the tag-measured variable a
 \description{
 #' \code{likint3} calculates density function for a normal distribution and integrates between limits
 }
-\examples{
-none
-}
 

@@ -4,7 +4,7 @@
 \alias{calc.profile}
 \title{Calculate Depth-temperature profile based likelihood}
 \usage{
-calc.profile(pdt, dat = NULL, lat = NULL, lon = NULL, dateVec,
+calc.profile(pdt, ptt, dat = NULL, lat = NULL, lon = NULL, dateVec,
   envType = "woa", hycom.dir = NULL)
 }
 \arguments{

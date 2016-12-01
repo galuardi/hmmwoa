@@ -4,7 +4,7 @@
 \alias{get.env}
 \title{Download and Read Oceanographic Data}
 \usage{
-get.env(uniqueDates, type = NA, spatLim, save.dir = getwd())
+get.env(uniqueDates, ptt, type = NA, spatLim, save.dir = getwd())
 }
 \arguments{
 \item{uniqueDates}{is a POSIXct vector of desired dates}

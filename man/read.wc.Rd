@@ -15,13 +15,17 @@ read.wc(ptt, wd = getwd(), tag, pop, type = "sst")
 
 \item{pop}{is POSIXct object of the pop-up date}
 
-\item{type}{is character indicating which type of data to read. Choices are 'sst', 'pdt', 'light' corresponding to those data files output from WC Data Portal}
+\item{type}{is character indicating which type of data to read. Choices are
+'sst', 'pdt', 'light' corresponding to those data files output from WC Data
+Portal}
 }
 \value{
-a list containing: the data read as a data.frame and a date vector of unique dates in that data
+a list containing: the data read as a data.frame and a date vector of
+  unique dates in that data
 }
 \description{
-\code{read.wc} reads and formats tag data output from Wildlife Computers Data Portal
+\code{read.wc} reads and formats tag data output from Wildlife Computers Data
+Portal
 }
 \examples{
 # READ IN TAG DATA
