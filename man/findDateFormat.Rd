@@ -7,7 +7,7 @@
 findDateFormat(dateVec)
 }
 \arguments{
-\item{dateVec}{a vector of dates as in those from -Histos or  -PDTs from WC tags}
+\item{dateVec}{a character vector representing dates}
 }
 \value{
 dateformat is character string used as input to strptime(format = dateformat)
@@ -16,7 +16,10 @@ dateformat is character string used as input to strptime(format = dateformat)
 \code{findDateFormat} determines the date format of a given vector of dates
 }
 \examples{
-none
+dte <- '2015-01-01 05:30:17'
+findDateFormat(dte)
+dte.POSIX <- as.POSIXct(dte, format = findDateFormat(dte))
+dte.POSIX
 
 }
 

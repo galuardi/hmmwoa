@@ -2,7 +2,7 @@
 % Please edit documentation in R/hmm.filter.r
 \name{hmm.filter}
 \alias{hmm.filter}
-\title{HMM filter and smoother functions}
+\title{HMM filter functions}
 \usage{
 hmm.filter(g, L, K1, K2, P)
 }
@@ -20,13 +20,13 @@ hmm.filter(g, L, K1, K2, P)
 \value{
 a list: list(phi = phi, pred = pred, psi = psi) where
 \itemize{
- \item phi is the probability for each state at each trime step 
- \item pred is ....
- \item psi is.... 
+ \item phi. is the probability for each state at each trime step 
+ \item pred. is ....
+ \item psi. is.... 
 }
 }
 \description{
-HMM filter and smoother functions
+HMM filter functions
 }
 \examples{
 P <- matrix(c(p[1], 1-p[1], 1-p[2], p[2]), 2, 2, byrow=TRUE)

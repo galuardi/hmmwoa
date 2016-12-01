@@ -4,7 +4,7 @@
 \alias{extract.woa}
 \title{Extract temperatures from World Ocean Atlas}
 \usage{
-extract.woa(nc.dir, bbox, resolution)
+extract.woa(nc.dir, bbox = NULL, resolution)
 }
 \arguments{
 \item{nc.dir}{directory to load the global nc file from; specify the complete

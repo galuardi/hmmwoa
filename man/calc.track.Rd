@@ -11,6 +11,9 @@ calc.track(distr, g)
 
 \item{g}{}
 }
+\value{
+calculated track
+}
 \description{
 HMM Smoother
 }

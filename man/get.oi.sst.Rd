@@ -4,14 +4,11 @@
 \alias{get.oi.sst}
 \title{Download OI Sea Surface Temperature (SST) data}
 \usage{
-get.oi.sst(lon, lat, time, filename = "", download.file = TRUE,
+get.oi.sst(limits, time, filename = "", download.file = TRUE,
   dir = getwd())
 }
 \arguments{
-\item{lon}{A vector of length 2 with the minimum and maximum longitude (-180,
-180).}
-
-\item{lat}{A vector of length 2 with the minimum and maximum latitude.}
+\item{limits}{A list of length 4; minlon, maxlon, minlat, maxlat. Longitude values are -180,180}
 
 \item{time}{A vector of length 2 with the minimum and maximum times in form 
 \code{as.Date(date)}.}
@@ -42,15 +39,14 @@ display progress  until the download completes. Change the default
 \code{download.file} if the download is failing on your platform.
 }
 \examples{
-lon <- c(-90, -60)
-lat <- c(0, 30)
+sp.lim <- list(-90, -60, 0, 30)
 time <- as.Date('2013-03-01')
-get.oi.sst(lon, lat, time, filename = '')
+get.oi.sst(sp.lim, time, filename = '')
 # only returns url because filename is unspecified
 \dontrun{ 
-get.oi.sst(lon, lat, time, filename = 'my_data.nc')
-nc <- open.ncdf('my_data.nc')
-sst <- get.var.ncdf(nc, 'sst')
+get.oi.sst(sp.lim, time, filename = 'my_data.nc')
+nc <- open.nc('my_data.nc')
+sst <- var.get.nc(nc, 'sst')
 image.plot(sst)
 }
   
@@ -60,10 +56,6 @@ Function originally written for R by Ben Jones (WHOI) and modified
   by Camrin Braun and Ben Galuardi.
 }
 \references{
-<reference to OI sst website and papers>
-  \url{https://www.ncdc.noaa.gov/oisst}
-}
-\seealso{
-<links to similar functions>
+\url{https://www.ncdc.noaa.gov/oisst}
 }
 

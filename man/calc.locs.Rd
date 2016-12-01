@@ -4,11 +4,14 @@
 \alias{calc.locs}
 \title{Calculate Position-based Likelihood}
 \usage{
-calc.locs(locs, iniloc, locs.grid, dateVec, errEll = F)
+calc.locs(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = TRUE,
+  gpeOnly = TRUE)
 }
 \arguments{
 \item{locs}{is -Locations file output from DAP/Tag Portal for WC tags and 
-contains GPS, Argos, and GPE locations as applicable}
+contains GPS, Argos, and GPE locations as applicable.}
+
+\item{gps}{is -FastGPS file output from WC Tag Portal}
 
 \item{iniloc}{is 2 x 5 dataframe containing day, month, year, lat, lon for 
 both tag and pop locations}
@@ -22,9 +25,13 @@ generated for light-based likelihoods as given from output of WC-GPE. False
 if only longitude should be used. If False, standard deviation on light 
 measurements is currently fixed at 0.7 deg longitude following Musyl et al 
 2001. Default is FALSE and will use longitude only.}
+
+\item{gpeOnly}{is logical. If TRUE, locs input is trimmed to GPE positions
+only. This is most applicable in scenarios with FastGPS data and you're
+adding this as a gps input (see "gps" argument).}
 }
 \value{
-L is an array of lon x lat likelihood surfaces (matrices) for each
+L is an array of lon x lat likelihood surfaces (matrices) for each 
   time point (3rd dimension)
 }
 \description{

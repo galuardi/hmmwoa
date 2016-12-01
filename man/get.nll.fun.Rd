@@ -4,7 +4,7 @@
 \alias{get.nll.fun}
 \title{Negative Log likelihood of parameters}
 \usage{
-get.nll.fun(parvec = c(D1, D2, p), g, L)
+get.nll.fun(parvec = c(10, 30, 5, 2, 0.707, 0.8), g = g.mle, L = L.mle)
 }
 \arguments{
 \item{parvec}{vector of length 6 contianing * kernel 1 * kernel 2 * diagonal

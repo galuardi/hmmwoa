@@ -4,7 +4,7 @@
 \alias{calc.ohc}
 \title{Calculate Ocean Heat Content (OHC) probability surface}
 \usage{
-calc.ohc(pdt, isotherm = "", ohc.dir, dateVec)
+calc.ohc(pdt, isotherm = "", ohc.dir, dateVec, bathy = TRUE)
 }
 \arguments{
 \item{pdt}{is variable containing tag-collected PDT data}

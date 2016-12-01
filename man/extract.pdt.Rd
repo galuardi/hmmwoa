@@ -14,7 +14,7 @@ processor or Tag Portal.}
 data frame formatted for pdt data
 }
 \description{
-\code{extract.pdt} is a simple formatting function for using PDT data later
+\code{extract.pdt} is a simple formatting function that parses PDT data and makes it useable to subsequent functions
 }
 \examples{
 none

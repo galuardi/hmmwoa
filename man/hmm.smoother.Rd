@@ -4,7 +4,7 @@
 \alias{hmm.smoother}
 \title{Title}
 \usage{
-hmm.smoother(f, K1, K2, P, plot = TRUE)
+hmm.smoother(f, K1, K2, P)
 }
 \arguments{
 \item{f}{}
@@ -16,6 +16,9 @@ hmm.smoother(f, K1, K2, P, plot = TRUE)
 \item{P}{}
 
 \item{plot}{}
+}
+\value{
+smoothed track
 }
 \description{
 Title

@@ -17,11 +17,15 @@ hycom reanalysis res. 'quarter' and 'one' are .25 and 1 deg, respectively.}
 a list
 }
 \description{
+#' \code{setup.locs.grid} sets up a discrete spatial grid for the HMM
+ 
 If input limits is a data.frame, longitude limits become +/- 5 degrees and
 latitude becomes +/- 10 degrees. You may also input your own list of limits.
 }
 \examples{
-none
+# SET SPATIAL LIMITS
+sp.lim <- list(lonmin = -95, lonmax = -52, latmin = 10, latmax = 55)
+locs.grid <- setup.locs.grid(sp.lim, res = 'one')
 
 }
 \references{

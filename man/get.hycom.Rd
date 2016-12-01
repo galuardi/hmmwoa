@@ -4,14 +4,11 @@
 \alias{get.hycom}
 \title{Download HYCOM data}
 \usage{
-get.hycom(lon, lat, time, vars = c("water_temp"), include_latlon = TRUE,
+get.hycom(limits, time, vars = c("water_temp"), include_latlon = TRUE,
   filename = "", type = "r", download.file = TRUE, dir = getwd())
 }
 \arguments{
-\item{lon}{A vector of length 2 with the minimum and maximum longitude (-180,
-180).}
-
-\item{lat}{A vector of length 2 with the minimum and maximum latitude.}
+\item{limits}{A list of length 4; minlon, maxlon, minlat, maxlat. Longitude values are -180,180}
 
 \item{time}{A vector of length 2 with the minimum and maximum times in form 
 \code{as.Date(date)}.}
@@ -59,8 +56,8 @@ get.hycom(lon, lat, time, type='a', filename = '', vars = 'water_temp')
 # only returns url because filename is unspecified
 \dontrun{ 
 get.hycom(lon, lat, time, type='a', filename = 'my_data.nc', vars = 'water_temp')
-nc <- open.ncdf('my_data.nc')
-hycom <- get.var.ncdf(nc, 'water_temp')
+nc <- open.nc('my_data.nc')
+hycom <- var.get.nc(nc, 'water_temp')
 image.plot(hycom[,,1])
 }
   
@@ -70,9 +67,6 @@ Function originally written for R by Ben Jones (WHOI) and modified
   by Camrin Braun and Ben Galuardi.
 }
 \references{
-<reference to HYCOM website and papers> \url{https://hycom.org/}
-}
-\seealso{
-<links to similar functions>
+\url{https://hycom.org/}
 }
 

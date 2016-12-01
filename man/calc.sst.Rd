@@ -22,7 +22,7 @@ likelihood is raster brick of likelihood surfaces representing matches
 likelihoods
 }
 \examples{
-none
+# see example script blue256_example.r
 }
 \seealso{
 \code{\link{calc.pdt.int}}, \code{\link{calc.ohc}}
