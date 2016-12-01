@@ -53,11 +53,11 @@ if (exists('sp.lim')){
                  latmin = min(locs.grid$lat[,1]), latmax = max(locs.grid$lat[,1]))
 }
 
-# IF USING SST, DOWNLOAD THE SST DATA:
+# IF USING SST, DOWNLOAD THE SST DATA BY UNCOMMENTING THE GET.ENV FUNCTION
 sst.dir <- paste('~/Documents/WHOI/RData/SST/OI/', ptt, '/',sep = '')
 #get.env(sst.udates[1], type = 'sst', spatLim = sp.lim, save.dir = sst.dir)
 
-# IF USING OHC, DOWNLOAD HYCOM DATA
+# IF USING OHC, DOWNLOAD HYCOM DATA BY UNCOMMENTING THE GET.ENV FUNCTION
 hycom.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
 #get.env(pdt.udates, type = 'ohc', spatLim = sp.lim, save.dir = hycom.dir)
 
@@ -66,19 +66,25 @@ hycom.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
 #----------------------------------------------------------------------------------#
 
 # LIGHT LIKELIHOOD
-L.light <- calc.light(light, locs.grid = locs.grid, dateVec = dateVec)
+#L.light <- calc.light(light, locs.grid = locs.grid, dateVec = dateVec)
+# OR
+locs <- read.table('141259-Locations-GPE2.csv', sep = ',', header = T, blank.lines.skip = F)
+L.light <- calc.locs(locs, iniloc = iniloc, locs.grid = locs.grid, dateVec = dateVec, errEll = TRUE, gpeOnly = TRUE)
+L.light <- L.light$L.locs
 
 #-------
 # GENERATE DAILY SST LIKELIHOODS
 L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec = dateVec)
 
 #-------
-# GENERATE DAILY OHC LIKELIHOODS
-L.ohc <- calc.ohc(pdt, ohc.dir = hycom.dir, dateVec = dateVec, isotherm = '')
+# GENERATE DAILY OCEAN HEAT CONTENT (OHC) LIKELIHOODS
+L.ohc <- calc.ohc(pdt, ptt, ohc.dir = hycom.dir, dateVec = dateVec, isotherm = '')
 
 #-------
 # GENERATE DAILY PROFILE LIKELIHOODS
-L.prof <- calc.profile(pdt, dateVec = dateVec, envType = 'hycom', hycom.dir = hycom.dir)
+L.prof <- calc.profile(pdt, ptt, dateVec = dateVec, envType = 'hycom', hycom.dir = hycom.dir)
+
+base::save.image('blue259_runL.RData')
 
 #----------------------------------------------------------------------------------#
 # SETUP A COMMON GRID

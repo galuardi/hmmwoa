@@ -43,66 +43,42 @@ if (exists('sp.lim')){
                  latmin = min(locs.grid$lat[,1]), latmax = max(locs.grid$lat[,1]))
 }
 
-# GET THE LIKELIHOOD ELLIPSES
-L.light <- calc.light(light, locs.grid = locs.grid, dateVec = dateVec)
-
-locs <- read.table('141256-Locations-GPE2.csv',sep=',',header=T, blank.lines.skip = F)
-L.light.ell <- calc.locs(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = TRUE, gpeOnly = TRUE)
-
-#----------------------------------------------------------------------------------#
-# SST LIKELIHOOD
-#----------------------------------------------------------------------------------#
-
 # IF USING SST:
 sst.dir <- paste('~/Documents/WHOI/RData/SST/OI/', ptt, '/',sep = '')
 
 # DOWNLOAD THE SST DATA
-get.env(sst.udates, type = 'sst', spatLim = sp.lim, save.dir = sst.dir)
-
-# GENERATE DAILY SST LIKELIHOODS
-L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec = dateVec)
-
-#----------------------------------------------------------------------------------#
-# OHC / HYCOM LIKELIHOOD(S)
-#----------------------------------------------------------------------------------#
+#get.env(sst.udates, type = 'sst', spatLim = sp.lim, save.dir = sst.dir)
 
 # IF USING OHC HYCOM
-ohc.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
+hycom.dir <- paste('~/Documents/WHOI/RData/HYCOM/', ptt, '/',sep = '')
 
 # DOWNLOAD OHC(HYCOM) DATA
 #get.env(pdt.udates, type = 'ohc', spatLim = sp.lim, save.dir = ohc.dir)
 
-# GENERATE DAILY OHC LIKELIHOODS
-L.ohc <- calc.ohc(pdt, ohc.dir = ohc.dir, dateVec = dateVec, isotherm = '')
-
 #----------------------------------------------------------------------------------#
-# PDT / WOA LIKELIHOOD
+# CALC LIKELIHOODS
 #----------------------------------------------------------------------------------#
-# FOR YOUR DATA, YOU WILL NEED THE DIR AND EXTRACT.WOA PORTIONS BELOW
-# FOR THE EXAMPLE, JUST USE DATA(WOA.QUARTER)
 
-# WOA DIRECTORY: LOCATION OF .NC FILE FOR EXTRACTION
-#woa.dir <- 'your WOA file.nc'
-data(woa.quarter)
+# LIGHT LIKELIHOOD
+#L.light <- calc.light(light, locs.grid = locs.grid, dateVec = dateVec)
+# OR
+locs <- read.table('141256-Locations-GPE2.csv', sep = ',', header = T, blank.lines.skip = F)
+L.light <- calc.locs(locs, iniloc = iniloc, locs.grid = locs.grid, dateVec = dateVec, errEll = TRUE, gpeOnly = TRUE)
+L.light <- L.light$L.locs
 
-# GET THE WOA SUBSET BASED ON SPATIAL LIMITS
-#return.woa <- extract.woa(woa.dir, sp.lim, resolution = 'one')
-woa <- woa.quarter$watertemp
-lon <- woa.quarter$lon 
-lat <- woa.quarter$lat
-depth <- woa.quarter$depth
+#-------
+# GENERATE DAILY SST LIKELIHOODS
+L.sst <- calc.sst(tag.sst, sst.dir = sst.dir, dateVec = dateVec)
 
-# ELIMINATE PACIFIC FROM WOA DATA IF YOU'RE WORKING IN THE W ATLANTIC
-#woa <- removePacific(woa, lat, lon)
+#-------
+# GENERATE DAILY OCEAN HEAT CONTENT (OHC) LIKELIHOODS
+L.ohc <- calc.ohc(pdt, ohc.dir = hycom.dir, dateVec = dateVec, isotherm = '')
 
-# OR JUST USE EXAMPLE DATA FOR NOW
-#data(woa.quarter)
-#woa <- woa.quarter$watertemp 
-#lon <- as.numeric(woa.quarter$lon); 
-#lat <- as.numeric(woa.quarter$lat); 
-#depth <- as.numeric(woa.quarter$depth)
+#-------
+# GENERATE DAILY PROFILE LIKELIHOODS
+L.prof <- calc.profile(pdt, dateVec = dateVec, envType = 'hycom', hycom.dir = hycom.dir)
 
-L.pdt <- calc.pdt.int(pdt, dat = woa, lat = lat, lon = lon, depth = depth, dateVec = dateVec)
+base::save.image('blue256_runL.RData')
 
 #----------------------------------------------------------------------------------#
 # SETUP A COMMON GRID
@@ -210,61 +186,3 @@ world(add=T)
 #=======================================================================================#
 ## END
 #=======================================================================================#
-
-
-
-pdf('try L_noknown.pdf', height=8,width=12)
-for (i in 1:length(dateVec)){
-  image.plot(lon,lat,L[i,,])
-  world(add=T)
-}
-dev.off()
-
-
-layout(matrix(c(1,1,1,2,3,4), 2, 3, byrow=TRUE))
-
-
-#L1 = L.res[[1]]$L.ohc , L2 = L.res[[1]]$L.sst, L3 = L.res[[1]]$L.light
-
-# check T = 48:50,54:56
-tidx <- c(123,128,129,131,133:135)
-pdf('try L_piecewise_1.pdf')#,height=20,width=12)
-for(i in tidx){
-  #par(mfrow=c(2,1))
-  image.plot(lon,lat,L[i,,])
-  world(add=T)
-  
-  par(mfrow=c(1,3))
-  plot(L.res[[1]]$L.ohc[[i]])
-  world(add=T)
-  
-  plot(L.res[[1]]$L.sst[[i]])
-  world(add=T)
-  
-  plot(L.res[[1]]$L.light[[i]])
-  world(add=T)
-  
-}
-}
-dev.off()
-
-
-r <- raster::resample(L.sst[[123]], L.ohc[[123]], NAflag=NA)
-
-# look at 131
-i=131
-par(mfrow=c(3,1))
-plot(L.res[[1]]$L.ohc[[i]])
-world(add=T)
-
-plot(L.res[[1]]$L.sst[[i]])
-world(add=T)
-
-plot(L.res[[1]]$L.light[[i]])
-world(add=T)
-
-
-naL1idx = cellStats(L.res[[1]]$L.ohc, sum, na.rm=T) != 0
-naL2idx = cellStats(L.res[[1]]$L.sst, sum, na.rm=T) != 0
-naL3idx = cellStats(L.res[[1]]$L.light, sum, na.rm=T) != 0
-
