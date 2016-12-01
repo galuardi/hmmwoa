@@ -13,10 +13,8 @@
 #'   estimated position based on tag-based OHC compared to calculated OHC using 
 #'   HYCOM
 #' @export
-#' @example 
-#' # see example script, blue256_example.r
 
-calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
+calc.ohc <- function(pdt, ptt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
 
   options(warn=1)
   
@@ -83,9 +81,9 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
     n = length(hycomDep)
       
     #suppressWarnings(
-    pred.low = predict(fit.low, newdata = hycomDep, se = T, get.data = T)
+    pred.low = stats::predict(fit.low, newdata = hycomDep, se = T, get.data = T)
     #suppressWarnings(
-    pred.high = predict(fit.high, newdata = hycomDep, se = T, get.data = T)
+    pred.high = stats::predict(fit.high, newdata = hycomDep, se = T, get.data = T)
       
 
     # data frame for next step
@@ -110,7 +108,7 @@ calc.ohc <- function(pdt, isotherm = '', ohc.dir, dateVec, bathy = TRUE){
     # focal calc on mean temp and write to sd var
     r = raster::flip(raster::raster(t(ohc)), 2)
     sdx = raster::focal(r, w = matrix(1, nrow = 9, ncol = 9),
-                        fun = function(x) sd(x, na.rm = T))
+                        fun = function(x) stats::sd(x, na.rm = T))
     sdx = t(raster::as.matrix(raster::flip(sdx, 2)))
 
     # compare hycom to that day's tag-based ohc

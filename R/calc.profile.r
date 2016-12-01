@@ -23,7 +23,7 @@
 #'        matching between tag data and oceanographic profiles
 #'   
 
-calc.profile <- function(pdt, dat = NULL, lat = NULL, lon = NULL, dateVec, envType = 'woa', hycom.dir = NULL){
+calc.profile <- function(pdt, ptt, dat = NULL, lat = NULL, lon = NULL, dateVec, envType = 'woa', hycom.dir = NULL){
   
   options(warn=-1)
   start.t <- Sys.time()
@@ -71,8 +71,8 @@ calc.profile <- function(pdt, dat = NULL, lat = NULL, lon = NULL, dateVec, envTy
     fit.high <- locfit::locfit(pdt.i$MaxTemp ~ pdt.i$Depth)
     n = length(depth[depIdx])
     
-    pred.low = predict(fit.low, newdata = depth[depIdx], se = T, get.data = T)
-    pred.high = predict(fit.high, newdata = depth[depIdx], se = T, get.data = T)
+    pred.low <- stats::predict(fit.low, newdata = depth[depIdx], se = T, get.data = T)
+    pred.high <- stats::predict(fit.high, newdata = depth[depIdx], se = T, get.data = T)
     
     # data frame for next step
     df = data.frame(low = pred.low$fit - pred.low$se.fit * sqrt(n),
@@ -103,7 +103,7 @@ calc.profile <- function(pdt, dat = NULL, lat = NULL, lon = NULL, dateVec, envTy
         
         for(ii in 1:length(depth)){
           r = raster::flip(raster::raster(t(dat.i[,,ii])), 2)
-          f1 = raster::focal(r, w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
+          f1 = raster::focal(r, w = matrix(1, nrow = 3, ncol = 3), fun = function(x) stats::sd(x, na.rm = T))
           f1 = t(raster::as.matrix(raster::flip(f1, 2)))
           sd.i[,,ii] = f1
         }
@@ -140,7 +140,7 @@ calc.profile <- function(pdt, dat = NULL, lat = NULL, lon = NULL, dateVec, envTy
       
       for(ii in 1:length(depIdx)){
         r = raster::flip(raster::raster(t(dat.i[,,depIdx[ii]])), 2)
-        f1 = raster::focal(r, w = matrix(1, nrow = 9, ncol = 9), fun = function(x) sd(x, na.rm = T))
+        f1 = raster::focal(r, w = matrix(1, nrow = 9, ncol = 9), fun = function(x) stats::sd(x, na.rm = T))
         f1 = t(raster::as.matrix(raster::flip(f1, 2)))
         sd.i[,,ii] = f1
       } 

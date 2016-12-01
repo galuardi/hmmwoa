@@ -110,7 +110,7 @@ calc.locs <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = TRU
           # create longitude likelihood based on GPE data
           slon.sd <- locs$Error.Semi.minor.axis[idx] / 1000 / 111 #semi minor axis
           # use normally distributed error from position using fixed std dev
-          L.light <- dnorm(t(locs.grid$lon), locs$Longitude[idx], slon.sd)
+          L.light <- stats::dnorm(t(locs.grid$lon), locs$Longitude[idx], slon.sd)
           
           L.locs[,,t] <- L.light
           

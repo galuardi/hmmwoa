@@ -14,8 +14,6 @@
 #' @note 
 #' This function currently only supports the use of 3 input likelihood data sources. This will be expanded in the future based on user needs.
 #' 
-#' @examples
-#' none
 
 make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateVec = NULL, locs.grid = NULL, iniloc = NULL){
 
@@ -45,7 +43,7 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
       y = which.min((known.locs.i$lat - lat) ^ 2)
 
       # assign the known location for this day, i, as 1e20 (known) in likelihood raster
-      L.locs[[i]][cellFromXY(L.locs[[idx]], known.locs.i[,c(3,2)])] <- 1e20
+      L.locs[[i]][raster::cellFromXY(L.locs[[idx]], known.locs.i[,c(3,2)])] <- 1e20
       
     }
     
@@ -60,7 +58,7 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
     L[is.na(L)] <- 0
     
     # ALL CELLS IN A LIKELIHOOD SURFACE == 0?
-    naLidx = cellStats(L, sum, na.rm=T) != 0
+    naLidx = raster::cellStats(L, sum, na.rm=T) != 0
     
     L <- L[naLidx]
     
@@ -75,8 +73,8 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
     L2[is.na(L2)] <- 0
     
     # ALL CELLS IN A LIKELIHOOD SURFACE == 0?
-    naL1idx = cellStats(L1, sum, na.rm=T) != 0
-    naL2idx = cellStats(L2, sum, na.rm=T) != 0
+    naL1idx = raster::cellStats(L1, sum, na.rm=T) != 0
+    naL2idx = raster::cellStats(L2, sum, na.rm=T) != 0
     
     # WHERE BOTH ARE ZEROS. THESE WILL BE INTERPOLTED IN THE FILTER
     naLidx = naL1idx + naL2idx
@@ -116,9 +114,9 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
     L3[is.na(L3)] <- 0
     
     # ALL CELLS IN A LIKELIHOOD SURFACE == 0?
-    naL1idx = cellStats(L1, sum, na.rm=T) != 0
-    naL2idx = cellStats(L2, sum, na.rm=T) != 0
-    naL3idx = cellStats(L3, sum, na.rm=T) != 0
+    naL1idx = raster::cellStats(L1, sum, na.rm=T) != 0
+    naL2idx = raster::cellStats(L2, sum, na.rm=T) != 0
+    naL3idx = raster::cellStats(L3, sum, na.rm=T) != 0
     
     # WHERE ALL ARE ZEROS. THESE WILL BE INTERPOLTED IN THE FILTER
     naLidx = naL1idx + naL2idx + naL3idx
@@ -178,14 +176,14 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
     y = which.min((iniloc$lat[1] - lat) ^ 2)
 
     # assign the known location for this day, i, as 1 in likelihood raster
-    L.locs[[1]][cellFromXY(L.locs[[1]], iniloc[1,c(5,4)])] <- 1e20
+    L.locs[[1]][raster::cellFromXY(L.locs[[1]], iniloc[1,c(5,4)])] <- 1e20
     
     # pop up location
     x = which.min((iniloc$lon[2] - lon) ^ 2)
     y = which.min((iniloc$lat[2] - lat) ^ 2)
 
     # assign the known location for this day, i, as 1 in likelihood raster
-    L.locs[[length(dateVec)]][cellFromXY(L.locs[[length(dateVec)]], iniloc[2,c(5,4)])] <- 1e20
+    L.locs[[length(dateVec)]][raster::cellFromXY(L.locs[[length(dateVec)]], iniloc[2,c(5,4)])] <- 1e20
     
     # add known to L
     for(bb in idx){

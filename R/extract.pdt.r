@@ -7,8 +7,6 @@
 #'   
 #' @return data frame formatted for pdt data
 #' 
-#' @examples
-#' none
 
 extract.pdt <- function(pdt){
 

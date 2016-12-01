@@ -28,9 +28,9 @@ calc.errEll <- function(locs, locs.grid){
     
     # calc semi minor axis based on longitude error
     slon.sd <- locs$Error.Semi.minor.axis / 1000 / 111 #semi minor axis
-    L.light.lon <- dnorm(t(g1$X), locs$Longitude, slon.sd) # Longitude data
+    L.light.lon <- stats::dnorm(t(g1$X), locs$Longitude, slon.sd) # Longitude data
     slat.sd <- locs$Error.Semi.major.axis / 1000 / 111 #semi major axis
-    L.light.lat <- dnorm(t(g1$Y), locs$Latitude, slat.sd)
+    L.light.lat <- stats::dnorm(t(g1$Y), locs$Latitude, slat.sd)
     
     #image.plot(g$lon[1,],g$lat[,1],L.light.lat*L.light.lon)
     
@@ -57,7 +57,7 @@ calc.errEll <- function(locs, locs.grid){
     
     # if supposed shift in error ellipse is >10 degrees, we revert to longitude only
     slon.sd <- locs$Error.Semi.minor.axis / 1000 / 111 #semi minor axis
-    L.light <- dnorm(t(locs.grid$lon), locs$Longitude, slon.sd)
+    L.light <- stats::dnorm(t(locs.grid$lon), locs$Longitude, slon.sd)
     
   }
   

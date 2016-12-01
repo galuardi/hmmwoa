@@ -1,19 +1,23 @@
 #' Read and format tag data
 #' 
-#' \code{read.wc} reads and formats tag data output from Wildlife Computers Data Portal
+#' \code{read.wc} reads and formats tag data output from Wildlife Computers Data
+#' Portal
 #' 
 #' @param ptt is individual ID number
 #' @param wd is the directory where your data lives
 #' @param tag is POSIXct object of the tagging date
 #' @param pop is POSIXct object of the pop-up date
-#' @param type is character indicating which type of data to read. Choices are 'sst', 'pdt', 'light' corresponding to those data files output from WC Data Portal
+#' @param type is character indicating which type of data to read. Choices are
+#'   'sst', 'pdt', 'light' corresponding to those data files output from WC Data
+#'   Portal
 #'   
-#' @return a list containing: the data read as a data.frame and a date vector of unique dates in that data
+#' @return a list containing: the data read as a data.frame and a date vector of
+#'   unique dates in that data
 #' @export
 #' @examples
 #' # READ IN TAG DATA
 #' ptt <- '141256'
-#'
+#' 
 #' # TAG/POPUP DATES AND LOCATIONS (dd, mm, YYYY, lat, lon)
 #' iniloc <- data.frame(matrix(c(13, 10, 2015, 41.575, -69.423, 
 #'                              24, 2, 2016, 26.6798, -69.0147), nrow = 2, ncol = 5, byrow = T))
@@ -36,7 +40,7 @@ read.wc <- function(ptt, wd = getwd(), tag, pop, type = 'sst'){
 
   if(type == 'pdt'){
     # READ IN PDT DATA FROM WC FILES
-    data <- read.table(paste(wd, ptt,'-PDTs.csv', sep=''), sep=',',header=T,blank.lines.skip=F, skip = 0)
+    data <- utils::read.table(paste(wd, ptt,'-PDTs.csv', sep=''), sep=',',header=T,blank.lines.skip=F, skip = 0)
     data <- extract.pdt(data)
     dts <- as.POSIXct(data$Date, format = findDateFormat(data$Date))
     d1 <- as.POSIXct('1900-01-02') - as.POSIXct('1900-01-01')
@@ -46,7 +50,7 @@ read.wc <- function(ptt, wd = getwd(), tag, pop, type = 'sst'){
     
   } else if(type == 'sst'){
     # READ IN TAG SST FROM WC FILES
-    data <- read.table(paste(wd, ptt, '-SST.csv', sep=''), sep=',',header=T, blank.lines.skip=F)
+    data <- utils::read.table(paste(wd, ptt, '-SST.csv', sep=''), sep=',',header=T, blank.lines.skip=F)
     dts <- as.POSIXct(data$Date, format = findDateFormat(data$Date))
     d1 <- as.POSIXct('1900-01-02') - as.POSIXct('1900-01-01')
     didx <- dts >= (tag + d1) & dts <= (pop - d1)
@@ -59,7 +63,7 @@ read.wc <- function(ptt, wd = getwd(), tag, pop, type = 'sst'){
     
   } else if(type == 'light'){
     # READ IN LIGHT DATA FROM WC FILES
-    data <- read.table(paste(wd,'/', ptt, '-LightLoc.csv', sep=''), sep=',',header=T, blank.lines.skip=F,skip=2)
+    data <- utils::read.table(paste(wd,'/', ptt, '-LightLoc.csv', sep=''), sep=',',header=T, blank.lines.skip=F,skip=2)
     data <- data[which(!is.na(data[,1])),]
     dts <- as.POSIXct(data$Day, format = findDateFormat(data$Day), tz = 'UTC')
     #if(dts[1] > Sys.Date()){

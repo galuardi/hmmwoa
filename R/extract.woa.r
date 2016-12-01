@@ -16,8 +16,6 @@
 #'   is monthly and spans the entire year. LON/LAT are vectors of lon/lat bounds
 #' @export
 #' 
-#' @examples
-#' none
 
 extract.woa <- function(nc.dir, bbox=NULL, resolution){
   

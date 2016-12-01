@@ -20,7 +20,8 @@
 #' p <- 1/(1+exp(-fit$estimate[5:6])) 
 
 
-get.nll.fun <- function(parvec = c(10, 30, 5, 2, .707, .8), g = g.mle, L = L.mle){ #c(D1, D2, p)c(10, 30, 5, 2, .707, .8)
+get.nll.fun <- function(parvec = c(10, 30, 5, 2, .707, .8), g, L){
+  
   K1 <- gausskern(parvec[1], parvec[2], muadv = 0)
   K2 <- gausskern(parvec[3], parvec[4], muadv = 0)
   P <- matrix(c(parvec[5], 1-parvec[5], 1-parvec[6], parvec[6]), 2, 2, byrow = TRUE)

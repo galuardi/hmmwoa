@@ -7,8 +7,6 @@
 #'   
 #' @return a list of all resampled likelihood rasters and g, the common grid
 #' @export
-#' @examples
-#' none
 #' 
 resample.grid <- function(L.rasters, L.res){
   

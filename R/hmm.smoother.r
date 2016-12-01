@@ -7,10 +7,9 @@
 #' @param P 
 #' @param plot 
 #'
-#' @return
+#' @return smoothed track
 #' @export
 #'
-#' @examples
 hmm.smoother <- function(f, K1, K2, P){
   ## Smoothing the filtered estimates
   ## The equations for smoothing are presented in Pedersen et al. 2011, Oikos, Appendix

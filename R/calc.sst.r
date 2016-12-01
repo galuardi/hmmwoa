@@ -10,18 +10,19 @@
 #' @return likelihood is raster brick of likelihood surfaces representing matches
 #'   between tag-based sst and remotely sensed sst maps
 #' @export
-#' @seealso \code{\link{calc.pdt.int}}, \code{\link{calc.ohc}}
+#' @seealso \code{\link{calc.ohc}}
 #' @examples
 #' # see example script blue256_example.r
 
-calc.sst <- function(tag.sst, sst.dir, dateVec){
+calc.sst <- function(tag.sst, ptt, sst.dir, dateVec){
   
   start.t <- Sys.time()
   
   dts <- as.POSIXct(tag.sst$Date, format = findDateFormat(tag.sst$Date))
   tag.sst[,12] <- as.Date(dts)
-  by_dte <- dplyr::group_by(tag.sst, V12)  # group by unique DAILY time points
-  tag.sst <- data.frame(dplyr::summarise(by_dte, min(Temperature), max(Temperature)))
+  names(tag.sst)[12] <- 'dts'
+  by_dte <- dplyr::group_by(tag.sst, tag.sst$dts)  # group by unique DAILY time points
+  tag.sst <- data.frame(dplyr::summarise(by_dte, min(by_dte$Temperature), max(by_dte$Temperature)))
   colnames(tag.sst) <- list('date', 'minT', 'maxT')
   
   T <- length(tag.sst[,1])
@@ -40,7 +41,7 @@ calc.sst <- function(tag.sst, sst.dir, dateVec){
     # calc sd of SST
     # focal calc on mean temp and write to sd var
     r = raster::flip(raster::raster(t(dat)), 2)
-    sdx = raster::focal(r, w = matrix(1, nrow = 3, ncol = 3), fun = function(x) sd(x, na.rm = T))
+    sdx = raster::focal(r, w = matrix(1, nrow = 3, ncol = 3), fun = function(x) stats::sd(x, na.rm = T))
     sdx = t(raster::as.matrix(raster::flip(sdx, 2)))
 
     # compare sst to that day's tag-based ohc
