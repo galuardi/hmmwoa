@@ -2,7 +2,6 @@
 
 export(calc.sst)
 export(calc.track)
-export(extract.pdt)
 export(extract.woa)
 export(findDateFormat)
 export(gausskern)
