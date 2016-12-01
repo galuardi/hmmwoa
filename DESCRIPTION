@@ -1,14 +1,17 @@
 Package: hmmwoa
 Type: Package
-Title: bones of a hidden markov model for psat data
-Version: 1.0
-Date: 2015-04-14
+Title: Improved Analysis of Marine Animal Movement Data Using Hidden Markov Models
+Version: 0.0.0.9000
+Date: 2016-12-01
 Authors@R: c(
-              person("Benjamin", "Galuardi", email = "drdrumfish@gmail.com", role = c("aut")),
-              person("Camrin", "Braun", email = "camrin.braun@gmail.com", role = c("aut","cre"))
+              person("Camrin", "Braun", email = "camrin.braun@gmail.com", role = c("aut","cre")),
+              person("Benjamin", "Galuardi", email = "drdrumfish@gmail.com", role = c("aut"))
               )
-Description: this will be the HMM using WOA data. The guts follow Pedersen et
-    al. 2008
+Description: Improved analysis of marine animal movement data by implementing 
+    a state-space hidden Markov model (HMM) to improve position estimates. 
+    Position estimates are derived by comparing electronic tag data (from tags
+    deployed on marine animals, typically fish) to three-dimensional oceanographic
+    data.
 License: MIT
 Depends: 
     raster,
@@ -21,9 +24,10 @@ Imports:
     locfit,
     RNetCDF,
     rworldmap
-RoxygenNote: 5.0.1
-BugReports: https://github.com/galuardi/hmmwoa/issues
-LazyData: true
 Suggests: knitr,
     rmarkdown
+RoxygenNote: 5.0.1
+URL: http://www.camrinbraun.com/HMMoce/
+BugReports: https://github.com/camrinbraun/HMMoce/issues
+LazyData: true
 VignetteBuilder: knitr
