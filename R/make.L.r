@@ -11,13 +11,16 @@
 #'   
 #' @return a list containing: L, the overall likelihood array and L.mle, a more coarse version of L used later for parameter estimation
 #' 
+#' @note 
+#' This function currently only supports the use of 3 input likelihood data sources. This will be expanded in the future based on user needs.
+#' 
 #' @examples
 #' none
 
 make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateVec = NULL, locs.grid = NULL, iniloc = NULL){
 
   if(!is.null(known.locs)){
-    print('known locs are being used')
+    print('Input known locationss are being used...')
     # convert input date, lat, lon to likelihood surfaces with dim(L1)
     L.locs <- L1 * 0
     known.locs$date <- as.Date(known.locs$date)
@@ -41,7 +44,7 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
       x = which.min((known.locs.i$lon - lon) ^ 2)
       y = which.min((known.locs.i$lat - lat) ^ 2)
 
-      # assign the known location for this day, i, as 1 in likelihood raster
+      # assign the known location for this day, i, as 1e20 (known) in likelihood raster
       L.locs[[i]][cellFromXY(L.locs[[idx]], known.locs.i[,c(3,2)])] <- 1e20
       
     }
@@ -49,7 +52,7 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
   }
   
   if(is.null(L2) & is.null(L3)){
-    print('entering L1 loop')
+    print('One likelihood raster has been specified...')
     
     L <- L1
     
@@ -62,9 +65,7 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
     L <- L[naLidx]
     
   } else if(!is.null(L2) & is.null(L3)){
-    print('entering L2 loop')
-    
-    # then there were 2
+    print('Two likelihood rasters have been specified...')
     
     # MAKE AN ARRAY OF ZEROS
     L <- L1 * 0
@@ -104,9 +105,7 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
     
 
   } else if(!is.null(L2) & !is.null(L3)){
-    print('entering L2 and L3 loop')
-    
-    # then there were 3
+    print('Three likelihood rasters have been specified...')
     
     # MAKE AN ARRAY OF ZEROS
     L <- L1 * 0
@@ -153,16 +152,15 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
   }
   
   if(!is.null(known.locs)){
-    print('entering known.locs loop at the end')
-    print(known.locs)
-    print(!is.null('known.locs'))
+    print('Finalizing known locations...')
+    #print(known.locs)
+    #print(!is.null('known.locs'))
      for(bb in idx){
        L[[bb]] <- L.locs[[bb]]
      }
   }
   
   if(!is.null(iniloc)){
-    print('entering iniloc loop at the end')
     
     if(!exists('L.locs')){
       L.locs <- L1 * 0
@@ -178,15 +176,14 @@ make.L <- function(L1, L2 = NULL, L3 = NULL, known.locs = NULL, L.mle.res, dateV
     # tag location
     x = which.min((iniloc$lon[1] - lon) ^ 2)
     y = which.min((iniloc$lat[1] - lat) ^ 2)
-    print(paste('tag',x,y))
+
     # assign the known location for this day, i, as 1 in likelihood raster
     L.locs[[1]][cellFromXY(L.locs[[1]], iniloc[1,c(5,4)])] <- 1e20
     
     # pop up location
     x = which.min((iniloc$lon[2] - lon) ^ 2)
     y = which.min((iniloc$lat[2] - lat) ^ 2)
-    print(paste('pop',x,y))
-    
+
     # assign the known location for this day, i, as 1 in likelihood raster
     L.locs[[length(dateVec)]][cellFromXY(L.locs[[length(dateVec)]], iniloc[2,c(5,4)])] <- 1e20
     
