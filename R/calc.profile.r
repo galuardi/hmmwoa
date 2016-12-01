@@ -18,7 +18,7 @@
 #' @param dateVec is vector of dates from tag to pop-up in 1 day increments.
 #' @param envType is character indicating whether to compare tag-based profile to World Ocean Atlas ('woa') or HYCOM ('hycom').
 #' @param hycom.dir is path to stored HYCOM model outputs if envType = 'hycom'
-#' 
+#' @export
 #' @return raster of likelihoods for depth-temp profile
 #'        matching between tag data and oceanographic profiles
 #'   

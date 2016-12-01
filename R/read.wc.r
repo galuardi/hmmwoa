@@ -9,7 +9,7 @@
 #' @param type is character indicating which type of data to read. Choices are 'sst', 'pdt', 'light' corresponding to those data files output from WC Data Portal
 #'   
 #' @return a list containing: the data read as a data.frame and a date vector of unique dates in that data
-#' 
+#' @export
 #' @examples
 #' # READ IN TAG DATA
 #' ptt <- '141256'

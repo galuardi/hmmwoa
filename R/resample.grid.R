@@ -6,7 +6,7 @@
 #'   of all likelihood rasters. 
 #'   
 #' @return a list of all resampled likelihood rasters and g, the common grid
-#' 
+#' @export
 #' @examples
 #' none
 #' 

@@ -12,6 +12,7 @@
 #' @return likelihood is raster brick of likelihood surfaces representing 
 #'   estimated position based on tag-based OHC compared to calculated OHC using 
 #'   HYCOM
+#' @export
 #' @example 
 #' # see example script, blue256_example.r
 

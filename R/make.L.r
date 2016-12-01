@@ -10,7 +10,7 @@
 #' @param plot is logical indicating whether you want an example plot
 #'   
 #' @return a list containing: L, the overall likelihood array and L.mle, a more coarse version of L used later for parameter estimation
-#' 
+#' @export
 #' @note 
 #' This function currently only supports the use of 3 input likelihood data sources. This will be expanded in the future based on user needs.
 #' 

@@ -9,6 +9,7 @@
 #' @param locs.grid is list output from \code{setup.locs.grid}
 #' @param dateVec is vector of dates from tag to pop-up in 1 day increments.
 #' @param res is resolution of light grid in degrees. default is 1 deg. higher resolution (e.g. res = .25 for 1/4 deg) takes considerably longer to compute
+#' @export
 #' @return L is a raster of dim(lon x lat x dateVec) containing likelihood surfaces for each
 #'   time point
 

@@ -20,8 +20,11 @@
 #'   if only longitude should be used. If False, standard deviation on light 
 #'   measurements is currently fixed at 0.7 deg longitude following Musyl et al 
 #'   2001. Default is FALSE and will use longitude only.
-#' @param gpeOnly is logical. If TRUE, locs input is trimmed to GPE positions only. This is most applicable in scenarios with FastGPS data and you're adding this as a gps input (see "gps" argument).
-#' @return L is an array of lon x lat likelihood surfaces (matrices) for each
+#' @param gpeOnly is logical. If TRUE, locs input is trimmed to GPE positions
+#'   only. This is most applicable in scenarios with FastGPS data and you're
+#'   adding this as a gps input (see "gps" argument).
+#' @export
+#' @return L is an array of lon x lat likelihood surfaces (matrices) for each 
 #'   time point (3rd dimension)
 
 calc.locs <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = TRUE, gpeOnly = TRUE){
@@ -73,9 +76,9 @@ calc.locs <- function(locs, gps = NULL, iniloc, locs.grid, dateVec, errEll = TRU
   ela <- which.min(abs(locs.grid$lat[,1] - iniloc$lat[2]))
   L.locs[elo, ela, length(dateVec)] <- 1  # End location is known
 
+  print(paste('Starting iterations through deployment period...'))
+  
   for(t in 2:(length(dateVec)) - 1){
-    
-    print(paste('Starting iterations through deployment period...'))
     
     if(!is.null(gps) & dateVec[t] %in% gpsDates){
       
