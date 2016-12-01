@@ -13,6 +13,8 @@ Description: Improved analysis of marine animal movement data by implementing
     deployed on marine animals, typically fish) to three-dimensional oceanographic
     data.
 License: MIT
+Depends:
+    R (>= 2.10)
 Imports: 
     raster,
     imager,
@@ -22,7 +24,8 @@ Imports:
     fields,
     locfit,
     RNetCDF,
-    rworldmap
+    rworldmap,
+    sp
 Suggests: knitr,
     rmarkdown
 RoxygenNote: 5.0.1
